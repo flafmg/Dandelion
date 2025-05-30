@@ -1,64 +1,29 @@
-package org.dandelion.classic.server.config.model
+package org.dandelion.classic.data.config.model
 
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.FileWriter
-import java.io.InputStream
+import org.dandelion.classic.data.config.stream.YamlStream
 
 class PermissionsConfig(private val configFileName: String = "permissions.yml") {
+    private val yaml = YamlStream(configFileName)
     private var permissions: MutableMap<String, MutableSet<String>> = mutableMapOf()
     private var defaults: MutableSet<String> = mutableSetOf()
 
     fun load() {
-        val file = File(configFileName)
-        if (!file.exists()) {
-            val resource: InputStream? = javaClass.classLoader.getResourceAsStream(configFileName)
-            if (resource != null) {
-                resource.use { input ->
-                    FileOutputStream(file).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-        }
-        try {
-            FileInputStream(file).use { inputStream ->
-                val yaml = Yaml()
-                val loaded = yaml.load<Map<String, Any>>(inputStream)
-                val perms = (loaded?.get("permissions") as? Map<*, *>)?.mapValues { (it.value as? List<*>)?.mapNotNull { v -> v?.toString() }?.toMutableSet() ?: mutableSetOf() }?.mapKeys { it.key.toString() }?.toMutableMap() ?: mutableMapOf()
-                val defs = (loaded?.get("defaults") as? List<*>)?.mapNotNull { it?.toString() }?.toMutableSet() ?: mutableSetOf()
-                permissions = perms
-                defaults = defs
-            }
-        } catch (_: Exception) {
-            permissions = mutableMapOf()
-            defaults = mutableSetOf("level.list", "level.go", "online")
-        }
+        yaml.load()
+        val permsMap = yaml.getMap("permissions")
+        permissions = permsMap.mapValues { (it.value as? List<*>)?.mapNotNull { v -> v?.toString() }?.toMutableSet() ?: mutableSetOf() }
+            .mapKeys { it.key }
+            .toMutableMap()
+        defaults = yaml.getList("defaults").mapNotNull { it?.toString() }.toMutableSet()
+        if (defaults.isEmpty()) defaults = mutableSetOf("level.list", "level.go", "online")
     }
 
     fun reload() = load()
 
     fun save(): Boolean {
         return try {
-            val option = DumperOptions().apply {
-                defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-                isPrettyFlow = true
-                defaultScalarStyle = DumperOptions.ScalarStyle.PLAIN
-                indent = 2
-                indicatorIndent = 2
-                width = 80
-            }
-            val yaml = Yaml(option)
-            val toSave = mapOf(
-                "permissions" to permissions.mapValues { it.value.sorted() },
-                "defaults" to defaults.sorted()
-            )
-            FileWriter(configFileName).use { writer ->
-                yaml.dump(toSave, writer)
-            }
+            yaml.set("permissions", permissions.mapValues { it.value.sorted() })
+            yaml.set("defaults", defaults.sorted())
+            yaml.save()
             true
         } catch (_: Exception) { false }
     }

@@ -1,9 +1,9 @@
-package org.dandelion.classic.server.config.manager
+package org.dandelion.classic.data.config.manager
 
-import org.dandelion.classic.server.config.model.BansConfig
-import org.dandelion.classic.server.config.model.OpsConfig
-import org.dandelion.classic.server.config.model.PermissionsConfig
-import org.dandelion.classic.server.config.model.ServerConfig
+import org.dandelion.classic.data.config.model.BansConfig
+import org.dandelion.classic.data.config.model.OpsConfig
+import org.dandelion.classic.data.config.model.PermissionsConfig
+import org.dandelion.classic.data.config.model.ServerConfig
 
 object ServerConfigManager {
     val serverConfig = ServerConfig()

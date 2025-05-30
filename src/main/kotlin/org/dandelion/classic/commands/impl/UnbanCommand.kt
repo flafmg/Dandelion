@@ -1,8 +1,8 @@
-package org.dandelion.classic.server.commands.impl
+package org.dandelion.classic.commands.impl
 
-import org.dandelion.classic.server.commands.model.Command
-import org.dandelion.classic.server.commands.model.CommandExecutor
-import org.dandelion.classic.server.config.manager.ServerConfigManager
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.data.config.manager.ServerConfigManager
 
 class UnbanCommand : Command {
     override val name = "unban"

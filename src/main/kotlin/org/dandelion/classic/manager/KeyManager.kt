@@ -1,4 +1,4 @@
-package org.dandelion.classic.server.manager
+package org.dandelion.classic.manager
 
 import java.security.SecureRandom
 

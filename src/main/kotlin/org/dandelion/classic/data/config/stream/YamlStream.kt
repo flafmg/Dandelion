@@ -15,7 +15,9 @@ class YamlStream(private val fileName: String) {
 
     fun load() {
         val file = File(fileName)
+        file.parentFile?.mkdirs()
         if (!file.exists()) {
+            file.createNewFile()
             save()
         }
         data = try {
@@ -30,6 +32,9 @@ class YamlStream(private val fileName: String) {
     }
 
     fun save() {
+        val file = File(fileName)
+        file.parentFile?.mkdirs()
+        if (!file.exists()) file.createNewFile()
         val option = DumperOptions().apply {
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
             isPrettyFlow = true

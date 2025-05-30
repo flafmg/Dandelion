@@ -1,9 +1,7 @@
-package org.dandelion.classic.server.packets.server
+package org.dandelion.classic.packets.server
 
-import io.netty.channel.ChannelHandlerContext
-import org.dandelion.classic.server.packets.model.Packet
+import org.dandelion.classic.packets.model.Packet
 import io.netty.channel.Channel
-import org.dandelion.classic.server.events.packetEvents.manager.PacketEventManager
 
 class LevelInitialize : Packet() {
     override val id: Byte = 0x02
@@ -13,7 +11,7 @@ class LevelInitialize : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        if (!PacketEventManager.fireSend(this, channel)) return
+       
         sendNetty(channel)
     }
 }

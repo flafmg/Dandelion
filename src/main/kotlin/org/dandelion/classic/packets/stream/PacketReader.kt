@@ -1,4 +1,4 @@
-package org.dandelion.classic.server.packets.stream
+package org.dandelion.classic.packets.stream
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets

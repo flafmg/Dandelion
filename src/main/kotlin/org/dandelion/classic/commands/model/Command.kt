@@ -1,4 +1,4 @@
-package org.dandelion.classic.server.commands.model
+package org.dandelion.classic.commands.model
 
 interface Command {
     val name: String

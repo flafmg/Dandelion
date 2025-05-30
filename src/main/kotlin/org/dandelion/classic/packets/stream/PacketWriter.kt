@@ -1,4 +1,4 @@
-package org.dandelion.classic.server.packets.stream
+package org.dandelion.classic.packets.stream
 
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer

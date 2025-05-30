@@ -1,12 +1,12 @@
-package org.dandelion.classic.server.data.level.io.model
+package org.dandelion.classic.data.level.io.model
 
-import org.dandelion.classic.server.data.level.model.Level
+import org.dandelion.classic.data.level.model.Level
 
 interface LevelSerializer {
-    fun serialize(level: Level): ByteArray
+    fun serialize(level: Level, path: String)
 }
 
 interface LevelDeserializer {
-    fun deserialize(data: ByteArray, id: String): Level
+    fun deserialize(path: String): Level
 }
 

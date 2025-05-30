@@ -1,9 +1,9 @@
-package org.dandelion.classic.server.commands.manager
+package org.dandelion.classic.commands.manager
 
-import org.dandelion.classic.server.commands.impl.*
-import org.dandelion.classic.server.commands.model.Command
-import org.dandelion.classic.server.commands.model.CommandExecutor
-import org.dandelion.classic.server.util.Logger
+import org.dandelion.classic.commands.impl.*
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.util.Logger
 
 object CommandRegistry {
     private val commands = mutableMapOf<String, Command>()
@@ -23,6 +23,7 @@ object CommandRegistry {
         register(RemovePermCommand())
         register(GetPermsCommand())
         register(CommandsCommand())
+        register(SayCommand())
     }
 
     fun register(command: Command) {

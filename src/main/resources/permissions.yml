@@ -1,5 +1,6 @@
-ldefault:
-  - level.list
-  - level.go
-  - online
-
+permissions: {}
+defaults:
+  - dandelion.server.level
+  - dandelion.server.level.list
+  - dandelion.server.level.go
+  - dandelion.server.online

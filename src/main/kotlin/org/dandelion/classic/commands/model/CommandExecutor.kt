@@ -1,4 +1,4 @@
-package org.dandelion.classic.server.commands.model
+package org.dandelion.classic.commands.model
 
 interface CommandExecutor {
     fun sendMessage(message: String)

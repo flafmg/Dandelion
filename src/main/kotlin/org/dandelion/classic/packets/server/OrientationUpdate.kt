@@ -1,8 +1,7 @@
-package org.dandelion.classic.server.packets.server
+package org.dandelion.classic.packets.server
 
-import io.netty.channel.ChannelHandlerContext
-import org.dandelion.classic.server.packets.model.Packet
-import org.dandelion.classic.server.packets.stream.PacketWriter
+import org.dandelion.classic.packets.model.Packet
+import org.dandelion.classic.packets.stream.PacketWriter
 import io.netty.channel.Channel
 
 class OrientationUpdate(

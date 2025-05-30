@@ -1,8 +1,9 @@
-package org.dandelion.classic.server.data.level.io.impl
+package org.dandelion.classic.data.level.io.impl
 
-import org.dandelion.classic.server.data.level.io.model.LevelSerializer
-import org.dandelion.classic.server.data.level.io.model.LevelDeserializer
-import org.dandelion.classic.server.data.level.model.Level
+import org.dandelion.classic.data.level.io.model.LevelSerializer
+import org.dandelion.classic.data.level.io.model.LevelDeserializer
+import org.dandelion.classic.data.level.model.Level
+import org.dandelion.classic.data.config.stream.YamlStream
 import org.yaml.snakeyaml.Yaml
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -11,9 +12,7 @@ import java.util.zip.GZIPOutputStream
 import java.util.Base64
 
 class DandelionLevelSerializer : LevelSerializer {
-    override fun serialize(level: Level): ByteArray {
-        val yaml = Yaml()
-        val out = ByteArrayOutputStream()
+    override fun serialize(level: Level, path: String) {
         val blocksCompressed = ByteArrayOutputStream().use { baos ->
             GZIPOutputStream(baos).use { gzip ->
                 gzip.write(level.blocks)
@@ -21,40 +20,34 @@ class DandelionLevelSerializer : LevelSerializer {
             baos.toByteArray()
         }
         val blocksBase64 = Base64.getEncoder().encodeToString(blocksCompressed)
-        val map = mapOf(
-            "id" to level.id,
-            "sizeX" to level.sizeX,
-            "sizeY" to level.sizeY,
-            "sizeZ" to level.sizeZ,
-            "spawnX" to level.spawnX,
-            "spawnY" to level.spawnY,
-            "spawnZ" to level.spawnZ,
-            "seed" to level.seed,
-            "blocks" to blocksBase64,
-            "autoSaveInterval" to level.autoSaveInterval
-        )
-        yaml.dump(map, out.writer())
-        return out.toByteArray()
+        val yamlStream = YamlStream(path)
+        yamlStream.set("id", level.id)
+        yamlStream.set("sizeX", level.sizeX)
+        yamlStream.set("sizeY", level.sizeY)
+        yamlStream.set("sizeZ", level.sizeZ)
+        yamlStream.set("spawnX", level.spawnX)
+        yamlStream.set("spawnY", level.spawnY)
+        yamlStream.set("spawnZ", level.spawnZ)
+        yamlStream.set("seed", level.seed)
+        yamlStream.set("autoSaveInterval", level.autoSaveInterval)
+        yamlStream.set("blocks", blocksBase64)
+        yamlStream.save() // Salva o arquivo diretamente
     }
 }
 
 class DandelionLevelDeserializer : LevelDeserializer {
-    override fun deserialize(data: ByteArray, id: String): Level {
-        val yaml = Yaml()
-        val map = yaml.load<Map<String, Any>>(data.inputStream().reader())
-        val levelId = (map["id"] as? String) ?: id
-        val sizeX = (map["sizeX"] as Int).toShort()
-        val sizeY = (map["sizeY"] as Int).toShort()
-        val sizeZ = (map["sizeZ"] as Int).toShort()
-        val spawnX = (map["spawnX"] as Double).toFloat()
-        val spawnY = (map["spawnY"] as Double).toFloat()
-        val spawnZ = (map["spawnZ"] as Double).toFloat()
-        val seed = (map["seed"] as Number).toLong()
-        val blocksBase64 = when (val blocksField = map["blocks"]) {
-            is String -> blocksField
-            is ByteArray -> Base64.getEncoder().encodeToString(blocksField)
-            else -> throw IllegalArgumentException("Invalid blocks field in YAML: $blocksField")
-        }
+    override fun deserialize(path: String): Level {
+        val yamlStream = YamlStream(path)
+        val levelId = yamlStream.getString("id") ?: "none"
+        val sizeX = yamlStream.getInt("sizeX")?.toShort() ?: 0
+        val sizeY = yamlStream.getInt("sizeY")?.toShort() ?: 0
+        val sizeZ = yamlStream.getInt("sizeZ")?.toShort() ?: 0
+        val spawnX = yamlStream.get("spawnX")?.toString()?.toFloatOrNull() ?: 0f
+        val spawnY = yamlStream.get("spawnY")?.toString()?.toFloatOrNull() ?: 0f
+        val spawnZ = yamlStream.get("spawnZ")?.toString()?.toFloatOrNull() ?: 0f
+        val seed = yamlStream.get("seed")?.toString()?.toLongOrNull() ?: 0L
+        val autoSaveInterval = yamlStream.getInt("autoSaveInterval") ?: 90
+        val blocksBase64 = yamlStream.getString("blocks") ?: ""
         val blocksCompressed = Base64.getDecoder().decode(blocksBase64)
         val blocks = GZIPInputStream(ByteArrayInputStream(blocksCompressed)).readBytes()
         return Level(
@@ -67,8 +60,11 @@ class DandelionLevelDeserializer : LevelDeserializer {
             spawnZ = spawnZ,
             seed = seed,
             blocks = blocks,
-            autoSaveInterval = (map["autoSaveInterval"] as? Int) ?: 90
+            autoSaveInterval = autoSaveInterval
         )
     }
 }
+
+
+
 

@@ -1,9 +1,10 @@
-package org.dandelion.classic.server.commands.impl
+package org.dandelion.classic.commands.impl
 
-import org.dandelion.classic.server.commands.model.Command
-import org.dandelion.classic.server.commands.model.CommandExecutor
-import org.dandelion.classic.server.data.player.manager.PlayerManager
-import org.dandelion.classic.server.data.player.model.Player
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.data.level.manager.LevelManager
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.data.player.manager.PlayerManager
+import org.dandelion.classic.data.player.model.Player
 
 class TeleportCommand : Command {
     override val name = "teleport"
@@ -40,7 +41,7 @@ class TeleportCommand : Command {
                 return
             }
             if (player.levelId != target.levelId) {
-                target.changeLevel(org.dandelion.classic.server.data.level.manager.LevelManager.getLevel(player.levelId)!!)
+                target.changeLevel(LevelManager.getLevel(player.levelId)!!)
             }
             target.teleport(player.posX, player.posY, player.posZ, player.yaw, player.pitch)
             executor.sendMessage("Teleported to ${player.userName}.")
@@ -55,7 +56,7 @@ class TeleportCommand : Command {
                 return
             }
             if (player.levelId != target.levelId) {
-                player.changeLevel(org.dandelion.classic.server.data.level.manager.LevelManager.getLevel(target.levelId)!!)
+                player.changeLevel(LevelManager.getLevel(target.levelId)!!)
             }
             player.teleport(target.posX, target.posY, target.posZ, target.yaw, target.pitch)
             executor.sendMessage("Teleported ${player.userName} to ${target.userName}.")

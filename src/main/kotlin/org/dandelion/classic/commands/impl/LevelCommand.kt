@@ -1,10 +1,10 @@
-package org.dandelion.classic.server.commands.impl
+package org.dandelion.classic.commands.impl
 
-import org.dandelion.classic.server.commands.model.Command
-import org.dandelion.classic.server.commands.model.CommandExecutor
-import org.dandelion.classic.server.data.level.manager.LevelManager
-import org.dandelion.classic.server.data.level.generator.manager.GeneratorManager
-import org.dandelion.classic.server.data.player.model.Player
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.data.level.manager.LevelManager
+import org.dandelion.classic.data.level.generator.manager.GeneratorManager
+import org.dandelion.classic.data.player.model.Player
 
 class LevelCommand : Command {
     override val name = "level"
@@ -13,7 +13,7 @@ class LevelCommand : Command {
 
     override fun onExecute(executor: CommandExecutor, args: List<String>) {
         if (args.isEmpty()) {
-            executor.sendMessage("Usage: /level <list|go|create> ...")
+            executor.sendMessage("Usage: /level <list|go|create|unload|load> ...")
             return
         }
         when (args[0].lowercase()) {
@@ -38,7 +38,21 @@ class LevelCommand : Command {
                 }
                 handleCreate(executor, args.drop(1))
             }
-            else -> executor.sendMessage("&cUnknown subcommand. Use /level <list|go|create>")
+            "unload" -> {
+                if (!executor.hasPermission("dandelion.server.level.unload")) {
+                    executor.sendMessage("&cYou do not have permission to use this command.")
+                    return
+                }
+                handleUnload(executor, args.drop(1))
+            }
+            "load" -> {
+                if (!executor.hasPermission("dandelion.server.level.load")) {
+                    executor.sendMessage("&cYou do not have permission to use this command.")
+                    return
+                }
+                handleLoad(executor, args.drop(1))
+            }
+            else -> executor.sendMessage("&cUnknown subcommand. Use /level <list|go|create|unload|load>")
         }
     }
 
@@ -75,7 +89,7 @@ class LevelCommand : Command {
 
     private fun handleCreate(executor: CommandExecutor, args: List<String>) {
         if (args.size < 9) {
-            executor.sendMessage("Usage: /level create <id> <x> <y> <z> <spawnx> <spawny> <spawnz> <generator> <seed>")
+            executor.sendMessage("Usage: /level create <id> <x> <y> <z> <spawnx> <spawny> <spawnz> <generator> <seed> [params]")
             return
         }
         val id = args[0]
@@ -87,6 +101,7 @@ class LevelCommand : Command {
         val spawnz = args[6].toFloatOrNull()
         val generator = args[7]
         val seed = args[8].toLongOrNull() ?: 0L
+        val params = if (args.size > 9) args.drop(9).joinToString(" ") else ""
 
         if (x == null || y == null || z == null || spawnx == null || spawny == null || spawnz == null) {
             executor.sendMessage("Invalid coordinates or size.")
@@ -105,8 +120,50 @@ class LevelCommand : Command {
             executor.sendMessage("Spawn coordinates are out of bounds.")
             return
         }
-        LevelManager.createLevel(id, x, y, z, spawnx, spawny, spawnz, seed, generator)
+        LevelManager.createLevel(id, x, y, z, spawnx, spawny, spawnz, seed, generator, params)
         executor.sendMessage("Level '$id' created successfully.")
     }
-}
 
+    private fun handleUnload(executor: CommandExecutor, args: List<String>) {
+        if (args.isEmpty()) {
+            executor.sendMessage("Usage: /level unload <id>")
+            return
+        }
+        val id = args[0]
+        if (LevelManager.getLevel(id) == null) {
+            executor.sendMessage("Level '$id' is not loaded.")
+            return
+        }
+        if (LevelManager.getDefaultJoinLevel()?.id == id) {
+            executor.sendMessage("You cannot unload the default join level.")
+            return
+        }
+        LevelManager.getLevel(id)?.kickAll("Level unloaded")
+        LevelManager.unloadLevel(id)
+        executor.sendMessage("Level '$id' unloaded.")
+    }
+
+    private fun handleLoad(executor: CommandExecutor, args: List<String>) {
+        if (args.isEmpty()) {
+            executor.sendMessage("Usage: /level load <id>")
+            return
+        }
+        val id = args[0]
+        if (LevelManager.getLevel(id) != null) {
+            executor.sendMessage("Level '$id' is already loaded.")
+            return
+        }
+        val path = "levels/$id.dlvl"
+        val file = java.io.File(path)
+        if (!file.exists()) {
+            executor.sendMessage("Level file '$id.dlvl' not found in levels directory.")
+            return
+        }
+        try {
+            LevelManager.loadLevel(id)
+            executor.sendMessage("Level '$id' loaded.")
+        } catch (e: Exception) {
+            executor.sendMessage("Failed to load level '$id': ${e.message}")
+        }
+    }
+}

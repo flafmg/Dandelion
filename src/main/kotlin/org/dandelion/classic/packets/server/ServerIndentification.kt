@@ -1,12 +1,10 @@
-package org.dandelion.classic.server.packets.server
+package org.dandelion.classic.packets.server
 
-import io.netty.channel.ChannelHandlerContext
-import org.dandelion.classic.server.Server
-import org.dandelion.classic.server.packets.model.Packet
-import org.dandelion.classic.server.packets.stream.PacketWriter
+import org.dandelion.classic.Server
+import org.dandelion.classic.packets.model.Packet
+import org.dandelion.classic.packets.stream.PacketWriter
 import io.netty.channel.Channel
-import org.dandelion.classic.server.config.manager.ServerConfigManager
-import org.dandelion.classic.server.events.packetEvents.manager.PacketEventManager
+import org.dandelion.classic.data.config.manager.ServerConfigManager
 
 class ServerIndentification : Packet() {
     override val id: Byte = 0x00
@@ -30,7 +28,7 @@ class ServerIndentification : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        if (!PacketEventManager.fireSend(this, channel)) return
+       
         sendNetty(channel)
     }
 }

@@ -1,7 +1,7 @@
-package org.dandelion.classic.server.manager
+package org.dandelion.classic.manager
 
-import org.dandelion.classic.server.data.player.manager.PlayerManager
-import org.dandelion.classic.server.util.Logger
+import org.dandelion.classic.data.player.manager.PlayerManager
+import org.dandelion.classic.util.Logger
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -9,7 +9,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import org.dandelion.classic.server.config.model.ServerConfig
+import org.dandelion.classic.data.config.model.ServerConfig
 
 class HeartbeatManager(private val config: ServerConfig, private val getSalt: () -> String, private val getServerSoftware: () -> String) {
     private val isRunning = AtomicBoolean(false)

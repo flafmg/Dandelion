@@ -1,18 +1,17 @@
-package org.dandelion.classic.server.data.level.manager
+package org.dandelion.classic.data.level.manager
 
-import kotlinx.coroutines.*
-import org.dandelion.classic.server.Server
-import org.dandelion.classic.server.data.level.generator.manager.GeneratorManager
-import org.dandelion.classic.server.data.level.model.Level
-import org.dandelion.classic.server.util.Logger
-import org.dandelion.classic.server.data.player.model.Player
-import org.dandelion.classic.server.packets.server.ServerSetBlock
-import org.dandelion.classic.server.data.level.io.impl.DandelionLevelSerializer
+import org.dandelion.classic.data.level.generator.manager.GeneratorManager
+import org.dandelion.classic.data.level.model.Level
+import org.dandelion.classic.util.Logger
+import org.dandelion.classic.data.player.model.Player
+import org.dandelion.classic.packets.server.ServerSetBlock
+import org.dandelion.classic.data.level.io.impl.DandelionLevelSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dandelion.classic.data.level.io.impl.DandelionLevelDeserializer
 
 object LevelManager {
     private val levels = mutableMapOf<String, Level>()
@@ -31,11 +30,11 @@ object LevelManager {
         if (level.autoSaveInterval > 0) {
             val job = coroutineScope.launch {
                 val serializer = DandelionLevelSerializer()
-                val file = java.io.File("levels/${level.id}.dlvl")
+                val path = "levels/${level.id}.dlvl"
                 while (true) {
                     delay(level.autoSaveInterval * 1000L)
                     try {
-                        file.writeBytes(level.serialize(serializer))
+                        serializer.serialize(level, path)
                         Logger.debugLog("level ${level.id} auto-saved")
                     } catch (e: Exception) {
                         Logger.errLog("Failed to auto-save level ${level.id}: ${e.message}")
@@ -46,7 +45,7 @@ object LevelManager {
         }
     }
 
-    fun createLevel(id: String, sizeX: Short, sizeY: Short, sizeZ: Short, spawnX: Float = 0f, spawnY: Float = 0f, spawnZ: Float = 0f, seed: Long, generator: String = "flat_room", params: String = ""){
+    fun createLevel(id: String, sizeX: Short, sizeY: Short, sizeZ: Short, spawnX: Float = 0f, spawnY: Float = 0f, spawnZ: Float = 0f, seed: Long, generator: String = "flat", params: String = ""){
 
         if(getLevel(id) != null){
             Logger.errLog("Attempted to generate an level with existing ID.")
@@ -62,6 +61,7 @@ object LevelManager {
         Logger.log("Generating level '$id'")
         gen.generate(level, params);
 
+        level.serialize(DandelionLevelSerializer(),"levels/${level.id}.dlvl")
         addLevel(level)
     }
     fun getLevel(id: String): Level? = levels[id]
@@ -69,11 +69,11 @@ object LevelManager {
     fun getDefaultJoinLevel(): Level? = getLevel(defaultLevel)
 
     fun setDefaultJoinLevel(id: String) {
-        if (levels.containsKey(id)) {
-            defaultLevel = id
+        defaultLevel = id
+        if(levels.containsKey(id)) {
             Logger.infoLog("Default level set: $id")
-        } else {
-            Logger.errLog("Level not found: $id")
+        }else{
+            Logger.warnLog("Deafault level $id is not present, create or load a level with this id.")
         }
     }
 
@@ -94,10 +94,24 @@ object LevelManager {
         }
     }
 
-    fun setBlock(levelId: String, x: Short, y: Short, z: Short, blockType: Byte, mode: Byte) {
+    fun setBlockAsPlayer(player: Player, x: Short, y: Short, z: Short, blockType: Byte, mode: Byte) {
+        val levelId = player.levelId
+
+        //minecraft classic uses a default range of 160 units, one unit is 1/32th of a block
+        val dx = (player.posX / 32f) - x
+        val dy = (player.posY / 32f) - y
+        val dz = (player.posZ / 32f) - z
+        val distance = Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble())
+        val maxDist = 160 // this is temporary until we add cpe
+
         val finalBlockType = if (mode == 0x00.toByte()) 0x00.toByte() else blockType
         val level = getLevel(levelId) ?: return
-        level.setBlock(x.toInt(), y.toInt(), z.toInt(), finalBlockType)
+
+        // so people cant add blcoks anywhere just sending a packet, they need to be in range!
+        if(distance <= 160.0) {
+            level.setBlock(x.toInt(), y.toInt(), z.toInt(), finalBlockType)
+        }
+
         val players = level.getPlayers()
         players.forEach { player ->
             ServerSetBlock(x, y, z, finalBlockType).resolve(player.channel)
@@ -110,13 +124,11 @@ object LevelManager {
             Logger.errLog("Level directory '$path' does not exist or is not a directory.")
             return
         }
-        val deserializer = org.dandelion.classic.server.data.level.io.impl.DandelionLevelDeserializer()
+        val deserializer = DandelionLevelDeserializer()
         val files = dir.listFiles { f -> f.isFile && f.name.endsWith(".dlvl") } ?: emptyArray()
         for (file in files) {
             try {
-                val id = file.name.removeSuffix(".dlvl")
-                val data = file.readBytes()
-                val level = Level.deserialize(data, id, deserializer)
+                val level = Level.deserialize(file.path, deserializer)
                 addLevel(level)
                 Logger.log("Loaded level: ${level.id} from ${file.name}")
             } catch (e: Exception) {
@@ -124,4 +136,19 @@ object LevelManager {
             }
         }
     }
+
+    fun unloadLevel(id: String) {
+        autoSaveJobs[id]?.cancel()
+        autoSaveJobs.remove(id)
+        levels.remove(id)
+        Logger.infoLog("Level unloaded: $id")
+    }
+
+    fun loadLevel(id: String) {
+        val path = "levels/$id.dlvl"
+        val deserializer = DandelionLevelDeserializer()
+        val level = Level.deserialize(path, deserializer)
+        addLevel(level)
+    }
+
 }

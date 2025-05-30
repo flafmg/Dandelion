@@ -1,13 +1,13 @@
-package org.dandelion.classic.server.packets.manager
+package org.dandelion.classic.packets.manager
 
 import kotlinx.coroutines.*
-import org.dandelion.classic.server.data.player.manager.PlayerManager
-import org.dandelion.classic.server.packets.model.Packet
-import org.dandelion.classic.server.packets.client.ClientIndentification
-import org.dandelion.classic.server.packets.client.ClientMessage
-import org.dandelion.classic.server.packets.client.PositionAndOrientation
-import org.dandelion.classic.server.packets.client.SetBlock
-import org.dandelion.classic.server.util.Logger
+import org.dandelion.classic.data.player.manager.PlayerManager
+import org.dandelion.classic.packets.model.Packet
+import org.dandelion.classic.packets.client.ClientIndentification
+import org.dandelion.classic.packets.client.ClientMessage
+import org.dandelion.classic.packets.client.PositionAndOrientation
+import org.dandelion.classic.packets.client.SetBlock
+import org.dandelion.classic.util.Logger
 import java.util.concurrent.ConcurrentHashMap
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter

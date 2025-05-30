@@ -1,13 +1,11 @@
-package org.dandelion.classic.server.data.player.model
+package org.dandelion.classic.data.player.model
 
-import org.dandelion.classic.server.data.player.manager.PlayerManager
-import org.dandelion.classic.server.data.level.model.Level
-import org.dandelion.classic.server.packets.server.*
-import org.dandelion.classic.server.commands.model.CommandExecutor
+import org.dandelion.classic.data.player.manager.PlayerManager
+import org.dandelion.classic.data.level.model.Level
+import org.dandelion.classic.commands.model.CommandExecutor
 import io.netty.channel.Channel
-import org.dandelion.classic.server.config.manager.ServerConfigManager
-import org.dandelion.classic.server.data.level.manager.LevelManager
-import org.dandelion.classic.server.util.Logger
+import org.dandelion.classic.data.level.manager.LevelManager
+import org.dandelion.classic.packets.server.*
 import java.util.zip.GZIPOutputStream
 
 data class Player(

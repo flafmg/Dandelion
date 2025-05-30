@@ -1,42 +1,22 @@
-package org.dandelion.classic.server.config.model
+package org.dandelion.classic.data.config.model
 
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileWriter
+import org.dandelion.classic.data.config.stream.YamlStream
 
 class BansConfig(private val configFileName: String = "bans.yaml") {
+    private val yaml = YamlStream(configFileName)
     private var bans: MutableSet<String> = mutableSetOf()
 
     fun load() {
-        val file = File(configFileName)
-        if (!file.exists()) {
-            save()
-        }
-        bans = try {
-            FileInputStream(file).use { inputStream ->
-                val yaml = Yaml()
-                val loaded = yaml.load<List<String>>(inputStream)
-                loaded?.toMutableSet() ?: mutableSetOf()
-            }
-        } catch (_: Exception) {
-            mutableSetOf()
-        }
+        yaml.load()
+        bans = yaml.getList("").mapNotNull { it?.toString() }.toMutableSet()
     }
 
     fun reload() = load()
 
     fun save(): Boolean {
         return try {
-            val option = DumperOptions().apply {
-                defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-                isPrettyFlow = true
-            }
-            val yaml = Yaml(option)
-            FileWriter(configFileName).use { writer ->
-                yaml.dump(bans.toList(), writer)
-            }
+            yaml.set("", bans.toList())
+            yaml.save()
             true
         } catch (_: Exception) { false }
     }

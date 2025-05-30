@@ -1,10 +1,9 @@
-package org.dandelion.classic.server.packets.client
+package org.dandelion.classic.packets.client
 
-import org.dandelion.classic.server.packets.model.Packet
-import org.dandelion.classic.server.packets.stream.PacketReader
+import org.dandelion.classic.packets.model.Packet
+import org.dandelion.classic.packets.stream.PacketReader
 import io.netty.channel.Channel
-import org.dandelion.classic.server.data.player.manager.PlayerManager
-import org.dandelion.classic.server.events.packetEvents.manager.PacketEventManager
+import org.dandelion.classic.data.player.manager.PlayerManager
 
 class PositionAndOrientation : Packet() {
     override val id: Byte = 0x08
@@ -28,7 +27,7 @@ class PositionAndOrientation : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        if (!PacketEventManager.fireReceive(this, channel)) return
+
         val player = PlayerManager.getPlayerByChannel(channel) ?: return
         val fyaw = yaw.toInt().toFloat()
         val fpitch = pitch.toInt().toFloat()

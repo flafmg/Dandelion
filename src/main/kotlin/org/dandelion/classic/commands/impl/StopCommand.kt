@@ -1,8 +1,8 @@
-package org.dandelion.classic.server.commands.impl
+package org.dandelion.classic.commands.impl
 
-import org.dandelion.classic.server.Server
-import org.dandelion.classic.server.commands.model.Command
-import org.dandelion.classic.server.commands.model.CommandExecutor
+import org.dandelion.classic.Server
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.commands.model.CommandExecutor
 
 class StopCommand : Command {
     override val name = "stop"

@@ -1,13 +1,14 @@
-package org.dandelion.classic.server.data.player.manager
+package org.dandelion.classic.data.player.manager
 
-import org.dandelion.classic.server.data.level.manager.LevelManager
-import org.dandelion.classic.server.data.player.model.Player
-import org.dandelion.classic.server.packets.client.ClientIndentification
-import org.dandelion.classic.server.packets.server.*
+import org.dandelion.classic.data.level.manager.LevelManager
+import org.dandelion.classic.data.player.model.Player
+import org.dandelion.classic.packets.client.ClientIndentification
 import io.netty.channel.Channel
-import org.dandelion.classic.server.util.Logger
-import org.dandelion.classic.server.commands.manager.CommandRegistry
-import org.dandelion.classic.server.config.manager.ServerConfigManager
+import org.dandelion.classic.packets.server.*
+import org.dandelion.classic.util.Logger
+import org.dandelion.classic.commands.manager.CommandRegistry
+import org.dandelion.classic.data.config.manager.ServerConfigManager
+import org.dandelion.classic.data.level.model.Level
 
 object PlayerManager {
     fun getPlayerByChannel(channel: Channel): Player? {
@@ -58,7 +59,7 @@ object PlayerManager {
         sendMessage(format)
     }
 
-    fun announceLevelChange(player: Player, newLevel: org.dandelion.classic.server.data.level.model.Level) {
+    fun announceLevelChange(player: Player, newLevel: Level) {
         sendMessage("&e${player.userName} &7has joined level &e'${newLevel.id}'")
     }
 
@@ -115,8 +116,8 @@ object PlayerManager {
 
         player.sendMessage("&7> &bHi!&f, this is &edandelion, &fa silly")
         player.sendMessage("&7> &fclassic server software im making for fun")
-        player.sendMessage("&7> &fBy &aflaffymg! &7Made in &6Kotlin")
-        player.sendMessage(" ")
+        player.sendMessage("&7> &fBy &aflaffymg! &fMade in &5Kotlin")
+        player.sendMessage("&7> &bhttps://github.com/flafmg/dandelion")
         player.sendMessage("> &fUse &d/commands &fto see available commands")
         player.sendMessage("> &fUse &d/level list &fto see available levels")
         player.sendMessage("> &fUse &d/level go <name> &fto teleport to a level")

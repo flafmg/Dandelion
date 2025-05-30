@@ -1,5 +1,7 @@
-package org.dandelion.classic.server.util
+package org.dandelion.classic.util
 
+import org.jline.reader.LineReader
+import org.dandelion.classic.Console
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -15,31 +17,36 @@ object Logger {
 
     var showTimestamp: Boolean = true
     var debugMode: Boolean = false
+    var consoleLineReader: LineReader? = Console.lineReader
 
     private fun timestamp(): String = if (showTimestamp) {
         "[${LocalDateTime.now().format(TIMESTAMP_FORMAT)}] "
     } else ""
 
+    private fun print(message: String) {
+        consoleLineReader?.printAbove(message) ?: println(message)
+    }
+
     fun log(message: String) {
-        println("${timestamp()}$message$RESET")
+        print("${timestamp()}$message$RESET")
     }
 
     fun debugLog(message: String) {
         if (debugMode) {
-            println("${timestamp()}${GRAY}[DEBUG] $message$RESET")
+            print("${timestamp()}$GRAY[DEBUG] $message$RESET")
         }
     }
 
     fun infoLog(message: String) {
-        println("${timestamp()}${BLUE}[INFO] $message$RESET")
+        print("${timestamp()}$BLUE[INFO] $message$RESET")
     }
 
     fun warnLog(message: String) {
-        println("${timestamp()}${YELLOW}[WARN] $message$RESET")
+        print("${timestamp()}$YELLOW[WARN] $message$RESET")
     }
 
     fun errLog(message: String) {
-        System.err.println("${timestamp()}${RED}[ERROR] $message$RESET")
+        print("${timestamp()}$RED[ERROR] $message$RESET")
     }
 }
 

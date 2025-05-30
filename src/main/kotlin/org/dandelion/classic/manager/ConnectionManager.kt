@@ -1,4 +1,4 @@
-package org.dandelion.classic.server.manager
+package org.dandelion.classic.manager
 
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
@@ -11,10 +11,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import org.dandelion.classic.server.config.manager.ServerConfigManager
-import org.dandelion.classic.server.data.player.manager.PlayerManager
-import org.dandelion.classic.server.packets.manager.PacketManager
-import org.dandelion.classic.server.util.Logger
+import org.dandelion.classic.data.config.manager.ServerConfigManager
+import org.dandelion.classic.data.player.manager.PlayerManager
+import org.dandelion.classic.packets.manager.PacketManager
+import org.dandelion.classic.util.Logger
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentHashMap

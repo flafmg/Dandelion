@@ -1,7 +1,8 @@
-package org.dandelion.classic.server.data.level.generator.model
+package org.dandelion.classic.data.level.generator.model
 
-import org.dandelion.classic.server.data.level.model.Level
+import org.dandelion.classic.data.level.model.Level
 
 interface LevelGenerator {
+    val id: String;
     fun generate(level: Level, params: String = "")
 }

@@ -1,8 +1,8 @@
-package org.dandelion.classic.server.data.level.model
+package org.dandelion.classic.data.level.model
 
-import org.dandelion.classic.server.data.player.model.Player
-import org.dandelion.classic.server.data.level.io.model.LevelSerializer
-import org.dandelion.classic.server.data.level.io.model.LevelDeserializer
+import org.dandelion.classic.data.player.model.Player
+import org.dandelion.classic.data.level.io.model.LevelSerializer
+import org.dandelion.classic.data.level.io.model.LevelDeserializer
 
 data class Level(
     val id: String = "none",
@@ -18,7 +18,7 @@ data class Level(
 
     var blocks: ByteArray = ByteArray(0),
 
-    var autoSaveInterval: Int = 90
+    var autoSaveInterval: Int = 900
 ) {
     var players: Array<Player?> = Array(256) { null }
 
@@ -64,13 +64,17 @@ data class Level(
         players.filterNotNull().forEach { it.sendMessage(message, playerId) }
     }
 
-    fun serialize(serializer: LevelSerializer): ByteArray {
-        return serializer.serialize(this)
+    fun kickAll(reason: String = "Kicked by an operator") {
+        players.filterNotNull().forEach { it.kick(reason) }
+    }
+
+    fun serialize(serializer: LevelSerializer, path: String) {
+        serializer.serialize(this, path)
     }
 
     companion object {
-        fun deserialize(data: ByteArray, id: String, deserializer: LevelDeserializer): Level {
-            return deserializer.deserialize(data, id)
+        fun deserialize(path: String, deserializer: LevelDeserializer): Level {
+            return deserializer.deserialize(path)
         }
     }
 

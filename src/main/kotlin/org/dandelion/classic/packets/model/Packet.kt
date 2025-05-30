@@ -1,6 +1,6 @@
-package org.dandelion.classic.server.packets.model
+package org.dandelion.classic.packets.model
 
-import org.dandelion.classic.server.util.Logger
+import org.dandelion.classic.util.Logger
 import io.netty.channel.Channel
 
 abstract class Packet {

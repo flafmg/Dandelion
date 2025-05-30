@@ -1,0 +1,12 @@
+serverSettings:
+  port: 25565
+  name: Dandelion
+  motd: A minecraft classic server.
+  maxPlayers: 12
+  public: true
+  defaultLevel: default # will not generate it automatically
+
+heartbeatSettings:
+  enabled: true
+  interval: 60
+  url: http://www.classicube.net/server/heartbeat

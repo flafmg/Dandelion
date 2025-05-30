@@ -1,63 +1,54 @@
-package org.dandelion.classic.server.config.model
+package org.dandelion.classic.data.config.model
 
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.constructor.Constructor
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileWriter
-import java.io.InputStream
+import org.dandelion.classic.data.config.stream.YamlStream
 
 class ServerConfig(private val configFileName: String = "config.yml") {
-    private var config: ServerConfigData? = null
+    private val yaml = YamlStream(configFileName)
 
     fun load() {
-        val configFile = File(configFileName)
-        if (!configFile.exists()) {
-            val resource: InputStream? = javaClass.classLoader.getResourceAsStream(configFileName)
-            if (resource != null) {
-                config = try {
-                    val yaml = Yaml(Constructor(ServerConfigData::class.java))
-                    yaml.load(resource) ?: ServerConfigData()
-                } catch (_: Exception) {
-                    ServerConfigData()
-                }
-                save(config!!)
-            } else {
-                save(ServerConfigData())
-                config = ServerConfigData()
-            }
-        } else {
-            config = try {
-                FileInputStream(configFile).use { inputStream ->
-                    val yaml = Yaml(Constructor(ServerConfigData::class.java))
-                    yaml.load(inputStream) ?: ServerConfigData()
-                }
-            } catch (_: Exception) {
-                ServerConfigData()
-            }
-        }
+        yaml.load()
     }
 
     fun reload() = load()
 
-    fun save(cfg: ServerConfigData = get()): Boolean {
+    fun save(): Boolean {
         return try {
-            val option = DumperOptions().apply {
-                defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-                isPrettyFlow = true
-            }
-            val yaml = Yaml(option)
-            FileWriter(configFileName).use { writer ->
-                yaml.dump(cfg, writer)
-            }
+            yaml.save()
             true
         } catch (_: Exception) { false }
     }
 
     fun get(): ServerConfigData {
-        if (config == null) load()
-        return config!!
+        val server = yaml.getSection("serverSettings")
+        val heartbeat = yaml.getSection("heartbeatSettings")
+        return ServerConfigData(
+            serverSettings = ServerConfigData.ServerSettings(
+                name = server.getString("name", "Dandelion") ?: "Dandelion",
+                motd = server.getString("motd", "A minecraft classic server.") ?: "A minecraft classic server.",
+                port = server.getInt("port", 25565) ?: 25565,
+                maxPlayers = server.getInt("maxPlayers", 12) ?: 12,
+                public = server.getBoolean("public", true) ?: true,
+                defaultLevel = server.getString("defaultLevel", "default") ?: "default"
+            ),
+            heartbeatSettings = ServerConfigData.HeartbeatSettings(
+                enabled = heartbeat.getBoolean("enabled", true) ?: true,
+                interval = heartbeat.getInt("interval", 60) ?: 60,
+                url = heartbeat.getString("url", "http://www.classicube.net/server/heartbeat") ?: "http://www.classicube.net/server/heartbeat"
+            )
+        )
+    }
+
+    fun set(data: ServerConfigData) {
+        yaml.set("serverSettings.name", data.serverSettings.name)
+        yaml.set("serverSettings.motd", data.serverSettings.motd)
+        yaml.set("serverSettings.port", data.serverSettings.port)
+        yaml.set("serverSettings.maxPlayers", data.serverSettings.maxPlayers)
+        yaml.set("serverSettings.public", data.serverSettings.public)
+        yaml.set("serverSettings.defaultLevel", data.serverSettings.defaultLevel)
+        yaml.set("heartbeatSettings.enabled", data.heartbeatSettings.enabled)
+        yaml.set("heartbeatSettings.interval", data.heartbeatSettings.interval)
+        yaml.set("heartbeatSettings.url", data.heartbeatSettings.url)
+        save()
     }
 
     data class ServerConfigData(
