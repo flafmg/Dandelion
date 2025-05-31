@@ -58,9 +58,3 @@ The goal of Dandelion is to be a simple and cohesive codebase for Minecraft Clas
 It aims to be an easier and cleaner alternative to MC Galaxy, but still far from it at this development stage
 
 ---
-
-## 🤝 Contributing
-
-Contributions are welcome! If you want to suggest improvements or help with development, feel free to open an issue or pull request.
-
----
