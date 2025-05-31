@@ -1,15 +1,15 @@
 package org.dandelion.classic.data.level.generator.impl
 
+import org.dandelion.classic.Console
 import org.dandelion.classic.data.level.model.Level
 import org.dandelion.classic.data.level.generator.model.LevelGenerator
-import org.dandelion.classic.util.Logger
 import org.json.JSONObject
 
 class Fractal : LevelGenerator {
     override val id: String = "fractal"
 
     override fun generate(level: Level, params: String) {
-        Logger.log("Generating fractal level in ${level.id} with params: $params")
+        Console.log("Generating fractal level in ${level.id} with params: $params")
         val paramsObj = if (params.isNotBlank()) JSONObject(params) else JSONObject()
         val mode = paramsObj.optString("mode", "m-sponge")
         val blockId = paramsObj.optInt("blockId", 1).toByte()
@@ -41,7 +41,7 @@ class Fractal : LevelGenerator {
         } else {
             fillFractalAt(offsetX, offsetY, offsetZ)
         }
-        Logger.log("Fractal generated in ${level.id}")
+        Console.log("Fractal level generated in ${level.id}")
     }
 
     private fun sPyramid(level: Level, ox: Int, oy: Int, oz: Int, size: Int, blockId: Byte) {
@@ -64,7 +64,7 @@ class Fractal : LevelGenerator {
     private fun mSponge(level: Level, ox: Int, oy: Int, oz: Int, size: Int, blockId: Byte) {
         val validSize = nearestPowerOf(size, 3)
         if (validSize != size) {
-            Logger.warnLog("Menger Sponge only works with sizes that are powers of 3 (e.g., 27, 81, 243, 729, ...). Using nearest valid size: $validSize")
+            Console.warnLog("Menger Sponge only works with sizes that are powers of 3 (e.g., 27, 81, 243, 729, ...). Using nearest valid size: $validSize")
         }
         fun draw(x: Int, y: Int, z: Int, s: Int) {
             if (s < 1) return

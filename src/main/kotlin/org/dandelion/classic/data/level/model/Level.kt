@@ -1,5 +1,6 @@
 package org.dandelion.classic.data.level.model
 
+import org.dandelion.classic.Console
 import org.dandelion.classic.data.player.model.Player
 import org.dandelion.classic.data.level.io.model.LevelSerializer
 import org.dandelion.classic.data.level.io.model.LevelDeserializer

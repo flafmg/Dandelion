@@ -1,7 +1,7 @@
 package org.dandelion.classic.manager
 
+import org.dandelion.classic.Console
 import org.dandelion.classic.data.player.manager.PlayerManager
-import org.dandelion.classic.util.Logger
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -17,7 +17,7 @@ class HeartbeatManager(private val config: ServerConfig, private val getSalt: ()
 
     fun start() {
         if (isRunning.getAndSet(true)) return
-        Logger.log("HeartbeatManager started with interval: ${config.get().heartbeatSettings.interval}s")
+        Console.log("HeartbeatManager started with interval: ${config.get().heartbeatSettings.interval}s")
         scheduler.scheduleAtFixedRate(::heartbeatLoop, 0, config.get().heartbeatSettings.interval.toLong(), TimeUnit.SECONDS)
     }
 
@@ -25,9 +25,9 @@ class HeartbeatManager(private val config: ServerConfig, private val getSalt: ()
         if (!isRunning.get()) return
         try {
             sendHeartbeat()
-            Logger.debugLog("Heartbeat sent.")
+            Console.debugLog("Heartbeat sent.")
         } catch (e: Exception) {
-            Logger.errLog("Error sending heartbeat: ${e.message}")
+            Console.errLog("Error sending heartbeat: ${e.message}")
         }
     }
 
@@ -58,9 +58,9 @@ class HeartbeatManager(private val config: ServerConfig, private val getSalt: ()
         scheduler.shutdownNow()
         try {
             scheduler.awaitTermination(2, TimeUnit.SECONDS)
-            Logger.log("HeartbeatManager stopped.")
+            Console.log("HeartbeatManager stopped.")
         } catch (_: InterruptedException) {
-            Logger.warnLog("HeartbeatManager termination interrupted.")
+            Console.warnLog("HeartbeatManager termination interrupted.")
         }
     }
 }

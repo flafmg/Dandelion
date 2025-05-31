@@ -11,10 +11,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import org.dandelion.classic.Console
 import org.dandelion.classic.data.config.manager.ServerConfigManager
 import org.dandelion.classic.data.player.manager.PlayerManager
 import org.dandelion.classic.packets.manager.PacketManager
-import org.dandelion.classic.util.Logger
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentHashMap
@@ -36,29 +36,29 @@ class ConnectionManager() {
                 .channel(NioServerSocketChannel::class.java)
                 .childHandler(object : ChannelInitializer<SocketChannel>() {
                     override fun initChannel(ch: SocketChannel) {
-                        Logger.debugLog("client connected ${ch.remoteAddress()}")
+                        Console.debugLog("client connected ${ch.remoteAddress()}")
                         ch.pipeline().addLast(PacketManager.NettyDisconnectHandler())
                         ch.pipeline().addLast(PacketHandler(PacketManager))
                     }
                 })
                 .option(ChannelOption.SO_BACKLOG, 128)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
-            Logger.log("ConnectionManager starting on port: $port")
+            Console.log("ConnectionManager starting on port: $port")
             val f = b.bind(InetSocketAddress(port)).sync()
             channel = f.channel()
-            Logger.log("ConnectionManager active on port: $port")
+            Console.log("ConnectionManager active on port: $port")
         } catch (e: Exception) {
-            Logger.errLog("ConnectionManager error: ${e.message}")
+            Console.errLog("ConnectionManager error: ${e.message}")
         }
     }
 
     fun stop() {
-        Logger.log("Stopping ConnectionManager...")
+        Console.log("Stopping ConnectionManager...")
         isRunning.set(false)
         try { channel?.close()?.sync() } catch (_: Exception) {}
         try { bossGroup?.shutdownGracefully() } catch (_: Exception) {}
         try { workerGroup?.shutdownGracefully() } catch (_: Exception) {}
-        Logger.log("ConnectionManager stopped!")
+        Console.log("ConnectionManager stopped!")
     }
 
     private class PacketHandler(private val packetManager: PacketManager) : SimpleChannelInboundHandler<ByteBuf>() {
@@ -83,7 +83,7 @@ class ConnectionManager() {
                 val packetId = buffer[offset]
                 val expectedSize = packetManager.getPacketSize(packetId)
                 if (expectedSize == -1) {
-                    Logger.warnLog("Unknown packet id: 0x%02X, skipping byte".format(packetId))
+                    Console.warnLog("Unknown packet id: 0x%02X, skipping byte".format(packetId))
                     offset++
                     continue
                 }
@@ -111,7 +111,7 @@ class ConnectionManager() {
         }
 
         override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-            Logger.errLog("Netty client error: ${cause::class.simpleName}: ${cause.message}")
+            Console.errLog("Netty client error: ${cause::class.simpleName}: ${cause.message}")
             cause.printStackTrace()
             val channelKey = ctx.channel().id().asShortText()
             channelBuffers.remove(channelKey)

@@ -4,8 +4,8 @@ import org.dandelion.classic.data.level.manager.LevelManager
 import org.dandelion.classic.data.player.model.Player
 import org.dandelion.classic.packets.client.ClientIndentification
 import io.netty.channel.Channel
+import org.dandelion.classic.Console
 import org.dandelion.classic.packets.server.*
-import org.dandelion.classic.util.Logger
 import org.dandelion.classic.commands.manager.CommandRegistry
 import org.dandelion.classic.data.config.manager.ServerConfigManager
 import org.dandelion.classic.data.level.model.Level
@@ -111,13 +111,13 @@ object PlayerManager {
         ServerIndentification().resolve(player.channel)
         player.sendLevelData(defaultLevel)
         sendSpawnPlayer(player.levelId, player)
-        Logger.log("${player.userName} has joined level ${player.levelId}")
+        Console.log("${player.userName} has joined level ${player.levelId}")
         announceLevelChange(player, defaultLevel)
 
         player.sendMessage("&7> &bHi!&f, this is &edandelion, &fa silly")
         player.sendMessage("&7> &fclassic server software im making for fun")
         player.sendMessage("&7> &fBy &aflaffymg! &fMade in &5Kotlin")
-        player.sendMessage("&7> &bhttps://github.com/flafmg/dandelion")
+        player.sendMessage("&7> &bhttps://github.com/flafmg/dandelion ")
         player.sendMessage("> &fUse &d/commands &fto see available commands")
         player.sendMessage("> &fUse &d/level list &fto see available levels")
         player.sendMessage("> &fUse &d/level go <name> &fto teleport to a level")
@@ -163,7 +163,7 @@ object PlayerManager {
             player.channel.close()
         } catch (_: Exception) {}
         announceDisconnect(player)
-        Logger.log("${player.userName} has left the game")
+        Console.log("${player.userName} has left the game")
     }
 
     fun count(levelId: String): Int = LevelManager.getLevelPlayers(levelId).size

@@ -4,7 +4,7 @@ import org.dandelion.classic.data.player.manager.PlayerManager
 import org.dandelion.classic.packets.model.Packet
 import org.dandelion.classic.packets.stream.PacketReader
 import io.netty.channel.Channel
-import org.dandelion.classic.util.Logger
+import org.dandelion.classic.Console
 
 class ClientMessage : Packet() {
     override val id: Byte = 0x0d
@@ -24,7 +24,7 @@ class ClientMessage : Packet() {
     override fun resolve(channel: Channel) {
 
         val player = PlayerManager.getPlayerByChannel(channel) ?: return
-        Logger.log("[${player.levelId}] ${player.userName} > $message")
+        Console.log("[${player.levelId}] ${player.userName} > $message")
         PlayerManager.sendPlayerMessage(message, player)
     }
 }

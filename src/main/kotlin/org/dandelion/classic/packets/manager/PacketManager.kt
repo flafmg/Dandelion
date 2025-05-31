@@ -7,11 +7,11 @@ import org.dandelion.classic.packets.client.ClientIndentification
 import org.dandelion.classic.packets.client.ClientMessage
 import org.dandelion.classic.packets.client.PositionAndOrientation
 import org.dandelion.classic.packets.client.SetBlock
-import org.dandelion.classic.util.Logger
 import java.util.concurrent.ConcurrentHashMap
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.ChannelHandler.Sharable
+import org.dandelion.classic.Console
 
 object PacketManager {
     private val packetFactory = ConcurrentHashMap<Byte, () -> Packet>()
@@ -33,12 +33,12 @@ object PacketManager {
         registerPacket(0x05, ::SetBlock)
         registerPacket(0x08, ::PositionAndOrientation)
         registerPacket(0x0d, ::ClientMessage)
-        Logger.log("PacketManager initialized")
+        Console.log("PacketManager initialized")
     }
 
     fun handlePacket(ctx: ChannelHandlerContext, bytes: ByteArray) {
         if (bytes.isEmpty()) {
-            Logger.warnLog("Received empty packet from ${ctx.channel().remoteAddress()}")
+            Console.warnLog("Received empty packet from ${ctx.channel().remoteAddress()}")
             return
         }
 
@@ -46,13 +46,13 @@ object PacketManager {
         val packet = createPacket(packetId)
 
         if (packet == null) {
-            Logger.warnLog("Unknown packet id: 0x%02X from ${ctx.channel().remoteAddress()}".format(packetId))
+            Console.warnLog("Unknown packet id: 0x%02X from ${ctx.channel().remoteAddress()}".format(packetId))
             return
         }
 
         try {
             if (bytes.size != packet.size) {
-                Logger.errLog("Packet size mismatch for id 0x%02X: expected %d, got %d from %s".format(
+                Console.errLog("Packet size mismatch for id 0x%02X: expected %d, got %d from %s".format(
                     packetId, packet.size, bytes.size, ctx.channel().remoteAddress()
                 ))
                 return
@@ -62,11 +62,11 @@ object PacketManager {
             packet.resolve(ctx.channel())
 
         } catch (e: IllegalArgumentException) {
-            Logger.errLog("Invalid packet data for id 0x%02X from %s: %s".format(
+            Console.errLog("Invalid packet data for id 0x%02X from %s: %s".format(
                 packetId, ctx.channel().remoteAddress(), e.message
             ))
         } catch (e: Exception) {
-            Logger.errLog("Error processing packet id 0x%02X from %s: %s".format(
+            Console.errLog("Error processing packet id 0x%02X from %s: %s".format(
                 packetId, ctx.channel().remoteAddress(), e.message
             ))
             e.printStackTrace()
@@ -76,25 +76,25 @@ object PacketManager {
     @Sharable
     class NettyDisconnectHandler : ChannelInboundHandlerAdapter() {
         override fun channelInactive(ctx: ChannelHandlerContext) {
-            Logger.debugLog("Netty channelInactive: ${ctx.channel().remoteAddress()}")
+            Console.debugLog("Netty channelInactive: ${ctx.channel().remoteAddress()}")
             GlobalScope.launch {
                 try {
                     val player = PlayerManager.getPlayerByChannel(ctx.channel())
                     if (player != null) {
-                        Logger.debugLog("Desconectando player ${player.userName} (id=${player.playerID}) do canal ${ctx.channel().remoteAddress()}")
+                        Console.debugLog("Desconectando player ${player.userName} (id=${player.playerID}) do canal ${ctx.channel().remoteAddress()}")
                         PlayerManager.playerDisconnect(player.levelId, player.playerID)
                     } else {
-                        Logger.debugLog("Nenhum player encontrado para o canal ${ctx.channel().remoteAddress()}")
+                        Console.debugLog("Nenhum player encontrado para o canal ${ctx.channel().remoteAddress()}")
                     }
                 } catch (e: Exception) {
-                    Logger.errLog("Error during player disconnect for ${ctx.channel().remoteAddress()}: ${e.message}")
+                    Console.errLog("Error during player disconnect for ${ctx.channel().remoteAddress()}: ${e.message}")
                 }
             }
             ctx.fireChannelInactive()
         }
 
         override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-            Logger.errLog("Channel exception for ${ctx.channel().remoteAddress()}: ${cause.message}")
+            Console.errLog("Channel exception for ${ctx.channel().remoteAddress()}: ${cause.message}")
             val player = PlayerManager.getPlayerByChannel(ctx.channel())
             if (player != null) {
                 PlayerManager.playerDisconnect(player.levelId, player.playerID)

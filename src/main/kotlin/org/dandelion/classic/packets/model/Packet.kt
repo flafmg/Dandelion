@@ -1,7 +1,7 @@
 package org.dandelion.classic.packets.model
 
-import org.dandelion.classic.util.Logger
 import io.netty.channel.Channel
+import org.dandelion.classic.Console
 
 abstract class Packet {
     abstract val id: Byte
@@ -15,20 +15,20 @@ abstract class Packet {
     fun sendNetty(channel: Channel) {
         val encoded = encode()
         if (!channel.isActive || !channel.isOpen) {
-            Logger.errLog("Channel is not active or open for packet $id")
+            Console.errLog("Channel is not active or open for packet $id")
             return
         }
         try {
             channel.writeAndFlush(io.netty.buffer.Unpooled.wrappedBuffer(encoded)).addListener { future ->
                 if (future.isSuccess) {
                     val hex = encoded.joinToString(" ") { "%02X".format(it) }
-                    Logger.debugLog("Sent packet $id (${encoded.size} bytes): $hex")
+                    Console.debugLog("Sent packet $id (${encoded.size} bytes): $hex")
                 } else {
-                    Logger.errLog("Failed to send packet $id: ${future.cause()?.message}")
+                    Console.errLog("Failed to send packet $id: ${future.cause()?.message}")
                 }
             }
         } catch (e: Exception) {
-            Logger.errLog("Exception sending packet $id: ${e.message}")
+            Console.errLog("Exception sending packet $id: ${e.message}")
         }
     }
 }

@@ -2,13 +2,11 @@ package org.dandelion.classic
 
 import org.dandelion.classic.data.config.manager.ServerConfigManager
 import org.dandelion.classic.data.config.model.ServerConfig
-import org.dandelion.classic.data.level.generator.manager.GeneratorManager
 import org.dandelion.classic.data.player.manager.PlayerManager
 import org.dandelion.classic.manager.ConnectionManager
 import org.dandelion.classic.manager.HeartbeatManager
 import org.dandelion.classic.manager.KeyManager
 import org.dandelion.classic.packets.manager.PacketManager
-import org.dandelion.classic.util.Logger
 import org.dandelion.classic.data.level.io.impl.DandelionLevelSerializer
 import org.dandelion.classic.data.level.manager.LevelManager
 import java.io.File
@@ -25,7 +23,9 @@ object Server {
     fun start() {
         if (isRunning) return
         isRunning = true
-        Logger.log("Server starting...")
+        Console.startInputLoop()
+
+        Console.log("Server starting...")
         ServerConfigManager.loadAll()
 
         packetManager.init()
@@ -36,15 +36,15 @@ object Server {
         LevelManager.setDefaultJoinLevel(ServerConfigManager.serverConfig.get().serverSettings.defaultLevel)
 
         if (ServerConfigManager.serverConfig.get().heartbeatSettings.enabled) heartbeatManager.start()
-        Logger.log("Server started.")
-        Console.startInputLoop()
+        Console.log("Server started.")
+
     }
 
     fun stop() {
         if (!isRunning) return
 
         isRunning = false
-        Logger.log("Server stopping...")
+        Console.log("Server stopping...")
 
         if (ServerConfigManager.serverConfig.get().heartbeatSettings.enabled) heartbeatManager.stop()
 
@@ -63,7 +63,7 @@ object Server {
             serializer.serialize(level, path)
         }
 
-        Logger.log("Server stopped.")
+        Console.log("Server stopped.")
         kotlin.system.exitProcess(0)
     }
 

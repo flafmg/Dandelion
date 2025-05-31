@@ -1,9 +1,9 @@
 package org.dandelion.classic.commands.manager
 
+import org.dandelion.classic.Console
 import org.dandelion.classic.commands.impl.*
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
-import org.dandelion.classic.util.Logger
 
 object CommandRegistry {
     private val commands = mutableMapOf<String, Command>()
@@ -28,12 +28,12 @@ object CommandRegistry {
 
     fun register(command: Command) {
         commands[command.name.lowercase()] = command
-        Logger.debugLog("Command ${command.name.lowercase()} registered")
+        Console.debugLog("Command ${command.name.lowercase()} registered")
     }
 
     fun unregister(command: Command) {
         commands.remove(command.name.lowercase())
-        Logger.debugLog("Command ${command.name.lowercase()} unregistered")
+        Console.debugLog("Command ${command.name.lowercase()} unregistered")
     }
     fun execute(raw: String, executor: CommandExecutor) {
         if (!raw.startsWith(prefix)) return

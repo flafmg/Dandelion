@@ -2,14 +2,14 @@ package org.dandelion.classic.data.level.generator.impl
 
 import org.dandelion.classic.data.level.model.Level
 import org.dandelion.classic.data.level.generator.model.LevelGenerator
-import org.dandelion.classic.util.Logger
 import org.json.JSONObject
 import kotlinx.coroutines.runBlocking
+import org.dandelion.classic.Console
 
 class FlatRoom : LevelGenerator {
     override val id: String = "flat"
     override fun generate(level: Level, params: String) {
-        Logger.log("Generating flat level ${level.id} with params: $params")
+        Console.log("Generating flat level ${level.id} with params: $params")
 
         val paramsObj = if (params.isNotBlank()) JSONObject(params) else JSONObject()
         val sizeY = level.sizeY.toInt()
@@ -50,7 +50,7 @@ class FlatRoom : LevelGenerator {
             }
         }
 
-        Logger.log("Level ${level.id} generated")
+        Console.log("Level ${level.id} generated")
     }
 }
 
