@@ -29,7 +29,7 @@ It's designed to be a lightweight and modern alternative to MC Galaxy, making it
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/dandelion.git
+   git clone https://github.com/flafmg/dandelion.git
    cd dandelion
    ```
 
