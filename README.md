@@ -1,7 +1,7 @@
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/d9b34696-ae59-45f1-abdd-21a75cedd041" alt="Dandelion Icon" width="48" height="48" style="vertical-align:middle;"/>
-  <span style="font-size:1.8em; font-weight:bold; vertical-align:middle;"> Dandelion Classic</span>
+  <span style="font-size:4.8em; font-weight:bold; vertical-align:middle;"> Dandelion Classic</span>
 </p>
 
 > *A classic Minecraft server software made in Kotlin!*
