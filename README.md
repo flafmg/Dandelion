@@ -2,7 +2,11 @@
 
 > *A classic Minecraft server software made in Kotlin!*
 
-![dandelion-mc-wiki](https://github.com/user-attachments/assets/d9b34696-ae59-45f1-abdd-21a75cedd041)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d9b34696-ae59-45f1-abdd-21a75cedd041" alt="Dandelion Icon" width="48" height="48" style="vertical-align:middle;"/>
+  <strong style="font-size: 1.4em; vertical-align: middle;"> Dandelion Classic</strong>
+</p>
+
 
 ---
 
