@@ -15,7 +15,7 @@ class SayCommand : Command {
             return
         }
         val message = args.joinToString(" ")
-        LevelManager.getAllLevels().forEach { it.sendMessage(message) }
+        LevelManager.getAllLevels().forEach { it.sendMessage("[${executor.getName()}] $message") }
         Console.log(message)
     }
 }

@@ -61,7 +61,7 @@ data class Level(
         players[id.toInt() and 0xFF] = null
     }
 
-    fun sendMessage(message: String, playerId: Byte = 0xff.toByte()) {
+    fun sendMessage(message: String, playerId: Byte = 0x00.toByte()) {
         players.filterNotNull().forEach { it.sendMessage(message, playerId) }
     }
 

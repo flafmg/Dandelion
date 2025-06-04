@@ -56,7 +56,7 @@ object PlayerManager {
         }
         val name = player.userName
         val colorCode = if(player.isOp) "&c" else "&f";
-        val format = "$colorCode{name}: &7${message}"
+        val format = "$colorCode$name&7: ${message}"
         sendMessage(format)
     }
 

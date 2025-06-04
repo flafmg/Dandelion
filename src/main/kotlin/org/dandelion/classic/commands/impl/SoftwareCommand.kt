@@ -11,7 +11,7 @@ class SoftwareCommand : Command {
     override val aliases = listOf("s")
 
     override fun onExecute(executor: CommandExecutor, args: List<String>) {
-        executor.sendMessage(Server.getServerSoftware())
+        executor.sendMessage("Using: &e${Server.getServerSoftware()}")
     }
 }
 
