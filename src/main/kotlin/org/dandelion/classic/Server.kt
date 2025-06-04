@@ -14,7 +14,7 @@ import java.io.File
 object Server {
     private var isRunning = false
     private val protocolVersion: Byte = 0x07
-    private val serverSoftware = "Dandelion v0.2b"
+    private val serverSoftware = "Dandelion v0.2.1b"
     private val keyManager = KeyManager()
     private val packetManager = PacketManager
     private val connectionManager = ConnectionManager()

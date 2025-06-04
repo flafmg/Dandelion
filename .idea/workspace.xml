@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bdc0f079-6797-4dde-bc96-f3702114aa6e" name="Changes" comment="refactor: replace Logger with Console for logging, fix placing blocks anywhere" />
+    <list default="true" id="bdc0f079-6797-4dde-bc96-f3702114aa6e" name="Changes" comment="commands are better, messages now get warped if too big keeping the last color code">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/Server.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/Server.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/impl/LevelCommand.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/impl/LevelCommand.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/impl/OpCommand.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/impl/OpCommand.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/player/manager/PlayerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/player/manager/PlayerManager.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -168,6 +174,7 @@
       <workItem from="1748709344827" duration="126000" />
       <workItem from="1748709501753" duration="3745000" />
       <workItem from="1748717287578" duration="1206000" />
+      <workItem from="1749001509345" duration="4121000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -185,7 +192,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748717490846</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="commands are better, messages now get warped if too big keeping the last color code">
+      <option name="closed" value="true" />
+      <created>1749003322014</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1749003322014</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -194,7 +209,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
     <MESSAGE value="refactor: replace Logger with Console for logging, fix placing blocks anywhere" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: replace Logger with Console for logging, fix placing blocks anywhere" />
+    <MESSAGE value="commands are better, messages now get warped if too big keeping the last color code" />
+    <option name="LAST_COMMIT_MESSAGE" value="commands are better, messages now get warped if too big keeping the last color code" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

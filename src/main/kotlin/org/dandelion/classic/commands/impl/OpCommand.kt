@@ -23,6 +23,7 @@ class OpCommand : Command {
         val player = PlayerManager.getAllPlayers().find { it.userName.equals(playerName, ignoreCase = true) }
         player?.grantOp(true)
         executor.sendMessage("$playerName is now an operator.")
+        player?.sendMessage("&fyou are now an &coperator")
     }
 }
 

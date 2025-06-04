@@ -24,6 +24,8 @@ object CommandRegistry {
         register(GetPermsCommand())
         register(CommandsCommand())
         register(SayCommand())
+        register(HelpCommand())
+        register(SoftwareCommand())
     }
 
     fun register(command: Command) {

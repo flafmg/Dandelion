@@ -55,7 +55,8 @@ object PlayerManager {
             return
         }
         val name = player.userName
-        val format = "&f${name}: &7${message}"
+        val colorCode = if(player.isOp) "&c" else "&f";
+        val format = "$colorCode{name}: &7${message}"
         sendMessage(format)
     }
 
@@ -119,7 +120,8 @@ object PlayerManager {
         player.sendMessage("&7> &fUse &d/commands &fto see available commands")
         player.sendMessage("&7> &fUse &d/level list &fto see available levels")
         player.sendMessage("&7> &fUse &d/level go <name> &fto teleport to a level")
-        player.sendMessage("&8ChangeLog: now messages are wrapped when they're too big to fit in 64 chars")
+        player.sendMessage("&eChangeLog: now messages are wrapped when they're too big to fit in 64 chars")
+        player.sendMessage("&cTHIS IS NOT MCGALAXY!")
     }
 
     fun sendSpawnPlayer(levelId: String, player: Player) {

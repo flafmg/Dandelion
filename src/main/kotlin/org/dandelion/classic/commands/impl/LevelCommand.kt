@@ -60,7 +60,7 @@ class LevelCommand : Command {
                 }
                 handleSetSpawn(executor, args.drop(1))
             }
-            else -> executor.sendMessage("&cUnknown subcommand. Use /level <list|go|create|unload|load>")
+            else -> executor.sendMessage("&cUnknown subcommand. Use /level <list|go|create|unload|load|setspawn>")
         }
     }
 
