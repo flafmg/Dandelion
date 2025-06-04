@@ -114,13 +114,12 @@ object PlayerManager {
         Console.log("${player.userName} has joined level ${player.levelId}")
         announceLevelChange(player, defaultLevel)
 
-        player.sendMessage("&7> &bHi!&f, this is &edandelion, &fa silly")
-        player.sendMessage("&7> &fclassic server software im making for fun")
-        player.sendMessage("&7> &fBy &aflaffymg! &fMade in &5Kotlin")
-        player.sendMessage("&7> &bhttps://github.com/flafmg/dandelion ")
-        player.sendMessage("> &fUse &d/commands &fto see available commands")
-        player.sendMessage("> &fUse &d/level list &fto see available levels")
-        player.sendMessage("> &fUse &d/level go <name> &fto teleport to a level")
+        player.sendMessage("&7> &bWelcome to &edandelion&f, a classic server in Kotlin!")
+        player.sendMessage("&7> &fBy &aflaffymg &7- &bgithub.com/flafmg/dandelion")
+        player.sendMessage("&7> &fUse &d/commands &fto see available commands")
+        player.sendMessage("&7> &fUse &d/level list &fto see available levels")
+        player.sendMessage("&7> &fUse &d/level go <name> &fto teleport to a level")
+        player.sendMessage("&8ChangeLog: now messages are wrapped when they're too big to fit in 64 chars")
     }
 
     fun sendSpawnPlayer(levelId: String, player: Player) {

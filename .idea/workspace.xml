@@ -4,25 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bdc0f079-6797-4dde-bc96-f3702114aa6e" name="Changes" comment="initial commit">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/Console.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/Console.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/Server.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/Server.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/impl/SayCommand.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/impl/SayCommand.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/manager/CommandRegistry.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/commands/manager/CommandRegistry.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/generator/impl/FlatRoom.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/generator/impl/FlatRoom.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/generator/impl/Fractal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/generator/impl/Fractal.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/generator/manager/GeneratorManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/generator/manager/GeneratorManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/manager/LevelManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/manager/LevelManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/model/Level.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/level/model/Level.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/player/manager/PlayerManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/data/player/manager/PlayerManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/manager/ConnectionManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/manager/ConnectionManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/manager/HeartbeatManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/manager/HeartbeatManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/packets/client/ClientMessage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/packets/client/ClientMessage.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/packets/manager/PacketManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/packets/manager/PacketManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/packets/model/Packet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/packets/model/Packet.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/org/dandelion/classic/util/Logger.kt" beforeDir="false" />
-    </list>
+    <list default="true" id="bdc0f079-6797-4dde-bc96-f3702114aa6e" name="Changes" comment="refactor: replace Logger with Console for logging, fix placing blocks anywhere" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -185,6 +167,7 @@
       <workItem from="1748567375257" duration="27000" />
       <workItem from="1748709344827" duration="126000" />
       <workItem from="1748709501753" duration="3745000" />
+      <workItem from="1748717287578" duration="1206000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -194,7 +177,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748566529321</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="refactor: replace Logger with Console for logging, fix placing blocks anywhere">
+      <option name="closed" value="true" />
+      <created>1748717490846</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1748717490846</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -202,7 +193,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
+    <MESSAGE value="refactor: replace Logger with Console for logging, fix placing blocks anywhere" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor: replace Logger with Console for logging, fix placing blocks anywhere" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

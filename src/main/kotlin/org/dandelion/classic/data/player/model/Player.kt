@@ -42,8 +42,27 @@ data class Player(
         PlayerManager.playerDisconnect(levelId, playerID)
         channel.close()
     }
+    //man i love regex :3
+    private fun recolorMessage(message: String): String {
+        return message.replace(Regex("%([0-9a-fA-F])")) { matchResult ->
+            "&${matchResult.groupValues[1].lowercase()}"
+        }
+    }
+    //now the message gets splited if its longer than 64 chars (keeping track of the last color code)
     fun sendMessage(message: String, playerID: Byte = 0x00.toByte()) {
-        ServerMessage(playerID, message).resolve(channel)
+        val recolored = recolorMessage(message)
+        var lastColor = ""
+        val colorRegex = Regex("&([0-9a-f])")
+
+        recolored.chunked(64).forEachIndexed { idx, chunk ->
+            val chunkWithColor = if (idx == 0) chunk else lastColor + chunk
+
+            ServerMessage(playerID, chunkWithColor).resolve(channel)
+
+            colorRegex.findAll(chunk).lastOrNull()?.let {
+                lastColor = it.value
+            }
+        }
     }
     fun teleport(posX: Float, posY: Float, posZ: Float, yaw: Float = 0f, pitch: Float = 0f) {
         this.posX = posX

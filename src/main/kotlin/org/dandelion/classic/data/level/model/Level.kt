@@ -11,9 +11,9 @@ data class Level(
     val sizeY: Short = 64,
     val sizeZ: Short = 128,
 
-    val spawnX: Float = 32.0f,
-    val spawnY: Float = 16.0f,
-    val spawnZ: Float = 32.0f,
+    var spawnX: Float = 32.0f,
+    var spawnY: Float = 16.0f,
+    var spawnZ: Float = 32.0f,
 
     val seed: Long = 0,
 

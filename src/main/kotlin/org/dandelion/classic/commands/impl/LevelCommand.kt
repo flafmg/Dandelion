@@ -4,6 +4,7 @@ import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.data.level.manager.LevelManager
 import org.dandelion.classic.data.level.generator.manager.GeneratorManager
+import org.dandelion.classic.data.level.io.impl.DandelionLevelSerializer
 import org.dandelion.classic.data.player.model.Player
 
 class LevelCommand : Command {
@@ -51,6 +52,13 @@ class LevelCommand : Command {
                     return
                 }
                 handleLoad(executor, args.drop(1))
+            }
+            "setspawn" -> {
+                if (!executor.hasPermission("dandelion.server.level.setspawn")) {
+                    executor.sendMessage("&cYou do not have permission to use this command.")
+                    return
+                }
+                handleSetSpawn(executor, args.drop(1))
             }
             else -> executor.sendMessage("&cUnknown subcommand. Use /level <list|go|create|unload|load>")
         }
@@ -164,6 +172,35 @@ class LevelCommand : Command {
             executor.sendMessage("Level '$id' loaded.")
         } catch (e: Exception) {
             executor.sendMessage("Failed to load level '$id': ${e.message}")
+        }
+    }
+
+    private fun handleSetSpawn(executor: CommandExecutor, args: List<String>) {
+        if (args.size < 4) {
+            executor.sendMessage("Usage: /level setspawn <name> <x> <y> <z>")
+            return
+        }
+        val id = args[0]
+        val x = args[1].toFloatOrNull()
+        val y = args[2].toFloatOrNull()
+        val z = args[3].toFloatOrNull()
+        if (x == null || y == null || z == null) {
+            executor.sendMessage("Invalid coordinates.")
+            return
+        }
+        val level = LevelManager.getLevel(id)
+        if (level == null) {
+            executor.sendMessage("Level '$id' not found.")
+            return
+        }
+        level.spawnX = x
+        level.spawnY = y
+        level.spawnZ = z
+        try {
+            level.serialize(DandelionLevelSerializer(), "levels/${level.id}.dlvl")
+            executor.sendMessage("Spawn point for level '$id' set to ($x, $y, $z) and saved.")
+        } catch (e: Exception) {
+            executor.sendMessage("Spawn set, but failed to save: ${e.message}")
         }
     }
 }
