@@ -1,0 +1,63 @@
+package org.dandelion.classic.network
+
+import io.netty.channel.ChannelHandlerContext
+import org.dandelion.classic.network.packets.Packet
+import org.dandelion.classic.network.packets.classic.client.ClientIdentification
+import java.util.concurrent.ConcurrentHashMap
+
+//is it correct to call this a factory?
+internal object PacketFactory {
+    private val packetFactory = ConcurrentHashMap<Byte, () -> Packet>()
+
+    internal fun init() {
+        registerPackets()
+    }
+
+    private fun registerPackets(){
+        registerPacket(0x00, ::ClientIdentification)
+    }
+
+    private fun registerPacket(id: Byte, factory : () -> Packet){
+        if(packetFactory.contains(id)){
+            println("Packet of id $id is already registered")
+            return
+        }
+        packetFactory[id] = factory
+    }
+    fun createPacket(id: Byte): Packet? {
+        if(packetFactory.contains(id)){
+            println("Packet of id $id is not registered")
+            return null
+        }
+        return packetFactory[id]?.invoke()
+    }
+
+    fun getPacketSize(id: Byte): Int{
+        val packet = createPacket(id);
+        return packet?.size ?: -1
+    }
+
+    fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray){
+        if(data.isEmpty()){
+            System.err.println("received data is empty from ${ctx.channel().remoteAddress()}")
+            return
+        }
+
+        val packetId = data[0]
+        val packet = createPacket(packetId)
+
+        if(packet == null){
+            println("Packet $packetId doesnt exist, closing connection")
+            ctx.close()
+            return
+        }
+
+        try {
+            packet.decode(data)
+            packet.resolve(ctx.channel())
+        } catch (ex: Exception){
+            println("Error processing packet ${ex.message}")
+            ctx.close()
+        }
+    }
+}
