@@ -2,8 +2,6 @@ package org.dandelion.classic.network.packets.classic.client
 
 import io.netty.channel.Channel
 import org.dandelion.classic.network.packets.Packet
-import org.dandelion.classic.network.packets.classic.server.LevelInitialize
-import org.dandelion.classic.network.packets.classic.server.ServerIdentification
 import org.dandelion.classic.network.packets.stream.PacketReader
 
 class ClientIdentification: Packet() {
@@ -17,6 +15,7 @@ class ClientIdentification: Packet() {
 
     override fun decode(data: ByteArray) {
         val reader = PacketReader(data)
+
         protocolVersion = reader.readByte()
         userName = reader.readString()
         verificationKey = reader.readString()
@@ -24,9 +23,6 @@ class ClientIdentification: Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        println("Player connected: $protocolVersion, $userName, $verificationKey, $unused")
-        println("sending serverIndentificationBack")
-        ServerIdentification().send(channel)
-        LevelInitialize().send(channel)
+
     }
 }

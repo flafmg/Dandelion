@@ -11,6 +11,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import org.dandelion.classic.network.handler.ConnectionHandler
 import org.dandelion.classic.network.handler.DisconnectHandler
+import org.dandelion.classic.server.Server
 
 internal object ConnectionManager {
     private var isRunning = false
@@ -19,12 +20,11 @@ internal object ConnectionManager {
     private var workerGroup: EventLoopGroup? = null
     private var channel: Channel? = null
 
-    val port = 25565
     fun init(){
         if(isRunning) return
         isRunning = true
 
-        println("Starting connection manager on port $port")
+        println("Starting connection manager on port ${Server.port}")
 
         bossGroup = NioEventLoopGroup() // this group accept and estabilishes the client connection
         workerGroup = NioEventLoopGroup() //handle estabilhed connectoins
@@ -41,11 +41,12 @@ internal object ConnectionManager {
                     }
                 }).childOption(ChannelOption.SO_KEEPALIVE, true) // keeps the connection alive (duh)
 
-            val channelFuture = serverBootstrap.bind(port).sync() // starts connection on the port
+            val channelFuture = serverBootstrap.bind(Server.port).sync() // starts connection on the port
             channel = channelFuture.channel()
-            println("connection manager active on port $port")
+            println("connection manager active on port ${Server.port}")
         } catch (ex: Exception){
             println("Exception occured while trying to enable connection manager: ${ex.message}")
+            Server.shutDown()
         }
     }
 

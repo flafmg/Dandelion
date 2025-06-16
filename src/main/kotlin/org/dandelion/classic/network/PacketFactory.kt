@@ -3,10 +3,13 @@ package org.dandelion.classic.network
 import io.netty.channel.ChannelHandlerContext
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
+import org.dandelion.classic.network.packets.classic.client.ClientMessage
+import org.dandelion.classic.network.packets.classic.client.ClientPositionAndOrientation
+import org.dandelion.classic.network.packets.classic.client.ClientSetBlock
 import java.util.concurrent.ConcurrentHashMap
 
 //is it correct to call this a factory?
-internal object PacketFactory {
+object PacketFactory {
     private val packetFactory = ConcurrentHashMap<Byte, () -> Packet>()
 
     internal fun init() {
@@ -15,14 +18,25 @@ internal object PacketFactory {
 
     private fun registerPackets(){
         registerPacket(0x00, ::ClientIdentification)
+        registerPacket(0x05, ::ClientSetBlock)
+        registerPacket(0x08, ::ClientPositionAndOrientation)
+        registerPacket(0x0D, ::ClientMessage)
     }
 
-    private fun registerPacket(id: Byte, factory : () -> Packet){
+    fun registerPacket(id: Byte, factory : () -> Packet){
         if(packetFactory.contains(id)){
             println("Packet of id $id is already registered")
             return
         }
         packetFactory[id] = factory
+    }
+    fun unregisterPacket(id: Byte){
+        if(packetFactory.contains(id)) {
+            packetFactory.remove(id)
+        }
+    }
+    private fun unregisterAllPackets(){
+        packetFactory.keys.forEach { key -> unregisterPacket(key)}
     }
     fun createPacket(id: Byte): Packet? {
         if(packetFactory.contains(id)){
@@ -37,7 +51,7 @@ internal object PacketFactory {
         return packet?.size ?: -1
     }
 
-    fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray){
+    internal fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray){
         if(data.isEmpty()){
             System.err.println("received data is empty from ${ctx.channel().remoteAddress()}")
             return
@@ -59,5 +73,9 @@ internal object PacketFactory {
             println("Error processing packet ${ex.message}")
             ctx.close()
         }
+    }
+
+    internal fun shutDown(){
+        unregisterAllPackets()
     }
 }
