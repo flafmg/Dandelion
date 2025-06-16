@@ -14,7 +14,7 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.yaml:snakeyaml:2.2")
-    implementation("io.netty:netty-all:4.1.24.Final")
+    implementation("io.netty:netty-all:4.2.2.Final")
 }
 
 application {
