@@ -1,17 +1,27 @@
 package org.dandelion.classic.player
 
 import io.netty.channel.Channel
-import org.dandelion.classic.types.FPosition
+import org.dandelion.classic.types.Position
 
 data class Player(
     val channel: Channel,
     val client: String,
 
     val name: String,
-    val position: FPosition,
+    val position: Position,
 
+    var id: Byte = -1,
     var isOp: Boolean = false,
 ){
+    fun sendMessage(message: String){
+
+    }
+    fun kick(reason: String = "you have been kicked"){
+
+    }
+    fun ban(reason: String = "you have been banned from this server"){
+
+    }
     fun setPosition(x: Int, y: Int, z: Int){
         setPosition(x.toFloat(), y.toFloat(), z.toFloat(), position.yaw, position.pitch)
     }
