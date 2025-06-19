@@ -2,6 +2,7 @@ package org.dandelion.classic.network.packets
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
+import org.dandelion.classic.player.Player
 
 abstract class Packet {
     abstract val id: Byte
@@ -13,6 +14,9 @@ abstract class Packet {
     open fun encode(): ByteArray {return data}
     open fun resolve(channel: Channel){ }
 
+    fun send(player: Player){
+        send(player.channel)
+    }
     fun send(channel: Channel) {
         println("sending data")
         val encodedData = encode()

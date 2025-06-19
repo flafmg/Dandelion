@@ -3,6 +3,7 @@ package org.dandelion.classic.network.handler
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
+import org.dandelion.classic.player.PlayerManager
 
 class DisconnectHandler : ChannelInboundHandlerAdapter() {
     override fun channelInactive(ctx: ChannelHandlerContext) {
@@ -17,7 +18,7 @@ class DisconnectHandler : ChannelInboundHandlerAdapter() {
         ctx.close()
     }
 
-    fun disconnectPlayer(channel: Channel){
-        //do shit here
+    private fun disconnectPlayer(channel: Channel){
+        PlayerManager.disconnectPlayer(channel)
     }
 }

@@ -12,8 +12,11 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    implementation("org.yaml:snakeyaml:2.2")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("org.yaml:snakeyaml:2.4")
     implementation("io.netty:netty-all:4.2.2.Final")
 }
 
