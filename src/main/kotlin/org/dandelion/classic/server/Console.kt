@@ -3,7 +3,6 @@ package org.dandelion.classic.server
 import org.jline.reader.LineReaderBuilder
 import org.jline.terminal.TerminalBuilder
 import kotlinx.coroutines.*
-import org.jline.console.CommandRegistry
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -51,7 +50,7 @@ object Console{
         println("${timestamp()}$RED[ERROR] $message$RESET")
     }
 
-    fun startInputLoop() {
+    internal fun init() {
         inputJob = scope.launch {
             val terminal = TerminalBuilder.builder().system(true).build()
             val reader = LineReaderBuilder.builder().terminal(terminal).build()
@@ -69,7 +68,7 @@ object Console{
         }
     }
 
-    fun stopInputLoop() {
+    internal fun shutDown() {
         inputJob?.cancel()
         inputJob = null
     }

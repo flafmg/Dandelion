@@ -1,4 +1,4 @@
-package org.dandelion.classic.player
+package org.dandelion.classic.entity
 
 import io.netty.channel.Channel
 import org.dandelion.classic.level.Level
@@ -6,7 +6,6 @@ import org.dandelion.classic.level.LevelManager
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerIdentification
-import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
 
 object PlayerManager {
@@ -26,15 +25,17 @@ object PlayerManager {
 
     internal fun disconnectPlayer(channel: Channel) {
         val player = getPlayerByChannel(channel) ?: return
-        val level = LevelManager.getAllLevels().find { it.isPlayerInLevel(player) } ?: return
+        val level = player.level ?: return
 
-        level.removePlayer(player)
+        level.removeEntity(player)
         notifyPlayerLeft(player)
     }
 
     internal fun preConnectPlayer(client: ClientIdentification, channel: Channel){
-        val player = Player(channel, "Unknown", client.userName,)
+        val player = Player(channel, "Unknown", client.userName)
+
         //in the future we fire a "preConnectPlayerevent
+
         player.levelId = LevelManager.defaultLevel
         ServerIdentification().send(player)
         tryConnectPlayer(player)
@@ -48,24 +49,45 @@ object PlayerManager {
             ServerDisconnectPlayer("The server is full").send(player)
             return
         }
-        val joinLevel = LevelManager.getLevel(player.levelId)
+        val joinLevel = LevelManager.getDefaultJoinLevel()
         if(joinLevel == null){
-            ServerDisconnectPlayer("You're already connected to this server").send(player)
+            ServerDisconnectPlayer("Default level not available").send(player)
             return
         }
-        // in the future add ban check
 
-        //here in the future call "playerConnectEvent"
         player.sendToLevel(joinLevel)
         notifyPlayerJoin(player)
     }
 
+    fun getPlayerByChannel(channel: Channel): Player? = 
+        LevelManager.getAllPlayers().find { it.channel == channel }
+    
+    fun getPlayerByName(name: String): Player? =
+        LevelManager.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
+    
+    fun getAllPlayers(): List<Player> = 
+        LevelManager.getAllPlayers()
+    
+    fun getOnlinePlayerCount(): Int = 
+        LevelManager.getOnlinePlayerCount()
 
-    fun getPlayerByChannel (channel: Channel): Player? = LevelManager.getAllLevels().flatMap { it.getPlayers() }.find { it.channel == channel }
-    fun getAllPlayers(): List<Player> = LevelManager.getAllLevels().flatMap { it.getPlayers() }
-    fun getOnlinePlayerCount(): Int = LevelManager.getAllLevels().sumOf { it.getPlayerCount() }
+    fun broadcast(message: String, id: Byte = 0x00) = 
+        LevelManager.getAllPlayers().forEach { it.sendMessage(message, id) }
+    
+    fun kickAll(reason: String = "you have been kicked") = 
+        LevelManager.getAllPlayers().forEach { it.kick(reason) }
 
-    fun broadcast(message: String, id: Byte = 0xFF.toByte()) = LevelManager.getAllLevels().forEach() {it.broadcast(message, id)}
-    fun kickAll(reason: String = "you have been kicked") = LevelManager.getAllLevels().forEach() { it.kickAll(reason) }
-
+    fun kickPlayer(name: String, reason: String = "You have been kicked") {
+        getPlayerByName(name)?.kick(reason)
+    }
+    fun kickPlayer(player: Player, reason: String = "You have been kicked") {
+        player.kick(reason)
+    }
+    
+    fun banPlayer(name: String, reason: String = "You have been banned") {
+        getPlayerByName(name)?.ban(reason)
+    }
+    fun banPlayer(player: Player, reason: String = "You have been banned") {
+        player.ban(reason)
+    }
 }

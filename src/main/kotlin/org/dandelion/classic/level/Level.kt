@@ -6,8 +6,8 @@ import org.dandelion.classic.level.io.DandelionLevelDeserializer
 import org.dandelion.classic.level.io.LevelDeserializer
 import org.dandelion.classic.level.io.LevelSerializer
 import org.dandelion.classic.network.packets.classic.server.ServerDespawnPlayer
-import org.dandelion.classic.network.packets.classic.server.ServerSpawnPlayer
-import org.dandelion.classic.player.Player
+import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.entity.Player
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Block
 import org.dandelion.classic.types.IVec
@@ -30,9 +30,8 @@ data class Level(
 ){
     var blocks: ByteArray = ByteArray(size.x * size.y * size.z) { 0x00 }
 
-
     val availableIds = ArrayDeque<Byte>(256) //we using it as LIFO (stack)
-    val players = HashMap<Byte, Player>(256)
+    val entities = HashMap<Byte, Entity>(256)
 
     init {
         for(id in 0..254){ // - 1 (255) is reserved for own player
@@ -40,18 +39,79 @@ data class Level(
         }
     }
 
-
     fun isFull(): Boolean {
         return availableIds.isEmpty()
     }
     fun getAvailableSpace(): Int{
         return availableIds.size
     }
+    fun getEntityCount(): Int{
+        return entities.size
+    }
     fun getPlayerCount(): Int{
-        return players.size
+        return getPlayers().size
     }
     fun getNextAvailableID(): Byte?{
         return availableIds.removeFirstOrNull()
+    }
+
+    fun getPlayers(): List<Player> {
+        return entities.values.filterIsInstance<Player>()
+    }
+    fun getNonPlayerEntities(): List<Entity> {
+        return entities.values.filter { it !is Player }
+    }
+    fun getEntities(): List<Entity> {
+        return entities.values.toList()
+    }
+
+    fun trySetId(entity: Entity): Boolean {
+        val id = getNextAvailableID() ?: return false
+        entity.entityId = id
+        entities[id] = entity
+        entity.level = this
+        return true
+    }
+    
+    fun removeEntity(entity: Entity) {
+        if (!isEntityInLevel(entity)) {
+            Console.warnLog("Attempted to remove an entity that isn't in this level")
+            return
+        }
+        removeEntity(entity.entityId)
+    }
+    fun removeEntity(id: Byte) {
+        val entity = entities[id] ?: run {
+            Console.warnLog("Attempted to remove an entity that isn't in this level")
+            return
+        }
+
+        if (entity is Player) {
+            getPlayers().filter { it.entityId != id }.forEach { otherPlayer ->
+                ServerDespawnPlayer(id).send(otherPlayer.channel)
+            }
+        }
+        availableIds.addFirst(id)
+        entities.remove(id)
+        entity.entityId = -1
+        entity.level = null
+    }
+    
+    fun getEntityById(id: Byte): Entity? {
+        return entities[id]
+    }
+    
+    fun getPlayerById(id: Byte): Player? {
+        val entity = entities[id]
+        return if (entity is Player) entity else null
+    }
+    
+    fun isEntityInLevel(entity: Entity): Boolean {
+        return entities.values.any { it === entity }
+    }
+    
+    fun isPlayerInLevel(player: Player): Boolean {
+        return entities.values.any { it === player }
     }
 
     fun setBlock(position: Position, block: Block){
@@ -78,9 +138,17 @@ data class Level(
     fun setBlock(x: Int, y: Int, z: Int, block: Byte){
         val index = x + (z * size.x) + (y * size.x * size.z)
         blocks[index] = block
+
+        if (x >= 0 && y >= 0 && z >= 0 && x < size.x && y < size.y && z < size.z) {
+            val xShort = x.toShort()
+            val yShort = y.toShort()
+            val zShort = z.toShort()
+            getPlayers().forEach { player ->
+                player.updateBlock(xShort, yShort, zShort, block)
+            }
+        }
     }
-
-
+    
     fun fillBlocks(start: Position, end: Position, block: Block){
         fillBlocks(start.x.toInt(), start.y.toInt(), start.z.toInt(), end.x.toInt(), end.y.toInt(), end.z.toInt(), block.id)
     }
@@ -120,8 +188,7 @@ data class Level(
             }
         }
     }
-
-
+    
     fun getBlock(position: Position): Byte{
         return getBlock(position.x.toInt(), position.y.toInt(), position.z.toInt())
     }
@@ -136,83 +203,31 @@ data class Level(
         return blocks[index]
     }
 
-
-    fun trySetId(player: Player): Boolean{
-        val id = getNextAvailableID() ?: return false
-        player.playerId = id
-        players[id] = player
-        return true
-    }
-    fun removePlayer(player: Player){
-        if(!isPlayerInLevel(player)){
-            Console.warnLog("Attempted to remove a player that isnt in this level")
-            return
-        }
-        removePlayer(player.playerId)
-    }
-    fun removePlayer(id: Byte){
-        val player = players[id] ?: run {
-            Console.warnLog("Attempted to remove a player that isnt in this level")
-            return
-        }
-
-        players.values.filter { it.playerId != id }.forEach { otherPlayer ->
-            ServerDespawnPlayer(id).send(otherPlayer.channel)
-        }
-
-        availableIds.addFirst(id)
-        players.remove(id)
-        player.playerId = -1
-        player.level = null
-    }
-    fun getPlayerById(id: Byte): Player?{
-        return players[id]
-    }
-    fun isPlayerInLevel(player: Player): Boolean {
-        return players.values.any { it === player }
-    }
-    fun getPlayers(): List<Player>{
-        return players.values.toList()
-    }
-
     fun kickAll(reason: String = "you have been kicked"){
-        players.values.forEach{player -> player.kick(reason)}
+        getPlayers().forEach { player -> player.kick(reason) }
     }
+    
     fun broadcast(message: String){
-        broadcast(message, 0xff.toByte())
+        broadcast(message, 0x00)
     }
-    fun broadcast(message: String, id: Byte = 0xFF.toByte()){
-        players.values.forEach{player -> player.sendMessage(message, id)}
+    
+    fun broadcast(message: String, id: Byte = 0x00){
+        getPlayers().forEach { player -> player.sendMessage(message, id) }
     }
 
     fun generate(generator: LevelGenerator, params: String){
         generator.generate(this, params)
     }
     
-    fun spawnPlayer(player: Player){
-        players.values.filter { other -> other.playerId != player.playerId }.forEach{ other ->
-            ServerSpawnPlayer(
-                other.playerId,
-                other.name,
-                other.position.x,
-                other.position.y,
-                other.position.z,
-                other.position.yaw.toInt().toByte(),
-                other.position.pitch.toInt().toByte()
-            ).send(player.channel)
+    fun spawnPlayerInLevel(player: Player){
+        getEntities().filter { it.entityId != player.entityId }.forEach { entity ->
+            player.spawnEntityMutual(entity)
         }
+    }
 
-        val spawnPacket = ServerSpawnPlayer(
-            player.playerId,
-            player.name,
-            player.position.x,
-            player.position.y,
-            player.position.z,
-            player.position.yaw.toInt().toByte(),
-            player.position.pitch.toInt().toByte()
-        )
-        players.values.filter { it.playerId != player.playerId }.forEach { other ->
-            spawnPacket.send(other.channel)
+    fun spawnEntityInLevel(entity: Entity) {
+        getPlayers().forEach { player ->
+            entity.spawnEntityFor(player)
         }
     }
 

@@ -1,6 +1,8 @@
 package org.dandelion.classic.level
 
 import kotlinx.coroutines.*
+import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.entity.Player
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.level.generator.LevelGenerator
 import org.dandelion.classic.server.Console
@@ -22,6 +24,13 @@ object LevelManager {
         defaultLevel = "main"
         startAutoSaveLoop()
         loadLevel("main")
+
+        val mainLevel = getLevel("main")
+        if (mainLevel != null) {
+            val npcEntity = Entity("teste", "main", -1, mainLevel.spawn.copy())
+            npcEntity.sendToLevel(mainLevel)
+            Console.log("NPC 'teste' foi spawnado no level 'main'")
+        }
     }
 
     internal fun shutDown(){
@@ -88,7 +97,13 @@ object LevelManager {
         }
     }
 
-    //loads all levels from a folder
+    fun getAllEntities(): List<Entity> = levels.values.flatMap { it.getEntities() }
+    fun getAllPlayers(): List<Player> = levels.values.flatMap { it.getPlayers() }
+    fun getAllNonPlayerEntities(): List<Entity> = levels.values.flatMap { it.getNonPlayerEntities() }
+    
+    fun getOnlinePlayerCount(): Int = levels.values.sumOf { it.getPlayerCount() }
+    fun getEntityCount(): Int = levels.values.sumOf { it.getEntityCount() }
+
     fun loadAllFromFolder(path: String){
 
     }
@@ -126,12 +141,15 @@ object LevelManager {
     
 
     fun redirectAll(from: Level, to: Level){
-        from.players.keys.forEach{  id ->
-            val player = from.getPlayerById(id)!!
-            from.removePlayer(id)
-
+        val playersToRedirect = from.getPlayers().toList()
+        
+        playersToRedirect.forEach { player ->
+            from.removeEntity(player.entityId)
+            
             if(!to.trySetId(player)){
-                player.kick("Level is full")
+                if (player is Player) {
+                    player.kick("Level is full")
+                }
             }
         }
     }

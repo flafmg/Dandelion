@@ -23,12 +23,11 @@ object Server {
     internal fun init(){
         if(running) return;
 
+        Console.init()
         PacketFactory.init()
         ConnectionManager.init()
         GeneratorRegistry.init()
         LevelManager.init()
-
-
     }
     fun shutDown(){
         if(!running) return;
@@ -37,6 +36,7 @@ object Server {
         ConnectionManager.shutDown()
         GeneratorRegistry.shutDown()
         LevelManager.shutDown()
+        Console.shutDown()
     }
 
     fun restart(){
