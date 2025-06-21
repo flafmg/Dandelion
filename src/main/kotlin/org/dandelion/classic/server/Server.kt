@@ -4,10 +4,9 @@ import org.dandelion.classic.level.LevelManager
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.ConnectionManager
 import org.dandelion.classic.network.PacketFactory
-import org.dandelion.classic.network.handler.ConnectionHandler
 
 object Server {
-    private var isRunning = false;
+    private var running = false;
 
     // software info
     val dandelionVersion = "0.1a"
@@ -22,7 +21,7 @@ object Server {
     var maxPlayers = 255
 
     internal fun init(){
-        if(isRunning) return;
+        if(running) return;
 
         PacketFactory.init()
         ConnectionManager.init()
@@ -32,7 +31,7 @@ object Server {
 
     }
     fun shutDown(){
-        if(!isRunning) return;
+        if(!running) return;
 
         PacketFactory.shutDown()
         ConnectionManager.shutDown()
@@ -45,6 +44,9 @@ object Server {
         init()
     }
 
+    fun isRunning(): Boolean{
+        return running
+    }
 
 }
 fun main(){

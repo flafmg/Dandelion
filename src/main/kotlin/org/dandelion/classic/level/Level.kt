@@ -1,22 +1,35 @@
 package org.dandelion.classic.level
 
 import org.dandelion.classic.level.generator.LevelGenerator
+import org.dandelion.classic.level.io.DandelionLevelSerializer
+import org.dandelion.classic.level.io.DandelionLevelDeserializer
+import org.dandelion.classic.level.io.LevelDeserializer
+import org.dandelion.classic.level.io.LevelSerializer
 import org.dandelion.classic.network.packets.classic.server.ServerDespawnPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerSpawnPlayer
 import org.dandelion.classic.player.Player
+import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Block
 import org.dandelion.classic.types.IVec
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.SVec
+import java.io.File
 
 //TODO: add docstrings for clarity
 data class Level(
     val id: String,
+    val author: String,
+    val description: String,
 
     val size: SVec,
     var spawn: Position,
+
+    var extraData: String = "",
+    val timeCreated: Long = System.currentTimeMillis(),
+    var autoSave: Boolean = true
 ){
     var blocks: ByteArray = ByteArray(size.x * size.y * size.z) { 0x00 }
+
 
     val availableIds = ArrayDeque<Byte>(256) //we using it as LIFO (stack)
     val players = HashMap<Byte, Player>(256)
@@ -92,7 +105,7 @@ data class Level(
         val maxZ = maxOf(startZ, endZ)
 
         if(minX < 0 || maxX >= size.x || minY < 0 || maxY >= size.y || minZ < 0 || maxZ >= size.z) {
-            println("Filling out of bounds error")
+            Console.warnLog("Filling out of bounds error")
             return
         }
 
@@ -132,14 +145,14 @@ data class Level(
     }
     fun removePlayer(player: Player){
         if(!isPlayerInLevel(player)){
-            println("Attempted to remove a player that isnt in this level")
+            Console.warnLog("Attempted to remove a player that isnt in this level")
             return
         }
         removePlayer(player.playerId)
     }
     fun removePlayer(id: Byte){
         val player = players[id] ?: run {
-            println("Attempted to remove a player that isnt in this level")
+            Console.warnLog("Attempted to remove a player that isnt in this level")
             return
         }
 
@@ -200,6 +213,44 @@ data class Level(
         )
         players.values.filter { it.playerId != player.playerId }.forEach { other ->
             spawnPacket.send(other.channel)
+        }
+    }
+
+    fun save(serializer: LevelSerializer, file: File){
+        serializer.serialize(this, file)
+    }
+    fun save(serializer: LevelSerializer, path: String){
+        val file = File(path)
+        serializer.serialize(this, file)
+    }
+    fun save(serializer: LevelSerializer){
+        val file = File("levels/$id.dlvl")
+        serializer.serialize(this, file)
+    }
+    fun save(file: File){
+        save(DandelionLevelSerializer(), file)
+    }
+    fun save(path: String){
+        save(DandelionLevelSerializer(), path)
+    }
+    fun save(){
+        save(DandelionLevelSerializer())
+    }
+    
+    companion object{
+        fun load(deserializer: LevelDeserializer, file: File): Level? {
+            return deserializer.deserialize(file)
+        }
+        fun load(deserializer: LevelDeserializer, path: String): Level? {
+            val file = File(path)
+            return deserializer.deserialize(file)
+        }
+        fun load(file: File): Level? {
+            return DandelionLevelDeserializer().deserialize(file)
+        }
+        fun load(path: String): Level? {
+            val file = File(path)
+            return DandelionLevelDeserializer().deserialize(file)
         }
     }
 }

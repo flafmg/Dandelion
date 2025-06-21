@@ -1,6 +1,7 @@
 package org.dandelion.classic.level.generator
 
 import org.dandelion.classic.level.generator.impl.FlatGenerator
+import org.dandelion.classic.server.Console
 
 object GeneratorRegistry {
     val generators = HashMap<String, LevelGenerator>()
@@ -14,10 +15,10 @@ object GeneratorRegistry {
 
     fun register(generator: LevelGenerator){
         if(generators.containsKey(generator.id)){
-            println("A generator by the same id is already registered")
+            Console.warnLog("A generator by the same id is already registered")
             return
         }
-        println("registered generator ${generator.id}")
+        Console.log("registered generator ${generator.id}")
         generators[generator.id] = generator
     }
 
@@ -26,7 +27,7 @@ object GeneratorRegistry {
     }
     fun unregister(id: String){
         if(!generators.containsKey(id)){
-            println("This generator doesnt exist")
+            Console.warnLog("This generator doesnt exist")
             return
         }
         generators.remove(id)
@@ -34,7 +35,7 @@ object GeneratorRegistry {
 
     fun getGenerator(id: String): LevelGenerator?{
         if(!generators.containsKey(id)){
-            println("This generator doesnt exist")
+            Console.warnLog("This generator doesnt exist")
             return null
         }
         return generators[id]

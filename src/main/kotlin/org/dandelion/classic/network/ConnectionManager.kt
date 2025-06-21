@@ -11,6 +11,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import org.dandelion.classic.network.handler.ConnectionHandler
 import org.dandelion.classic.network.handler.DisconnectHandler
+import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
 
 internal object ConnectionManager {
@@ -24,7 +25,7 @@ internal object ConnectionManager {
         if(isRunning) return
         isRunning = true
 
-        println("Starting connection manager on port ${Server.port}")
+        Console.log("Starting connection manager on port ${Server.port}")
 
         bossGroup = NioEventLoopGroup() // this group accept and estabilishes the client connection
         workerGroup = NioEventLoopGroup() //handle estabilhed connectoins
@@ -35,7 +36,7 @@ internal object ConnectionManager {
                 .channel(NioServerSocketChannel::class.java) // add tcp connection
                 .childHandler(object : ChannelInitializer<SocketChannel>() {
                     override fun initChannel(ch: SocketChannel) { //handle here bc its easier
-                        println("Client connected ${ch.remoteAddress()}")
+                        Console.log("Client connected ${ch.remoteAddress()}")
                         ch.pipeline().addLast(DisconnectHandler()) // here we add the disconect handler (so we dont have to use the ping packet lol)
                         ch.pipeline().addLast(ConnectionHandler()) // here we will add the pccket connection handler
                     }
@@ -43,9 +44,9 @@ internal object ConnectionManager {
 
             val channelFuture = serverBootstrap.bind(Server.port).sync() // starts connection on the port
             channel = channelFuture.channel()
-            println("connection manager active on port ${Server.port}")
+            Console.log("connection manager active on port ${Server.port}")
         } catch (ex: Exception){
-            println("Exception occured while trying to enable connection manager: ${ex.message}")
+            Console.errLog("Exception occured while trying to enable connection manager: ${ex.message}")
             Server.shutDown()
         }
     }
@@ -54,11 +55,11 @@ internal object ConnectionManager {
         if(!isRunning) return
         isRunning = false;
 
-        println("Stopping connection manager...")
+        Console.log("Stopping connection manager...")
         //we trow errors out, it is shutting down anyways
         try { channel?.close()?.sync() } catch (_: Exception) {}
         try { bossGroup?.shutdownGracefully() } catch (_: Exception) {}
         try { workerGroup?.shutdownGracefully() } catch (_: Exception) {}
-        println("connectionManager stoped")
+        Console.log("connectionManager stoped")
     }
 }

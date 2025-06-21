@@ -6,6 +6,7 @@ import org.dandelion.classic.level.LevelManager
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerIdentification
+import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
 
 object PlayerManager {
@@ -32,7 +33,6 @@ object PlayerManager {
     }
 
     internal fun preConnectPlayer(client: ClientIdentification, channel: Channel){
-        println("receiving connection")
         val player = Player(channel, "Unknown", client.userName,)
         //in the future we fire a "preConnectPlayerevent
         player.levelId = LevelManager.defaultLevel
@@ -56,8 +56,8 @@ object PlayerManager {
         // in the future add ban check
 
         //here in the future call "playerConnectEvent"
-        println("player sending to level")
         player.sendToLevel(joinLevel)
+        notifyPlayerJoin(player)
     }
 
 

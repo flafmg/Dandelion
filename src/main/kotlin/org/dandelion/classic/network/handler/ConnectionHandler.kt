@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import org.dandelion.classic.network.PacketFactory
+import org.dandelion.classic.server.Console
 import java.util.concurrent.ConcurrentHashMap
 
 class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
@@ -31,13 +32,13 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
             val expectedSize = PacketFactory.getPacketSize(packetId)
 
             if (expectedSize == -1) {
-                System.err.println("Unknown packet ID: 0X%02X for channel $channelKey. Closing connection.".format(packetId))
+                Console.errLog("Unknown packet ID: 0X%02X for channel $channelKey. Closing connection.".format(packetId))
                 channelBuffers.remove(channelKey)
                 ctx.close()
                 return
             }
             if (expectedSize <= 0) {
-                System.err.println("Invalid packet size ($expectedSize) for packet ID 0X%02X ($channelKey). Closing connection.".format(packetId))
+                Console.errLog("Invalid packet size ($expectedSize) for packet ID 0X%02X ($channelKey). Closing connection.".format(packetId))
                 channelBuffers.remove(channelKey)
                 ctx.close()
                 return
@@ -52,7 +53,7 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
             try {
                 PacketFactory.handlePacket(ctx, packetData)
             } catch (e: Exception) {
-                System.err.println("Error handling packet ID 0X%02X ($channelKey): ${e.message}. Closing connection.")
+                Console.errLog("Error handling packet ID 0X%02X ($channelKey): ${e.message}. Closing connection.")
                 channelBuffers.remove(channelKey)
                 ctx.close()
                 return

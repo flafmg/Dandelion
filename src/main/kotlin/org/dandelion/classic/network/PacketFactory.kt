@@ -6,6 +6,7 @@ import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.client.ClientMessage
 import org.dandelion.classic.network.packets.classic.client.ClientPositionAndOrientation
 import org.dandelion.classic.network.packets.classic.client.ClientSetBlock
+import org.dandelion.classic.server.Console
 import java.util.concurrent.ConcurrentHashMap
 
 //is it correct to call this a factory?
@@ -25,7 +26,7 @@ object PacketFactory {
 
     fun registerPacket(id: Byte, factory : () -> Packet){
         if(packetFactory.contains(id)){
-            println("Packet of id $id is already registered")
+            Console.warnLog("Packet of id $id is already registered")
             return
         }
         packetFactory[id] = factory
@@ -40,7 +41,7 @@ object PacketFactory {
     }
     fun createPacket(id: Byte): Packet? {
         if(packetFactory.contains(id)){
-            println("Packet of id $id is not registered")
+            Console.warnLog("Packet of id $id is not registered")
             return null
         }
         return packetFactory[id]?.invoke()
@@ -53,7 +54,7 @@ object PacketFactory {
 
     internal fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray){
         if(data.isEmpty()){
-            System.err.println("received data is empty from ${ctx.channel().remoteAddress()}")
+            Console.errLog("received data is empty from ${ctx.channel().remoteAddress()}")
             return
         }
 
@@ -61,7 +62,7 @@ object PacketFactory {
         val packet = createPacket(packetId)
 
         if(packet == null){
-            println("Packet $packetId doesnt exist, closing connection")
+            Console.warnLog("Packet $packetId doesnt exist, closing connection")
             ctx.close()
             return
         }
@@ -70,7 +71,7 @@ object PacketFactory {
             packet.decode(data)
             packet.resolve(ctx.channel())
         } catch (ex: Exception){
-            println("Error processing packet ${ex.message}")
+            Console.errLog("Error processing packet ${ex.message}")
             ctx.close()
         }
     }

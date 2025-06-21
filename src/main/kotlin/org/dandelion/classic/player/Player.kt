@@ -30,10 +30,12 @@ data class Player(
         ServerMessage(id.toByte() ,message).send(channel)
     }
     fun kick(reason: String = "you have been kicked"){
+        ServerDisconnectPlayer(reason).send(channel)
+        PlayerManager.disconnectPlayer(channel)
 
     }
     fun ban(reason: String = "you have been banned from this server"){
-
+        // need to add logic
     }
     fun setPosition(position: Position){
         setPosition(position.x, position.y, position.z, position.yaw, position.pitch)
@@ -152,7 +154,7 @@ data class Player(
         position.set(newX, newY, newZ, newYaw, newPitch)
     }
     internal fun sendMessageAsPlayer(message: String){
-        level?.broadcast("&7$name: &f$message")
+        level?.broadcast("$name: &7$message")
     }
 
     internal fun setBlockAsPlayer(player: Player, x: Short, y: Short, z: Short, block: Byte, mode: Byte){
