@@ -27,9 +27,8 @@ object LevelManager {
 
         val mainLevel = getLevel("main")
         if (mainLevel != null) {
-            val npcEntity = Entity("teste", "main", -1, mainLevel.spawn.copy())
+            val npcEntity = Entity("TestNPC", "main")
             npcEntity.sendToLevel(mainLevel)
-            Console.log("NPC 'teste' foi spawnado no level 'main'")
         }
     }
 
