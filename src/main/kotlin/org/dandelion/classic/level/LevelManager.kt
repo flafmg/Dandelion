@@ -46,7 +46,7 @@ object LevelManager {
     fun autoSave() {
         levels.values.filter { it.autoSave }.forEach { level ->
             level.save()
-            Console.log("Auto-saved level: ${level.id}")
+            Console.debugLog("Auto-saved level: ${level.id}")
         }
     }
 
