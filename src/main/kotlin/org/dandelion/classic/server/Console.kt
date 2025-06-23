@@ -29,25 +29,30 @@ object Console{
     } else ""
 
     fun log(message: String) {
-        println("${timestamp()}$message$RESET")
+        val formattedMessage = "${timestamp()}$message$RESET"
+        lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
 
     fun debugLog(message: String) {
         if (debugMode) {
-            println("${timestamp()}$GRAY[DEBUG] $message$RESET")
+            val formattedMessage = "${timestamp()}$GRAY[DEBUG] $message$RESET"
+            lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
         }
     }
 
     fun infoLog(message: String) {
-        println("${timestamp()}$BLUE[INFO] $message$RESET")
+        val formattedMessage = "${timestamp()}$BLUE[INFO] $message$RESET"
+        lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
 
     fun warnLog(message: String) {
-        println("${timestamp()}$YELLOW[WARN] $message$RESET")
+        val formattedMessage = "${timestamp()}$YELLOW[WARN] $message$RESET"
+        lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
 
     fun errLog(message: String) {
-        println("${timestamp()}$RED[ERROR] $message$RESET")
+        val formattedMessage = "${timestamp()}$RED[ERROR] $message$RESET"
+        lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
 
     internal fun init() {

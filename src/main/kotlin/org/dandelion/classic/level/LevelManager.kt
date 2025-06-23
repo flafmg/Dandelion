@@ -6,10 +6,11 @@ import org.dandelion.classic.entity.Player
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.level.generator.LevelGenerator
 import org.dandelion.classic.server.Console
+import org.dandelion.classic.server.ServerInfo
 import org.dandelion.classic.types.IVec
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.SVec
-import java.nio.file.Path
+import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -21,15 +22,10 @@ object LevelManager {
     private var autoSaveJob: Job? = null
 
     internal fun init(){
-        defaultLevel = "main"
+        defaultLevel = ServerInfo.defaultLevel
+        autoSaveInterval = ServerInfo.autoSaveInterval
         startAutoSaveLoop()
-        loadLevel("main")
-
-        val mainLevel = getLevel("main")
-        if (mainLevel != null) {
-            val npcEntity = Entity("TestNPC", "main")
-            npcEntity.sendToLevel(mainLevel)
-        }
+        loadAllFromFolder("levels")
     }
 
     internal fun shutDown(){
@@ -104,7 +100,26 @@ object LevelManager {
     fun getEntityCount(): Int = levels.values.sumOf { it.getEntityCount() }
 
     fun loadAllFromFolder(path: String){
+        Console.log("Loading levels from $path folder")
+        val folder = File(path)
+        if (!folder.exists()) {
+            Console.log("Levels folder '$path' not found, creating it.")
+            folder.mkdirs()
+            return
+        }
+        if (!folder.isDirectory) {
+            Console.warnLog("Path '$path' is not a directory.")
+            return
+        }
 
+        folder.listFiles { _, name -> name.endsWith(".dlvl", ignoreCase = true) }?.forEach { file ->
+            val level = Level.load(file)
+            if (level != null) {
+                loadLevel(level)
+            } else {
+                Console.warnLog("Failed to load level from ${file.name}.")
+            }
+        }
     }
     
     fun createLevel(

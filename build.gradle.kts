@@ -2,6 +2,9 @@ plugins {
     kotlin("jvm") version "2.1.0"
     application
 }
+kotlin {
+    jvmToolchain(21)
+}
 
 group = "org.dandelion"
 version = "1.0-SNAPSHOT"
@@ -27,4 +30,15 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+}
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = application.mainClass.get()
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(sourceSets.main.get().output)
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.exists() }.map { if (it.isDirectory) it else zipTree(it) }
+    })
 }

@@ -6,7 +6,10 @@ import org.dandelion.classic.level.LevelManager
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerIdentification
+import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
+import org.dandelion.classic.server.ServerInfo
+import java.security.MessageDigest
 
 object PlayerManager {
 
@@ -32,12 +35,27 @@ object PlayerManager {
     }
 
     internal fun preConnectPlayer(client: ClientIdentification, channel: Channel){
-        val player = Player(channel, "Unknown", client.userName)
+        ServerIdentification().send(channel)
 
+        if(client.protocolVersion != 0x07.toByte()){
+            ServerDisconnectPlayer("You're using an invalid protocol version (${client.protocolVersion} but i expected 7)")
+            return
+        }
+        if(ServerInfo.verifyUsers){
+            val md = MessageDigest.getInstance("MD5")
+            val computedHash = md.digest("${ServerInfo.salt}${client.userName}".toByteArray())
+            val computedHashHex = computedHash.joinToString("") { "%02x".format(it) }
+            if(client.verificationKey != computedHashHex){
+                ServerDisconnectPlayer("You're not logged in").send(channel)
+                return
+            }
+        }
+
+        val player = Player(channel, "Unknown", client.userName)
         //in the future we fire a "preConnectPlayerevent
 
         player.levelId = LevelManager.defaultLevel
-        ServerIdentification().send(player)
+
         tryConnectPlayer(player)
     }
     private fun tryConnectPlayer(player: Player){
@@ -45,7 +63,7 @@ object PlayerManager {
             ServerDisconnectPlayer("You're already connected to this server").send(player)
             return
         }
-        if(getOnlinePlayerCount() >=  Server.maxPlayers){
+        if(getOnlinePlayerCount() >=  ServerInfo.maxPlayers){
             ServerDisconnectPlayer("The server is full").send(player)
             return
         }

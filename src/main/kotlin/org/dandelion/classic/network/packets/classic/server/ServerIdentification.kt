@@ -4,10 +4,11 @@ import io.netty.channel.Channel
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 import org.dandelion.classic.server.Server
+import org.dandelion.classic.server.ServerInfo
 
 class ServerIdentification(
-    val serverName: String = Server.name,
-    val serverMotd: String = Server.motd,
+    val serverName: String = ServerInfo.name,
+    val serverMotd: String = ServerInfo.motd,
     val userType: Byte = 0x00,
     val protocolVersion: Byte = 0x07,
 

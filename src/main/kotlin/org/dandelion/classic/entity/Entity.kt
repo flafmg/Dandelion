@@ -4,6 +4,7 @@ import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.Block
+import kotlin.math.sqrt
 
 open class Entity(
     val name: String,
@@ -33,31 +34,24 @@ open class Entity(
 
     open fun sendSetPositionAndOrientation(x: Float, y: Float, z: Float, yaw: Byte, pitch: Byte) {
         level?.getPlayers()?.filter { it.entityId != entityId }?.forEach { player ->
-            if (player is Player) {
-                ServerSetPositionAndOrientation(entityId, x, y, z, yaw, pitch).send(player.channel)
-            }
+            ServerSetPositionAndOrientation(entityId, x, y, z, yaw, pitch).send(player.channel)
         }
     }
 
     open fun sendPositionAndOrientationUpdate(dx: Float, dy: Float, dz: Float, yaw: Byte, pitch: Byte) {
         level?.getPlayers()?.filter { it.entityId != entityId }?.forEach { player ->
-            if (player is Player) {
-                ServerPositionAndOrientationUpdate(entityId, dx, dy, dz, yaw, pitch).send(player.channel)
-            }
+            ServerPositionAndOrientationUpdate(entityId, dx, dy, dz, yaw, pitch).send(player.channel)
         }
     }
     open fun sendPositionUpdate(dx: Float, dy: Float, dz: Float) {
         level?.getPlayers()?.filter { it.entityId != entityId }?.forEach { player ->
-            if (player is Player) {
-                ServerPositionUpdate(entityId, dx, dy, dz).send(player.channel)
-            }
+            ServerPositionUpdate(entityId, dx, dy, dz).send(player.channel)
         }
     }
     open fun sendOrientationUpdate(yaw: Byte, pitch: Byte) {
         level?.getPlayers()?.filter { it.entityId != entityId }?.forEach { player ->
-            if (player is Player) {
-                ServerOrientationUpdate(entityId, yaw, pitch).send(player.channel)
-            }
+            ServerOrientationUpdate(entityId, yaw, pitch).send(player.channel)
+
         }
     }
 
@@ -94,7 +88,7 @@ open class Entity(
         val dx = position.x - x
         val dy = position.y - y
         val dz = position.z - z
-        val distance = Math.sqrt((dx * dx + dy* dy + dz * dz).toDouble())
+        val distance = sqrt((dx * dx + dy* dy + dz * dz).toDouble())
 
         val maxDist = 6.0
 

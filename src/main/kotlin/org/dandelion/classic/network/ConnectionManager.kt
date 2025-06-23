@@ -13,6 +13,7 @@ import org.dandelion.classic.network.handler.ConnectionHandler
 import org.dandelion.classic.network.handler.DisconnectHandler
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
+import org.dandelion.classic.server.ServerInfo
 
 internal object ConnectionManager {
     private var isRunning = false
@@ -25,7 +26,7 @@ internal object ConnectionManager {
         if(isRunning) return
         isRunning = true
 
-        Console.log("Starting connection manager on port ${Server.port}")
+        Console.log("Initializing connection manager on port ${ServerInfo.port}")
 
         bossGroup = NioEventLoopGroup() // this group accept and estabilishes the client connection
         workerGroup = NioEventLoopGroup() //handle estabilhed connectoins
@@ -42,9 +43,9 @@ internal object ConnectionManager {
                     }
                 }).childOption(ChannelOption.SO_KEEPALIVE, true) // keeps the connection alive (duh)
 
-            val channelFuture = serverBootstrap.bind(Server.port).sync() // starts connection on the port
+            val channelFuture = serverBootstrap.bind(ServerInfo.port).sync() // starts connection on the port
             channel = channelFuture.channel()
-            Console.log("connection manager active on port ${Server.port}")
+            Console.log("connection manager active on port ${ServerInfo.port}")
         } catch (ex: Exception){
             Console.errLog("Exception occured while trying to enable connection manager: ${ex.message}")
             Server.shutDown()

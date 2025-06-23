@@ -1,4 +1,4 @@
-package org.dandelion.classic.stream
+package org.dandelion.classic.util
 
 import java.io.*
 

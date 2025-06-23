@@ -7,8 +7,8 @@ data class Position(
     var x: Float,
     var y: Float,
     var z: Float,
-    var yaw: Float,
-    var pitch: Float
+    var yaw: Float = 0f,
+    var pitch: Float = 0f
 ) {
     fun set(x: Float, y: Float, z: Float, yaw: Float, pitch: Float) {
         this.x = x

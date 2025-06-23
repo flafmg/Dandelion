@@ -14,6 +14,7 @@ object PacketFactory {
     private val packetFactory = ConcurrentHashMap<Byte, () -> Packet>()
 
     internal fun init() {
+        Console.log("initializing packet handler...")
         registerPackets()
     }
 

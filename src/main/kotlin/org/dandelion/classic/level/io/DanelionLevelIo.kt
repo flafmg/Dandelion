@@ -1,8 +1,8 @@
 package org.dandelion.classic.level.io
 
 import org.dandelion.classic.level.Level
-import org.dandelion.classic.stream.BinaryReader
-import org.dandelion.classic.stream.BinaryWriter
+import org.dandelion.classic.util.BinaryReader
+import org.dandelion.classic.util.BinaryWriter
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.SVec
 import java.io.ByteArrayOutputStream
