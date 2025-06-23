@@ -14,16 +14,16 @@ import java.security.MessageDigest
 object PlayerManager {
 
     internal fun notifyPlayerJoin(player: Player){
+        Console.log("${player.name} joined")
         broadcast("${player.name} joined the server")
     }
     internal fun notifyPlayerLeft(player: Player){
+        Console.log("${player.name} left")
         broadcast("${player.name} left the server")
     }
     internal fun notifyPlayerLevelJoin(player: Player, level: Level){
+        Console.log("${player.name} joined ${level.id}")
         broadcast("${player.name} joined level ${level.id}")
-    }
-    internal fun notifyPlayerLeaveLevel(player: Player, level: Level){
-        broadcast("${player.name} left level ${level.id}")
     }
 
     internal fun disconnectPlayer(channel: Channel) {

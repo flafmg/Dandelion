@@ -82,7 +82,7 @@ open class Entity(
         level?.broadcast("$name: &7$message")
     }
 
-    open fun setBlockAsPlayer(x: Short, y: Short, z: Short, block: Byte, mode: Byte){
+    open fun setBlockAsEntity(x: Short, y: Short, z: Short, block: Byte, mode: Byte){
         if(level == null) return
 
         val dx = position.x - x

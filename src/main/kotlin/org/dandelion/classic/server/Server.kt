@@ -99,7 +99,7 @@ object Server {
         if(!ServerInfo.isCpe)
             Console.warnLog("Protocol extension is disabled. Any feature relying on cpe will not work!")
         if(!ServerInfo.verifyUsers)
-            Console.warnLog("Name verification is disabled. Your server will not validate users and will be vulnerable to attacks! Consider enabling it")
+            Console.warnLog("User verification is disabled. Your server will not validate users and will be vulnerable to attacks! Consider enabling it")
     }
     fun restart(){
         shutDown()

@@ -4,6 +4,7 @@ import io.netty.channel.Channel
 import kotlinx.coroutines.launch
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
+import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Position
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
@@ -48,7 +49,7 @@ class Player(
             return
         }
         this.level = level
-
+        PlayerManager.notifyPlayerLevelJoin(this, level)
         kotlinx.coroutines.GlobalScope.launch{
             ServerLevelInitialize().send(channel)
 
@@ -95,7 +96,10 @@ class Player(
         this.despawnEntityFor(other)
         other.despawnEntityFor(this)
     }
-    
+    override fun sendMessageAsEntity(message: String) {
+        level?.broadcast("$name: &7$message")
+        Console.log("[$levelId] $name: $message")
+    }
     override fun updateBlock(x: Short, y: Short, z: Short, block: Byte) {
         ServerSetBlock(x, y, z, block).send(channel)
     }
