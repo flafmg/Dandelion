@@ -3,10 +3,17 @@ package org.dandelion.classic.server
 import org.jline.reader.LineReaderBuilder
 import org.jline.terminal.TerminalBuilder
 import kotlinx.coroutines.*
+import org.dandelion.classic.commands.CommandExecutor
+import org.dandelion.classic.commands.CommandRegistry
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-object Console{
+object Console: CommandExecutor{
+    override val name: String = "Console"
+    override val permissions: List<String> = listOf("*")
+    override fun sendMessage(message: String) = log(message)
+
+
     var lineReader: org.jline.reader.LineReader? = null
 
 
@@ -20,9 +27,7 @@ object Console{
     private val WHITE = "\u001B[37m"
     private val BLUE = "\u001B[34m"
     private val TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss:SS")
-
     var showTimestamp: Boolean = true
-    var debugMode: Boolean = false
 
     private fun timestamp(): String = if (showTimestamp) {
         "[${LocalDateTime.now().format(TIMESTAMP_FORMAT)}] "
@@ -34,7 +39,7 @@ object Console{
     }
 
     fun debugLog(message: String) {
-        if (debugMode) {
+        if (ServerInfo.debugMode) {
             val formattedMessage = "${timestamp()}$GRAY[DEBUG] $message$RESET"
             lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
         }
@@ -65,16 +70,19 @@ object Console{
                 try {
                     val input = reader.readLine("> ")
                     if (input.isBlank()) continue
+                    sendCommand(input)
                 } catch (e: org.jline.reader.UserInterruptException) {
-                    Server.shutDown()
+                    Server.shutdown()
                 }
             }
             lineReader = null
         }
     }
 
-    internal fun shutDown() {
+    internal fun shutdown() {
         inputJob?.cancel()
         inputJob = null
     }
+
+
 }

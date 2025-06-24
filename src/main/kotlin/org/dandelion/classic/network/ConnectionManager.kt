@@ -48,11 +48,11 @@ internal object ConnectionManager {
             Console.log("connection manager active on port ${ServerInfo.port}")
         } catch (ex: Exception){
             Console.errLog("Exception occured while trying to enable connection manager: ${ex.message}")
-            Server.shutDown()
+            Server.shutdown()
         }
     }
 
-    fun shutDown(){
+    fun shutdown(){
         if(!isRunning) return
         isRunning = false;
 

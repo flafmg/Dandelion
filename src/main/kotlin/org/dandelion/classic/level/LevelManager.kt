@@ -5,6 +5,7 @@ import org.dandelion.classic.entity.Entity
 import org.dandelion.classic.entity.Player
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.level.generator.LevelGenerator
+import org.dandelion.classic.level.generator.impl.FlatGenerator
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
 import org.dandelion.classic.types.IVec
@@ -24,11 +25,12 @@ object LevelManager {
     internal fun init(){
         defaultLevel = ServerInfo.defaultLevel
         autoSaveInterval = ServerInfo.autoSaveInterval
+        //createLevel("main", "dandelion", "main level", SVec(256,128,256), Position(128f, 64f, 128f), FlatGenerator())
         startAutoSaveLoop()
         loadAllFromFolder("levels")
     }
 
-    internal fun shutDown(){
+    internal fun shutdown(){
         autoSaveJob?.cancel()
         autoSave()
         levels.keys.forEach{ key -> unloadLevel(key)}
@@ -128,11 +130,11 @@ object LevelManager {
         description: String,
         size: SVec,
         spawn: Position,
+        generator: LevelGenerator,
+        generatorParams: String = "",
         extraData: String = "",
         timeCreated: Long = System.currentTimeMillis(),
         autoSave: Boolean = true,
-        generator: LevelGenerator, 
-        generatorParams: String
     ): Level? {
         if(levels.containsKey(id)){
             Console.warnLog("Cannot create level, id already exists")

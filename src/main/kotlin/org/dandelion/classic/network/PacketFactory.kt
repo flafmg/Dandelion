@@ -77,7 +77,7 @@ object PacketFactory {
         }
     }
 
-    internal fun shutDown(){
+    internal fun shutdown(){
         unregisterAllPackets()
     }
 }

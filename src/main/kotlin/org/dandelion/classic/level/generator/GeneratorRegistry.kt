@@ -9,7 +9,7 @@ object GeneratorRegistry {
     internal fun init(){
         register(FlatGenerator())
     }
-    internal fun shutDown(){
+    internal fun shutdown(){
         unregister(FlatGenerator())
     }
 

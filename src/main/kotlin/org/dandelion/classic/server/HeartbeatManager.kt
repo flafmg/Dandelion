@@ -18,9 +18,9 @@ object HeartbeatManager {
         sendHeartbeat()
 
     }
-    internal fun shutDown(){
+    internal fun shutdown(){
         Console.log("Stopping heatbeat")
-        sendLoopJob?.cancel()
+        try{ sendLoopJob?.cancel()} catch (_: Exception){}
     }
     private fun processHeartbeatPlaceholders(data: String): String{
         return data

@@ -1,5 +1,7 @@
 package org.dandelion.classic.server
 
+import org.dandelion.classic.commands.CommandRegistry
+import org.dandelion.classic.commands.annotations.Command
 import org.dandelion.classic.level.LevelManager
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.ConnectionManager
@@ -27,12 +29,16 @@ object ServerInfo {
         internal set
     var verifyUsers = true
         internal set
+    var debugMode = false
+        internal set
 
     var defaultLevel = "main"
         internal set
     var autoSaveInterval: Duration = 120.seconds
         internal set
 
+    var heartbeatEnabled: Boolean = true
+        internal set
     var heartbeatUrl: String = "http://www.classicube.net/server/heartbeat/"
         internal set
     var heartbeatData: String = "name={server-name}&port={server-port}&users={players-online}&max={players-max}&public={server-public}&salt={server-salt}&software={server-software}"
@@ -57,23 +63,25 @@ object Server {
         SaltManager.regenerate()
         PacketFactory.init()
         ConnectionManager.init()
+        CommandRegistry.init()
         GeneratorRegistry.init()
         LevelManager.init()
         HeartbeatManager.init()
         warns()
         Console.log("Server started")
     }
-    fun shutDown(){
+    fun shutdown(){
         if(!running) return;
         running = false
 
-        HeartbeatManager.shutDown()
-        PacketFactory.shutDown()
-        ConnectionManager.shutDown()
-        GeneratorRegistry.shutDown()
-        LevelManager.shutDown()
+        HeartbeatManager.shutdown()
+        PacketFactory.shutdown()
+        ConnectionManager.shutdown()
+        CommandRegistry.shutdown()
+        GeneratorRegistry.shutdown()
+        LevelManager.shutdown()
         Console.log("Server stopped")
-        Console.shutDown()
+        Console.shutdown()
     }
 
     fun reloadConfig() {
@@ -89,8 +97,12 @@ object Server {
         ServerInfo.maxPlayers = config.getInt("server.max-players", ServerInfo.maxPlayers)
         ServerInfo.isPublic = config.getBoolean("server.public", ServerInfo.isPublic)
         ServerInfo.verifyUsers = config.getBoolean("server.verify-users", ServerInfo.verifyUsers)
+        ServerInfo.debugMode = config.getBoolean("server.debug-mode", ServerInfo.debugMode)
+
         ServerInfo.defaultLevel = config.getString("level.default-level", ServerInfo.defaultLevel)
         ServerInfo.autoSaveInterval = config.getInt("level.auto-save-interval", ServerInfo.autoSaveInterval.inWholeSeconds.toInt()).seconds
+
+        ServerInfo.heartbeatEnabled = config.getBoolean("heartbeat.enabled", ServerInfo.heartbeatEnabled)
         ServerInfo.heartbeatUrl = config.getString("heartbeat.url", ServerInfo.heartbeatUrl)
         ServerInfo.heartbeatData = config.getString("heartbeat.data", ServerInfo.heartbeatData)
         ServerInfo.heartbeatInterval = config.getInt("heartbeat.interval", ServerInfo.heartbeatInterval.inWholeSeconds.toInt()).seconds
@@ -102,7 +114,7 @@ object Server {
             Console.warnLog("User verification is disabled. Your server will not validate users and will be vulnerable to attacks! Consider enabling it")
     }
     fun restart(){
-        shutDown()
+        shutdown()
         init()
     }
 

@@ -2,6 +2,7 @@ package org.dandelion.classic.entity
 
 import io.netty.channel.Channel
 import kotlinx.coroutines.launch
+import org.dandelion.classic.commands.CommandExecutor
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.server.Console
@@ -18,9 +19,11 @@ class Player(
     position: Position = Position(0f,0f,0f,0f,0f),
 
     var isOp: Boolean = false,
-) : Entity(name, levelId, entityId, position) {
 
-    fun sendMessage(message: String){
+    override val permissions: List<String> = listOf(""),
+) : Entity(name, levelId, entityId, position), CommandExecutor {
+
+    override fun sendMessage(message: String){
         sendMessage(message, 0x00)
     }
     
@@ -97,8 +100,12 @@ class Player(
         other.despawnEntityFor(this)
     }
     override fun sendMessageAsEntity(message: String) {
-        level?.broadcast("$name: &7$message")
         Console.log("[$levelId] $name: $message")
+        if(message.startsWith("/")){
+            sendCommand(message)
+            return
+        }
+        level?.broadcast("$name: &7$message")
     }
     override fun updateBlock(x: Short, y: Short, z: Short, block: Byte) {
         ServerSetBlock(x, y, z, block).send(channel)
