@@ -15,7 +15,6 @@ It's designed to be a lightweight and modern alternative to existing server soft
 > ⚠️ Still under development!  
 > Many important features are missing — **not recommended for real use yet**.
 
-
 ## 🛠️ How to Use
 
 1. Clone the repository:
@@ -24,12 +23,19 @@ It's designed to be a lightweight and modern alternative to existing server soft
    cd dandelion
    ```
 
-2. Build and run with Maven:
+2. Build the `.jar` using Gradle:
    ```bash
-   mvn install exec:java
+   ./gradlew clean build
    ```
 
-3. The server should now be running! 🎉
+3. Run the generated `.jar`:
+   ```bash
+   java -jar build/libs/dandelion-<version>.jar
+   ```
+   > 🔧 Replace `<version>` with the actual version number (e.g., `dandelion-1.0.jar`).  
+   > You can check the exact name in the `build/libs/` directory.
+
+4. The server should now be running! 🎉
 
 ---
 
