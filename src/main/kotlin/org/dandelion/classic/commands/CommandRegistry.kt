@@ -1,6 +1,14 @@
 package org.dandelion.classic.commands
 
+import org.dandelion.classic.commands.impl.BanCommand
+import org.dandelion.classic.commands.impl.HelpCommand
 import org.dandelion.classic.commands.impl.KickCommand
+import org.dandelion.classic.commands.impl.PlayerInfoCommand
+import org.dandelion.classic.commands.impl.SayCommand
+import org.dandelion.classic.commands.impl.SayRawCommand
+import org.dandelion.classic.commands.impl.ServerInfoCommand
+import org.dandelion.classic.commands.impl.StopCommand
+import org.dandelion.classic.commands.impl.UnbanCommand
 import org.dandelion.classic.server.Console
 
 object CommandRegistry {
@@ -8,6 +16,14 @@ object CommandRegistry {
 
     internal fun init(){
         register(KickCommand::class.java)
+        register(BanCommand::class.java)
+        register(UnbanCommand::class.java)
+        register(HelpCommand::class.java)
+        register(PlayerInfoCommand::class.java)
+        register(ServerInfoCommand::class.java)
+        register(SayCommand::class.java)
+        register(SayRawCommand::class.java)
+        register(StopCommand::class.java)
     }
     internal fun shutdown(){
         unregisterAll()
@@ -38,27 +54,29 @@ object CommandRegistry {
     private fun unregisterAll() {
         commands.clear()
     }
-    fun execute(commandLine: String, executor: CommandExecutor): Boolean {
+    fun execute(commandLine: String, executor: CommandExecutor){
         var cleanCommand = commandLine.trim()
         if (cleanCommand.startsWith("/")) {
             cleanCommand = cleanCommand.drop(1)
         }
 
         val parts = cleanCommand.split("\\s+".toRegex())
-        if (parts.isEmpty() || parts[0].isBlank()) return false
+        if (parts.isEmpty() || parts[0].isBlank()) return
 
         val commandName = parts[0]
         val args = parts.drop(1).toTypedArray()
-        return execute(commandName, executor, args)
+        execute(commandName, executor, args)
     }
-    fun execute(commandName: String, executor: CommandExecutor, args: Array<String>): Boolean {
-        Console.debugLog("executing $commandName")
-        val commandInfo = commands[commandName] ?: run {
-            executor.sendMessage("&cUnknown command")
-            return false
+    fun execute(name: String, executor: CommandExecutor, args: Array<String>) {
+        val command = commands[name] ?: commands.values.find { it.aliases.contains(name) }
+
+        if (command == null) {
+            executor.sendMessage("Unknown command. Type /help for a list of commands.")
+            return
         }
 
-        return CommandProcessor.executeCommand(commandInfo, executor, args)
+        CommandProcessor.executeCommand(command, executor, args)
     }
+
     fun getCommands(): List<CommandInfo> = commands.values.distinct()
 }

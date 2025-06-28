@@ -8,6 +8,7 @@ import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Position
 import java.io.ByteArrayOutputStream
+import java.util.Date
 import java.util.zip.GZIPOutputStream
 
 class Player(
@@ -17,10 +18,9 @@ class Player(
     levelId: String = "",
     entityId: Byte = -1,
     position: Position = Position(0f,0f,0f,0f,0f),
+    val info: PlayerInfo = PlayerInfo.getOrCreate(name),
 
-    var isOp: Boolean = false,
-
-    override val permissions: List<String> = listOf("*"),
+    override val permissions: List<String> = listOf(),
 ) : Entity(name, levelId, entityId, position), CommandExecutor {
 
     override fun sendMessage(message: String){
@@ -28,7 +28,53 @@ class Player(
     }
     
     fun sendMessage(message: String, id: Byte = 0x00){
-        ServerMessage(id.toByte(), message).send(channel)
+        val messages = splitMessage(message)
+        messages.forEach { msg ->
+            ServerMessage(id, msg).send(channel)
+        }
+    }
+
+    private fun splitMessage(message: String, maxLength: Int = 64): List<String> {
+        if (message.length <= maxLength) {
+            return listOf(message)
+        }
+
+
+        val result = mutableListOf<String>()
+        var remaining = message
+        var lastColorCode = ""
+
+        while (remaining.length > maxLength) {
+            var splitIndex = maxLength
+            val lastSpaceIndex = remaining.substring(0, maxLength).lastIndexOf(' ')
+            if (lastSpaceIndex > 0) {
+                splitIndex = lastSpaceIndex
+            }
+            val currentPart = remaining.substring(0, splitIndex)
+
+            val colorCodeRegex = "&[0-9a-fA-F]".toRegex()
+            val colorMatches = colorCodeRegex.findAll(currentPart)
+            if (colorMatches.any()) {
+                lastColorCode = colorMatches.last().value
+            }
+            result.add(currentPart)
+            remaining = if (lastSpaceIndex > 0) {
+                remaining.substring(splitIndex + 1)
+            } else {
+                remaining.substring(maxLength)
+            }
+            if (lastColorCode.isNotEmpty() && remaining.isNotEmpty()) {
+                if (!remaining.startsWith("&")) {
+                    remaining = lastColorCode + remaining
+                }
+            }
+        }
+
+        if (remaining.isNotEmpty()) {
+            result.add(remaining)
+        }
+
+        return result
     }
     
     fun kick(reason: String = "you have been kicked"){
@@ -36,8 +82,10 @@ class Player(
         Players.disconnect(channel)
     }
     
-    fun ban(reason: String = "you have been banned from this server"){
-        // need to add logic
+    fun ban(reason: String = "no reason gave"){
+        info.banned = true
+        info.banReason = reason
+        kick("You're banned: $reason")
     }
 
     override fun setPosition(x: Float, y: Float, z: Float, yaw: Float, pitch: Float) {

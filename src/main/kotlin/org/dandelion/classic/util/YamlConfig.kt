@@ -9,6 +9,7 @@ import java.io.InputStream
 class YamlConfig {
 
     private var root: MutableMap<String, Any> = mutableMapOf()
+    private var originFile: File? = null
 
     @Suppress("UNCHECKED_CAST")
     private fun getMap(path: String): Map<String, Any>? {
@@ -107,6 +108,18 @@ class YamlConfig {
         return config
     }
 
+    @Suppress("UNCHECKED_CAST")
+    fun getOrCreateSection(path: String): YamlConfig {
+        val keys = path.split('.')
+        var currentMap: MutableMap<String, Any> = root
+        for (key in keys) {
+            currentMap = currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+        }
+        val config = YamlConfig()
+        config.root = currentMap
+        return config
+    }
+
     fun set(path: String, value: Any) {
         val keys = path.split('.')
         val key = keys.last()
@@ -131,9 +144,23 @@ class YamlConfig {
         file.writeText(yaml.dump(root))
     }
 
+    fun save() {
+        val fileToSave = originFile ?: throw IllegalStateException("config was not loaded from a file, it cant be saved without a path!")
+        save(fileToSave)
+    }
+
     companion object {
+        fun load(path: String): YamlConfig {
+            return load(File(path))
+        }
         fun load(file: File): YamlConfig {
-            return load(FileInputStream(file))
+            if(!file.exists()){
+                file.parentFile?.mkdirs()
+                file.createNewFile()
+            }
+            return load(FileInputStream(file)).apply {
+                this.originFile = file
+            }
         }
 
         fun load(inputStream: InputStream): YamlConfig {

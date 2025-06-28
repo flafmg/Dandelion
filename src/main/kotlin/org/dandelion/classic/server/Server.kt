@@ -52,10 +52,13 @@ object ServerInfo {
 object Server {
     private var running = false;
     private lateinit var config: YamlConfig
+    var startTime: Long = 0
+        private set
 
     internal fun init(){
         if(running) return;
         running = true
+        startTime = System.currentTimeMillis()
 
         Console.init()
         reloadConfig()
@@ -111,10 +114,6 @@ object Server {
             Console.warnLog("Protocol extension is disabled. Any feature relying on cpe will not work!")
         if(!ServerInfo.verifyUsers)
             Console.warnLog("User verification is disabled. Your server will not validate users and will be vulnerable to attacks! Consider enabling it")
-    }
-    fun restart(){
-        shutdown()
-        init()
     }
 
     fun isRunning(): Boolean{

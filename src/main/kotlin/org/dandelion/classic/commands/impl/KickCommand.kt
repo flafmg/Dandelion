@@ -14,15 +14,13 @@ class KickCommand {
     @ArgRange(min = 1)
     fun execute(executor: CommandExecutor, args: Array<String>){
         val playerName = args[0]
-        val reason = if(args.size > 1) args.drop(1).joinToString(" ") else "you have been kicked"
-
+        val reason = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else "You have been kicked"
         val player = Players.byName(playerName)
         if(player == null){
-            executor.sendMessage("&cPlayer not found")
+            executor.sendMessage("&cPlayer '&f$playerName&c' not found.")
             return
         }
-
         player.kick(reason)
-        executor.sendMessage("&c$playerName was kicked")
+        executor.sendMessage("&aPlayer '&f${player.name}&a' has been kicked.")
     }
 }

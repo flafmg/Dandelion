@@ -10,6 +10,7 @@ data class SubCommandInfo(
     val aliases: List<String>,
     val description: String,
     val usage: String,
+    val permission: String,
     val method: Method,
     val path: List<String>
 )
@@ -18,6 +19,7 @@ data class CommandInfo(
     val aliases: List<String>,
     val description: String,
     val usage: String,
+    val permission: String,
     val clazz: Class<*>,
     val instance: Any,
     val executeMethod: Method?,
@@ -40,6 +42,8 @@ internal object CommandProcessor {
 
         processSubCommands(clazz.declaredMethods.toList(), subCommands, emptyList())
 
+        val permission = executeMethod?.getAnnotation(RequirePermission::class.java)?.permission ?: ""
+
         return CommandInfo(
             name = commandAnnotation.name,
             aliases = commandAnnotation.aliases.toList(),
@@ -48,7 +52,8 @@ internal object CommandProcessor {
             clazz = clazz,
             instance = instance,
             executeMethod = executeMethod,
-            subCommands = subCommands
+            subCommands = subCommands,
+            permission = permission
         )
     }
 
@@ -57,6 +62,7 @@ internal object CommandProcessor {
             val annotation = method.getAnnotation(OnSubCommand::class.java)
             val fullPath = path + annotation.name
             val key = fullPath.joinToString(" ")
+            val permission = method.getAnnotation(RequirePermission::class.java)?.permission ?: ""
 
             val subCommandInfo = SubCommandInfo(
                 name = annotation.name,
@@ -64,7 +70,8 @@ internal object CommandProcessor {
                 description = annotation.description,
                 usage = annotation.usage,
                 method = method,
-                path = fullPath
+                path = fullPath,
+                permission = permission
             )
 
             subCommands[key] = subCommandInfo
@@ -84,15 +91,15 @@ internal object CommandProcessor {
             val subCommandPath = findSubCommand(commandInfo.subCommands, args)
             if (subCommandPath != null) {
                 val remainingArgs = args.drop(subCommandPath.path.size).toTypedArray()
-                return executeMethod(subCommandPath.method, commandInfo.instance, executor, remainingArgs)
+                return executeMethod(subCommandPath.method, commandInfo.instance, executor, remainingArgs, subCommandPath.permission)
             }
         }
 
         if (commandInfo.executeMethod != null) {
-            return executeMethod(commandInfo.executeMethod, commandInfo.instance, executor, args)
+            return executeMethod(commandInfo.executeMethod, commandInfo.instance, executor, args, commandInfo.permission)
         }
 
-        executor.sendMessage("Command not found. Available subcommands: ${commandInfo.subCommands.keys.joinToString(", ")}")
+        executor.sendMessage("&cCommand not found. Available subcommands: ${commandInfo.subCommands.keys.joinToString(", ")}")
         return false
     }
 
@@ -108,25 +115,45 @@ internal object CommandProcessor {
         method: Method,
         instance: Any,
         executor: CommandExecutor,
-        args: Array<String>
+        args: Array<String>,
+        permission: String
     ): Boolean {
-        if (!validatePermissions(method, executor)) return false
+        if (!validatePermissions(permission, executor)) return false
         if (!validateExecutorType(method, executor)) return false
-        if (!validateArguments(method, executor, args)) return false
+        val processedArgs = processReferSelf(method, executor, args)
+        if (!validateArguments(method, executor, processedArgs)) return false
 
         try {
-            method.invoke(instance, executor, args)
+            method.invoke(instance, executor, processedArgs)
             return true
         } catch (e: Exception) {
-            executor.sendMessage("Error executing command: ${e.message}")
+            executor.sendMessage("&cError executing command: ${e.message}")
             return false
         }
     }
 
-    private fun validatePermissions(method: Method, executor: CommandExecutor): Boolean {
-        val permission = method.getAnnotation(RequirePermission::class.java)?.permission
-        if (permission != null && !executor.hasPermission(permission)) {
-            executor.sendMessage("You don't have permission to execute this command")
+    private fun processReferSelf(method: Method, executor: CommandExecutor, args: Array<String>): Array<String> {
+        val referSelf = method.getAnnotation(ReferSelf::class.java) ?: return args
+
+        if (executor !is Player) return args
+
+        val argPosition = referSelf.argPosition
+
+        if (argPosition >= args.size) {
+            val newArgs = args.toMutableList()
+            while (newArgs.size <= argPosition) {
+                newArgs.add("")
+            }
+            newArgs[argPosition] = executor.name
+            return newArgs.toTypedArray()
+        }
+
+        return args
+    }
+
+    private fun validatePermissions(permission: String, executor: CommandExecutor): Boolean {
+        if (permission.isNotEmpty() && !executor.hasPermission(permission)) {
+            executor.sendMessage("&cYou don't have permission to execute this command")
             return false
         }
         return true
@@ -134,11 +161,11 @@ internal object CommandProcessor {
 
     private fun validateExecutorType(method: Method, executor: CommandExecutor): Boolean {
         if (method.isAnnotationPresent(RequirePlayer::class.java) && executor !is Player) {
-            executor.sendMessage("This command can only be executed by players")
+            executor.sendMessage("&cThis command can only be executed by players")
             return false
         }
         if (method.isAnnotationPresent(RequireConsole::class.java) && executor !is Console) {
-            executor.sendMessage("This command can only be executed by console")
+            executor.sendMessage("&cThis command can only be executed by console")
             return false
         }
         return true
@@ -149,11 +176,11 @@ internal object CommandProcessor {
         if (argRange != null) {
             when {
                 args.size < argRange.min -> {
-                    executor.sendMessage("This command expects at least ${argRange.min} arguments")
+                    executor.sendMessage("&cThis command expects at least ${argRange.min} arguments")
                     return false
                 }
                 args.size > argRange.max -> {
-                    executor.sendMessage("This command expects at most ${argRange.max} arguments")
+                    executor.sendMessage("&cThis command expects at most ${argRange.max} arguments")
                     return false
                 }
             }

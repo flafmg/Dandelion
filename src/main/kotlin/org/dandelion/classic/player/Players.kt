@@ -9,10 +9,10 @@ import org.dandelion.classic.network.packets.classic.server.ServerIdentification
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
 import java.security.MessageDigest
+import java.util.Date
 
 //TODO: needs to be refactored at some point, do the approach goodly mentioned?
 object Players {
-
     internal fun notifyJoin(player: Player){
         Console.log("${player.name} joined")
         broadcast("${player.name} joined the server")
@@ -32,6 +32,9 @@ object Players {
 
         level.removeEntity(player)
         notifyLeft(player)
+        player.info.lastSeen = Date()
+        player.info.totalPlaytime += player.info.lastSeen.time - player.info.lastJoin.time
+        player.info.save()
     }
 
     internal fun preConnect(client: ClientIdentification, channel: Channel){
@@ -59,7 +62,11 @@ object Players {
         tryConnect(player)
     }
     private fun tryConnect(player: Player){
-        if(byChannel(player.channel) != null || all().any() {it.name.equals(player.name)}){
+        if(player.info.banned){
+            ServerDisconnectPlayer("You're banned: ${player.info.banReason}").send(player)
+            return
+        }
+        if(byChannel(player.channel) != null || all().any() { it.name == player.name }){
             ServerDisconnectPlayer("You're already connected to this server").send(player)
             return
         }
@@ -72,6 +79,10 @@ object Players {
             ServerDisconnectPlayer("Default level not available").send(player)
             return
         }
+
+        player.info.lastJoin = Date()
+        player.info.joinCount ++
+        player.info.save()
 
         player.sendToLevel(joinLevel)
         notifyJoin(player)
