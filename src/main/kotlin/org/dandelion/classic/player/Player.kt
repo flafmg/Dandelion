@@ -1,4 +1,4 @@
-package org.dandelion.classic.entity
+package org.dandelion.classic.player
 
 import io.netty.channel.Channel
 import kotlinx.coroutines.launch
@@ -20,7 +20,7 @@ class Player(
 
     var isOp: Boolean = false,
 
-    override val permissions: List<String> = listOf(""),
+    override val permissions: List<String> = listOf("*"),
 ) : Entity(name, levelId, entityId, position), CommandExecutor {
 
     override fun sendMessage(message: String){
@@ -33,7 +33,7 @@ class Player(
     
     fun kick(reason: String = "you have been kicked"){
         ServerDisconnectPlayer(reason).send(channel)
-        PlayerManager.disconnectPlayer(channel)
+        Players.disconnect(channel)
     }
     
     fun ban(reason: String = "you have been banned from this server"){
@@ -52,7 +52,7 @@ class Player(
             return
         }
         this.level = level
-        PlayerManager.notifyPlayerLevelJoin(this, level)
+        Players.notifyLevelJoin(this, level)
         kotlinx.coroutines.GlobalScope.launch{
             ServerLevelInitialize().send(channel)
 

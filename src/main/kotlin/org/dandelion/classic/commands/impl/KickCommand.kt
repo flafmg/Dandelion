@@ -5,7 +5,7 @@ import org.dandelion.classic.commands.annotations.ArgRange
 import org.dandelion.classic.commands.annotations.Command
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
-import org.dandelion.classic.entity.PlayerManager
+import org.dandelion.classic.player.Players
 
 @Command(name = "kick", description = "Kick a player from the server", usage = "/kick <player> [reason]")
 class KickCommand {
@@ -16,7 +16,7 @@ class KickCommand {
         val playerName = args[0]
         val reason = if(args.size > 1) args.drop(1).joinToString(" ") else "you have been kicked"
 
-        val player = PlayerManager.getPlayerByName(playerName)
+        val player = Players.byName(playerName)
         if(player == null){
             executor.sendMessage("&cPlayer not found")
             return

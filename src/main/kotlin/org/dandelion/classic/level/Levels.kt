@@ -1,58 +1,56 @@
 package org.dandelion.classic.level
 
 import kotlinx.coroutines.*
-import org.dandelion.classic.entity.Entity
-import org.dandelion.classic.entity.Player
-import org.dandelion.classic.level.generator.GeneratorRegistry
+import org.dandelion.classic.player.Entity
+import org.dandelion.classic.player.Player
 import org.dandelion.classic.level.generator.LevelGenerator
-import org.dandelion.classic.level.generator.impl.FlatGenerator
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
-import org.dandelion.classic.types.IVec
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.SVec
 import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-object LevelManager {
+//TODO: needs to be refactored at some point, do the approach goodly mentioned?
+object Levels {
     private val levels = HashMap<String, Level>()
     var defaultLevel: String = ""
 
-    var autoSaveInterval: Duration = 2.minutes
-    private var autoSaveJob: Job? = null
+    var saveInterval: Duration = 2.minutes
+    private var saveJob: Job? = null
 
     internal fun init(){
         defaultLevel = ServerInfo.defaultLevel
-        autoSaveInterval = ServerInfo.autoSaveInterval
+        saveInterval = ServerInfo.autoSaveInterval
         //createLevel("main", "dandelion", "main level", SVec(256,128,256), Position(128f, 64f, 128f), FlatGenerator())
-        startAutoSaveLoop()
-        loadAllFromFolder("levels")
+        startSaveTask()
+        loadFromFolder("levels")
     }
 
     internal fun shutdown(){
-        autoSaveJob?.cancel()
-        autoSave()
-        levels.keys.forEach{ key -> unloadLevel(key)}
+        saveJob?.cancel()
+        saveAll()
+        levels.keys.forEach{ key -> unload(key)}
     }
 
-    private fun startAutoSaveLoop() {
-        autoSaveJob = CoroutineScope(Dispatchers.Default).launch {
+    private fun startSaveTask() {
+        saveJob = CoroutineScope(Dispatchers.Default).launch {
             while (isActive) {
-                delay(autoSaveInterval.inWholeMilliseconds)
-                autoSave()
+                delay(saveInterval.inWholeMilliseconds)
+                saveAll()
             }
         }
     }
 
-    fun autoSave() {
+    fun saveAll() {
         levels.values.filter { it.autoSave }.forEach { level ->
             level.save()
             Console.debugLog("Auto-saved level: ${level.id}")
         }
     }
 
-    fun loadLevel(id: String){
+    fun load(id: String){
         if(levels.containsKey(id)){
             Console.warnLog("Level with same id is already registered")
             return
@@ -66,7 +64,7 @@ object LevelManager {
         Console.log("level ${level.id} loaded")
     }
 
-    fun loadLevel(level: Level){
+    fun load(level: Level){
         if(levels.containsKey(level.id)){
             Console.warnLog("Level with same id is already registered")
             return
@@ -74,7 +72,7 @@ object LevelManager {
         levels[level.id] = level
         Console.log("level ${level.id} loaded")
     }
-    fun unloadLevel(id: String){
+    fun unload(id: String){
         if(!levels.containsKey(id)){
             Console.warnLog("cannot unload level $id because it doesnt exist")
         }
@@ -82,10 +80,10 @@ object LevelManager {
         Console.log("level $id unloaded")
     }
 
-    fun getLevel(id: String): Level? = levels[id]
-    fun getAllLevels(): List<Level> = levels.values.toList()
-    fun getDefaultJoinLevel(): Level? = getLevel(defaultLevel)
-    fun setDefaultJoinLevel(id: String){
+    fun get(id: String): Level? = levels[id]
+    fun getAll(): List<Level> = levels.values.toList()
+    fun getDefault(): Level? = get(defaultLevel)
+    fun setDefault(id: String){
         defaultLevel = id
         if(levels.containsKey(id)){
             Console.log("default level set to: $id")
@@ -94,14 +92,14 @@ object LevelManager {
         }
     }
 
-    fun getAllEntities(): List<Entity> = levels.values.flatMap { it.getEntities() }
-    fun getAllPlayers(): List<Player> = levels.values.flatMap { it.getPlayers() }
-    fun getAllNonPlayerEntities(): List<Entity> = levels.values.flatMap { it.getNonPlayerEntities() }
-    
-    fun getOnlinePlayerCount(): Int = levels.values.sumOf { it.getPlayerCount() }
-    fun getEntityCount(): Int = levels.values.sumOf { it.getEntityCount() }
+    fun entities(): List<Entity> = levels.values.flatMap { it.getEntities() }
+    fun players(): List<Player> = levels.values.flatMap { it.getPlayers() }
+    fun nonPlayerEntities(): List<Entity> = levels.values.flatMap { it.getNonPlayerEntities() }
 
-    fun loadAllFromFolder(path: String){
+    fun playerCount(): Int = levels.values.sumOf { it.getPlayerCount() }
+    fun entityCount(): Int = levels.values.sumOf { it.getEntityCount() }
+
+    fun loadFromFolder(path: String){
         Console.log("Loading levels from $path folder")
         val folder = File(path)
         if (!folder.exists()) {
@@ -117,14 +115,14 @@ object LevelManager {
         folder.listFiles { _, name -> name.endsWith(".dlvl", ignoreCase = true) }?.forEach { file ->
             val level = Level.load(file)
             if (level != null) {
-                loadLevel(level)
+                load(level)
             } else {
                 Console.warnLog("Failed to load level from ${file.name}.")
             }
         }
     }
     
-    fun createLevel(
+    fun create(
         id: String,
         author: String,
         description: String,
@@ -151,7 +149,7 @@ object LevelManager {
             autoSave = autoSave
         )
         level.generate(generator, generatorParams)
-        loadLevel(level)
+        load(level)
         return level
     }
     

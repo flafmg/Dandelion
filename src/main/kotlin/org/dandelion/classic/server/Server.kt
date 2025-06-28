@@ -1,10 +1,9 @@
 package org.dandelion.classic.server
 
 import org.dandelion.classic.commands.CommandRegistry
-import org.dandelion.classic.commands.annotations.Command
-import org.dandelion.classic.level.LevelManager
+import org.dandelion.classic.level.Levels
 import org.dandelion.classic.level.generator.GeneratorRegistry
-import org.dandelion.classic.network.ConnectionManager
+import org.dandelion.classic.network.Connection
 import org.dandelion.classic.network.PacketFactory
 import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
@@ -47,7 +46,7 @@ object ServerInfo {
         internal set
 
     val salt: String
-        get() = SaltManager.getSalt()
+        get() = Salt.get()
 }
 
 object Server {
@@ -60,13 +59,13 @@ object Server {
 
         Console.init()
         reloadConfig()
-        SaltManager.regenerate()
+        Salt.regenerate()
         PacketFactory.init()
-        ConnectionManager.init()
+        Connection.init()
         CommandRegistry.init()
         GeneratorRegistry.init()
-        LevelManager.init()
-        HeartbeatManager.init()
+        Levels.init()
+        Heartbeat.init()
         warns()
         Console.log("Server started")
     }
@@ -74,12 +73,12 @@ object Server {
         if(!running) return;
         running = false
 
-        HeartbeatManager.shutdown()
+        Heartbeat.shutdown()
         PacketFactory.shutdown()
-        ConnectionManager.shutdown()
+        Connection.shutdown()
         CommandRegistry.shutdown()
         GeneratorRegistry.shutdown()
-        LevelManager.shutdown()
+        Levels.shutdown()
         Console.log("Server stopped")
         Console.shutdown()
     }

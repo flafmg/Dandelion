@@ -2,11 +2,11 @@ package org.dandelion.classic.server
 
 import java.security.SecureRandom
 
-object SaltManager {
+object Salt {
     private val base62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     private val saltLength = 16
     private var salt: String = generate()
-    fun getSalt(): String = salt
+    fun get(): String = salt
     internal fun regenerate() {
         Console.log("Generating salt...")
         salt = generate()

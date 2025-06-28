@@ -6,8 +6,8 @@ import org.dandelion.classic.level.io.DandelionLevelDeserializer
 import org.dandelion.classic.level.io.LevelDeserializer
 import org.dandelion.classic.level.io.LevelSerializer
 import org.dandelion.classic.network.packets.classic.server.ServerDespawnPlayer
-import org.dandelion.classic.entity.Entity
-import org.dandelion.classic.entity.Player
+import org.dandelion.classic.player.Entity
+import org.dandelion.classic.player.Player
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Block
 import org.dandelion.classic.types.IVec
@@ -15,7 +15,7 @@ import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.SVec
 import java.io.File
 
-//TODO: add docstrings for clarity
+//TODO: needs to be refactored at some point, do the approach goodly mentioned?
 data class Level(
     val id: String,
     val author: String,

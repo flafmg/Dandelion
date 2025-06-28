@@ -1,7 +1,7 @@
 package org.dandelion.classic.commands
 
 import org.dandelion.classic.commands.annotations.*
-import org.dandelion.classic.entity.Player
+import org.dandelion.classic.player.Player
 import org.dandelion.classic.server.Console
 import java.lang.reflect.Method
 

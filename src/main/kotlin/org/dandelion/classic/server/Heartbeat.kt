@@ -1,15 +1,12 @@
 package org.dandelion.classic.server
 
 import kotlinx.coroutines.*
-import org.dandelion.classic.entity.PlayerManager
+import org.dandelion.classic.player.Players
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
-object HeartbeatManager {
+object Heartbeat {
     private var sendLoopJob: Job? = null
 
     internal fun init(){
@@ -26,10 +23,10 @@ object HeartbeatManager {
         return data
             .replace("{server-name}", URLEncoder.encode(ServerInfo.name, "UTF-8"))
             .replace("{server-port}", ServerInfo.port.toString())
-            .replace("{players-online}", PlayerManager.getOnlinePlayerCount().toString())
+            .replace("{players-online}", Players.count().toString())
             .replace("{players-max}", ServerInfo.maxPlayers.toString())
             .replace("{server-public}", ServerInfo.isPublic.toString())
-            .replace("{server-salt}", SaltManager.getSalt())
+            .replace("{server-salt}", Salt.get())
             .replace("{server-software}", URLEncoder.encode(ServerInfo.serverSoftware, "UTF-8"))
     }
 

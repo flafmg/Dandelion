@@ -2,7 +2,7 @@ package org.dandelion.classic.network.packets
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
-import org.dandelion.classic.entity.Player
+import org.dandelion.classic.player.Player
 import org.dandelion.classic.server.Console
 
 abstract class Packet {

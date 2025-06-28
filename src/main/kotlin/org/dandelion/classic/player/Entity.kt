@@ -1,4 +1,4 @@
-package org.dandelion.classic.entity
+package org.dandelion.classic.player
 
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*

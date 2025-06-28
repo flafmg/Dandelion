@@ -2,7 +2,6 @@ package org.dandelion.classic.network
 
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.EventLoopGroup
@@ -15,7 +14,7 @@ import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
 import org.dandelion.classic.server.ServerInfo
 
-internal object ConnectionManager {
+internal object Connection {
     private var isRunning = false
 
     private var bossGroup: EventLoopGroup? = null
