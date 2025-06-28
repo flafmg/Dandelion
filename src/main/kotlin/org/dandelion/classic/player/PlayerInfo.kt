@@ -15,6 +15,7 @@ class PlayerInfo(
     var banReason: String = ""
         internal set
     var lastSeen: Date = Date()
+        get() = if (Players.byName(name) != null) Date() else field //wait i could do this all along???
         internal set
     var totalPlaytime: Long = 0
         internal set

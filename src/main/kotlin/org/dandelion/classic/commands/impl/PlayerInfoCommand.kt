@@ -43,7 +43,7 @@ class PlayerInfoCommand {
         executor.sendMessage("&eBanned: &f${if (info.banned) "&cYes (&f${info.banReason}&c)" else "&aNo"}")
         executor.sendMessage("&eFirst Join: &f${dateFormat.format(info.firstJoin)}")
         executor.sendMessage("&eLast Join: &f${dateFormat.format(info.lastJoin)}")
-        executor.sendMessage("&eLast Seen: &f${dateFormat.format(info.lastSeen)}")
+        executor.sendMessage("&eLast Seen: &f${ if(Players.byName(playerName) == null) dateFormat.format(info.lastSeen) else "now"}")
         executor.sendMessage("&ePlaytime: &f$playtime")
         executor.sendMessage("&eJoin Count: &f${info.joinCount}")
     }
