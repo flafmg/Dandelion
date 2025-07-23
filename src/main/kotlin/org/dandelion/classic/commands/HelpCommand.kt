@@ -1,15 +1,16 @@
-package org.dandelion.classic.commands.impl
+package org.dandelion.classic.commands
 
-import org.dandelion.classic.commands.CommandExecutor
-import org.dandelion.classic.commands.CommandInfo
-import org.dandelion.classic.commands.CommandRegistry
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.commands.manager.CommandInfo
+import org.dandelion.classic.commands.manager.CommandRegistry
 import org.dandelion.classic.commands.annotations.ArgRange
-import org.dandelion.classic.commands.annotations.Command
+import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
+import org.dandelion.classic.commands.model.Command
 import kotlin.math.ceil
 
-@Command(name = "commands", description = "shows info for all registered commands", usage = "/commands [page|command]", aliases = ["help", "cmd", "cmds"])
-class HelpCommand {
+@CommandDef(name = "commands", description = "shows info for all registered commands", usage = "/commands [page|command]", aliases = ["help", "cmd", "cmds"])
+class HelpCommand: Command {
 
     @OnExecute
     @ArgRange(max = 1)

@@ -1,6 +1,8 @@
-package org.dandelion.classic.commands
+package org.dandelion.classic.commands.manager
 
 import org.dandelion.classic.commands.annotations.*
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.player.Player
 import org.dandelion.classic.server.Console
 import java.lang.reflect.Method
@@ -26,9 +28,13 @@ data class CommandInfo(
     val subCommands: Map<String, SubCommandInfo>
 )
 internal object CommandProcessor {
-    fun processCommand(clazz: Class<*>): CommandInfo?{
-        val commandAnnotation = clazz.getAnnotation(Command::class.java)
-        if(commandAnnotation == null){
+    fun processCommand(command: Command): CommandInfo?{
+        val clazz = command::class.java
+        val commandDefAnnotation = clazz.getAnnotation(CommandDef::class.java)
+        if(!org.dandelion.classic.commands.model.Command::class.java.isAssignableFrom(clazz)){
+            Console.errLog("Could not register command '${clazz.name}', it doesnt implement Command interface")
+        }
+        if(commandDefAnnotation == null){
             Console.errLog("Could not register command '${clazz.name}', it doesnt have @Command annotation")
             return null
         }
@@ -45,10 +51,10 @@ internal object CommandProcessor {
         val permission = executeMethod?.getAnnotation(RequirePermission::class.java)?.permission ?: ""
 
         return CommandInfo(
-            name = commandAnnotation.name,
-            aliases = commandAnnotation.aliases.toList(),
-            description = commandAnnotation.description,
-            usage = commandAnnotation.usage,
+            name = commandDefAnnotation.name,
+            aliases = commandDefAnnotation.aliases.toList(),
+            description = commandDefAnnotation.description,
+            usage = commandDefAnnotation.usage,
             clazz = clazz,
             instance = instance,
             executeMethod = executeMethod,

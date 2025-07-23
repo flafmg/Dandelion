@@ -1,36 +1,37 @@
-package org.dandelion.classic.commands
+package org.dandelion.classic.commands.manager
 
-import org.dandelion.classic.commands.impl.BanCommand
-import org.dandelion.classic.commands.impl.HelpCommand
-import org.dandelion.classic.commands.impl.KickCommand
-import org.dandelion.classic.commands.impl.PlayerInfoCommand
-import org.dandelion.classic.commands.impl.SayCommand
-import org.dandelion.classic.commands.impl.SayRawCommand
-import org.dandelion.classic.commands.impl.ServerInfoCommand
-import org.dandelion.classic.commands.impl.StopCommand
-import org.dandelion.classic.commands.impl.UnbanCommand
+import org.dandelion.classic.commands.BanCommand
+import org.dandelion.classic.commands.HelpCommand
+import org.dandelion.classic.commands.KickCommand
+import org.dandelion.classic.commands.PlayerInfoCommand
+import org.dandelion.classic.commands.SayCommand
+import org.dandelion.classic.commands.SayRawCommand
+import org.dandelion.classic.commands.ServerInfoCommand
+import org.dandelion.classic.commands.StopCommand
+import org.dandelion.classic.commands.UnbanCommand
+import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.server.Console
 
 object CommandRegistry {
     private val commands = mutableMapOf<String, CommandInfo>()
-
     internal fun init(){
-        register(KickCommand::class.java)
-        register(BanCommand::class.java)
-        register(UnbanCommand::class.java)
-        register(HelpCommand::class.java)
-        register(PlayerInfoCommand::class.java)
-        register(ServerInfoCommand::class.java)
-        register(SayCommand::class.java)
-        register(SayRawCommand::class.java)
-        register(StopCommand::class.java)
+        register(KickCommand())
+        register(BanCommand())
+        register(UnbanCommand())
+        register(HelpCommand())
+        register(PlayerInfoCommand())
+        register(ServerInfoCommand())
+        register(SayCommand())
+        register(SayRawCommand())
+        register(StopCommand())
     }
     internal fun shutdown(){
         unregisterAll()
     }
 
-    fun register(clazz: Class<*>): Boolean{
-        val commandInfo = CommandProcessor.processCommand(clazz) ?: return false
+    fun register(command: Command): Boolean{
+        val commandInfo = CommandProcessor.processCommand(command) ?: return false
         commands[commandInfo.name] = commandInfo
         commandInfo.aliases.forEach{ alias ->
             commands[alias] = commandInfo

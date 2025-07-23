@@ -1,15 +1,16 @@
-package org.dandelion.classic.commands.impl
+package org.dandelion.classic.commands
 
-import org.dandelion.classic.commands.CommandExecutor
+import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.commands.annotations.ArgRange
-import org.dandelion.classic.commands.annotations.Command
+import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
+import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.player.Players
 import org.dandelion.classic.player.PlayerInfo
 
-@Command(name = "ban", description = "bans a player from the server", usage = "/ban <player> [reason]")
-class BanCommand {
+@CommandDef(name = "ban", description = "bans a player from the server", usage = "/ban <player> [reason]")
+class BanCommand: Command {
     @OnExecute
     @RequirePermission("dandelion.server.ban")
     @ArgRange(min = 1)

@@ -3,8 +3,7 @@ package org.dandelion.classic.server
 import org.jline.reader.LineReaderBuilder
 import org.jline.terminal.TerminalBuilder
 import kotlinx.coroutines.*
-import org.dandelion.classic.commands.CommandExecutor
-import org.dandelion.classic.commands.CommandRegistry
+import org.dandelion.classic.commands.model.CommandExecutor
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

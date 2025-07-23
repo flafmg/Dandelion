@@ -1,14 +1,15 @@
-package org.dandelion.classic.commands.impl
+package org.dandelion.classic.commands
 
-import org.dandelion.classic.commands.CommandExecutor
+import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.commands.annotations.ArgRange
-import org.dandelion.classic.commands.annotations.Command
+import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
+import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.player.Players
 
-@Command(name = "kick", description = "Kick a player from the server", usage = "/kick <player> [reason]")
-class KickCommand {
+@CommandDef(name = "kick", description = "Kick a player from the server", usage = "/kick <player> [reason]")
+class KickCommand: Command {
     @OnExecute
     @RequirePermission("dandelion.server.kick")
     @ArgRange(min = 1)

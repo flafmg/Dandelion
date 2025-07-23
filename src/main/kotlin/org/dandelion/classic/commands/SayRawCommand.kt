@@ -1,19 +1,20 @@
-package org.dandelion.classic.commands.impl
+package org.dandelion.classic.commands
 
-import org.dandelion.classic.commands.CommandExecutor
+import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.commands.annotations.ArgRange
-import org.dandelion.classic.commands.annotations.Command
+import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
+import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.player.Players
 
-@Command(name = "say", description = "Broadcast a message to all players", usage = "/say <message>")
-class SayCommand {
+@CommandDef(name = "sayraw", description = "Broadcast a raw message to all players", usage = "/sayraw <message>", aliases = ["sayr", "sar"])
+class SayRawCommand: Command {
     @OnExecute
     @RequirePermission("dandelion.server.say")
     @ArgRange(min = 1)
     fun execute(executor: CommandExecutor, args: Array<String>) {
         val message = args.joinToString(" ")
-        Players.broadcast("[${executor.name}] $message")
+        Players.broadcast(message)
     }
 }

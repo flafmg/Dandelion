@@ -1,14 +1,15 @@
-package org.dandelion.classic.commands.impl
+package org.dandelion.classic.commands
 
-import org.dandelion.classic.commands.CommandExecutor
-import org.dandelion.classic.commands.annotations.Command
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
+import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.server.Server
 import org.dandelion.classic.server.ServerInfo
 import java.util.concurrent.TimeUnit
 
-@Command(name = "serverinfo", description = "Shows server information", usage = "/serverinfo", aliases = ["sinfo", "server"])
-class ServerInfoCommand {
+@CommandDef(name = "serverinfo", description = "Shows server information", usage = "/serverinfo", aliases = ["sinfo", "server"])
+class ServerInfoCommand: Command {
 
     @OnExecute
     fun execute(executor: CommandExecutor, args: Array<String>) {

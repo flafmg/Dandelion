@@ -1,4 +1,6 @@
-package org.dandelion.classic.commands
+package org.dandelion.classic.commands.model
+
+import org.dandelion.classic.commands.manager.CommandRegistry
 
 interface CommandExecutor {
     val name: String

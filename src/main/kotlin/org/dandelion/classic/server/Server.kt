@@ -1,10 +1,12 @@
 package org.dandelion.classic.server
 
-import org.dandelion.classic.commands.CommandRegistry
+import org.dandelion.classic.commands.manager.CommandRegistry
+import org.dandelion.classic.events.manager.ListenerRegistry
 import org.dandelion.classic.level.Levels
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.Connection
 import org.dandelion.classic.network.PacketFactory
+import org.dandelion.classic.tests.OnMoveTest
 import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
 import java.io.File
@@ -71,6 +73,9 @@ object Server {
         Heartbeat.init()
         warns()
         Console.log("Server started")
+
+        //for testing purposes
+        ListenerRegistry.register(OnMoveTest())
     }
     fun shutdown(){
         if(!running) return;

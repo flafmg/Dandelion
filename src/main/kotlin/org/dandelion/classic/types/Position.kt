@@ -17,11 +17,12 @@ data class Position(
         this.yaw = yaw
         this.pitch = pitch
     }
+
     fun distanceTo(target: Position): Float {
         return sqrt(
             (x - target.x).toDouble().pow(2.0)
-            + (y - target.y).toDouble().pow(2.0)
-            + (z - target.z).toDouble().pow(2.0)
+                    + (y - target.y).toDouble().pow(2.0)
+                    + (z - target.z).toDouble().pow(2.0)
         ).toFloat()
     }
 
@@ -29,13 +30,21 @@ data class Position(
     operator fun plus(other: Position): Position {
         return Position(x + other.x, y + other.y, z + other.z, yaw, pitch)
     }
+
     operator fun minus(other: Position): Position {
         return Position(x - other.x, y - other.y, z - other.z, yaw, pitch)
     }
+
     operator fun times(scalar: Float): Position {
         return Position(x * scalar, y * scalar, z * scalar, yaw, pitch)
     }
+
     operator fun div(scalar: Float): Position {
         return Position(x / scalar, y / scalar, z / scalar, yaw, pitch)
     }
+
+    override fun toString(): String {
+        return "Position(x=$x, y=$y, z=$z, yaw=$yaw, pitch=$pitch)"
+    }
 }
+

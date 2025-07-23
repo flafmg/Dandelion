@@ -2,7 +2,7 @@ package org.dandelion.classic.commands.annotations
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Command(
+annotation class CommandDef(
     val name: String,
     val aliases: Array<String> = [],
     val description: String = "",

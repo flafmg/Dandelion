@@ -1,18 +1,19 @@
-package org.dandelion.classic.commands.impl
+package org.dandelion.classic.commands
 
-import org.dandelion.classic.commands.CommandExecutor
+import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.commands.annotations.ArgRange
-import org.dandelion.classic.commands.annotations.Command
+import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.ReferSelf
+import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.player.PlayerInfo
 import org.dandelion.classic.player.Players
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-@Command(name = "playerinfo", description = "Shows information about a player", usage = "/playerinfo <player>", aliases = ["info", "pinfo"])
-class PlayerInfoCommand {
+@CommandDef(name = "playerinfo", description = "Shows information about a player", usage = "/playerinfo <player>", aliases = ["info", "pinfo"])
+class PlayerInfoCommand: Command {
 
     @OnExecute
     @ReferSelf()
@@ -31,7 +32,7 @@ class PlayerInfoCommand {
             currentTotalPlaytime += (Date().time - info.lastJoin.time)
         }
 
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss") //ya americans use MM-dd, we here use dd-MM, so to avoid confusion this uses yyyy-MM-dd
         val playtime = String.format("%d days, %d hours, %d min",
             TimeUnit.MILLISECONDS.toDays(currentTotalPlaytime),
             TimeUnit.MILLISECONDS.toHours(currentTotalPlaytime) % 24,

@@ -2,13 +2,14 @@ package org.dandelion.classic.player
 
 import io.netty.channel.Channel
 import kotlinx.coroutines.launch
-import org.dandelion.classic.commands.CommandExecutor
+import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.events.OnPlayerMove
+import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Position
 import java.io.ByteArrayOutputStream
-import java.util.Date
 import java.util.zip.GZIPOutputStream
 
 class Player(
@@ -157,5 +158,27 @@ class Player(
     }
     override fun updateBlock(x: Short, y: Short, z: Short, block: Byte) {
         ServerSetBlock(x, y, z, block).send(channel)
+    }
+
+    override fun updateEntityPositionAndOrientation(
+        newX: Float,
+        newY: Float,
+        newZ: Float,
+        newYaw: Float,
+        newPitch: Float,
+        absolute: Boolean
+    ) {
+        val newPosition = Position(newX, newY, newZ, newYaw, newPitch)
+        if(this.position == newPosition){
+            return
+        }
+
+        val event = OnPlayerMove(this, this.position, Position(newX, newY, newZ, newYaw, newPitch))
+        EventDispatcher.dispatch(event)
+        if(event.isCancelled){
+            setPosition(position) //todo: add a internal signature to ignore the "teleport" event we will have in the future
+        } else{
+            super.updateEntityPositionAndOrientation(newX, newY, newZ, newYaw, newPitch, absolute)
+        }
     }
 }
