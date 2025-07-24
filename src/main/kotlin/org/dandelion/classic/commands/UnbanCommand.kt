@@ -15,14 +15,12 @@ class UnbanCommand: Command {
     @ArgRange(min = 1, max = 1)
     fun execute(executor: CommandExecutor, args: Array<String>){
         val playerName = args[0]
-        val info = PlayerInfo.get(playerName)
-        if(info == null || !info.banned){
+        val info = PlayerInfo.load(playerName)
+        if(info == null || !info.isBanned){
             executor.sendMessage("&cPlayer '&f$playerName&c' is not banned.")
             return
         }
-        info.banReason = ""
-        info.banned = false
-        info.save()
+        info.removeBan()
         executor.sendMessage("&aPlayer '&f$playerName&a' was unbanned.")
     }
 }

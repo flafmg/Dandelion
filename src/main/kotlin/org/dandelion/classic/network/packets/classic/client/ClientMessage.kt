@@ -21,7 +21,7 @@ class ClientMessage : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.byChannel(channel)
-        player?.sendMessageAsEntity(message)
+        val player = Players.findPlayerByChannel(channel)
+        player?.sendMessageAs(message)
     }
 }

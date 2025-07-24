@@ -1,6 +1,8 @@
 package org.dandelion.classic.server
 
 import kotlinx.coroutines.*
+import org.dandelion.classic.events.HeartbeatSendEvent
+import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.player.Players
 import java.net.HttpURLConnection
 import java.net.URL
@@ -39,8 +41,16 @@ object Heartbeat {
         }
     }
     private fun sendHeartbeat(){
+        var processedHeartbeatString = processHeartbeatPlaceholders(ServerInfo.heartbeatData)
+        val event = HeartbeatSendEvent(processedHeartbeatString)
+        EventDispatcher.dispatch(event)
+        if(event.isCancelled){
+            return
+        }
+        processedHeartbeatString = event.heartbeat
+
         try {
-            val processedData = processHeartbeatPlaceholders(ServerInfo.heartbeatData)
+            val processedData = processedHeartbeatString
             val finalUrl = "${ServerInfo.heartbeatUrl}?$processedData"
             val url = URL(finalUrl)
             val connection = url.openConnection() as HttpURLConnection

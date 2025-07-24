@@ -2,12 +2,12 @@ package org.dandelion.classic.events
 
 import org.dandelion.classic.events.model.Cancellable
 import org.dandelion.classic.events.model.Event
+import org.dandelion.classic.level.Level
 import org.dandelion.classic.player.Player
-import org.dandelion.classic.types.Position
 
-class OnPlayerMove(
+class PlayerChangeLevel (
     val player: Player,
-    val from: Position,
-    val to: Position,
+    val from: Level,
+    val to: Level,
     override var isCancelled: Boolean = false
 ) : Event, Cancellable

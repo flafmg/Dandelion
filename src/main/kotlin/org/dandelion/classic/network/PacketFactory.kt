@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 //is it correct to call this a factory?
 object PacketFactory {
     private val packetFactory = ConcurrentHashMap<Byte, () -> Packet>()
+    private val supportedCPE = mutableListOf<Byte>()
 
     internal fun init() {
         Console.log("initializing packet handler...")
@@ -80,4 +81,22 @@ object PacketFactory {
     internal fun shutdown(){
         unregisterAllPackets()
     }
+
+    //this is made public in case this software dies community can still maintain CPE support
+
+    /**
+     * Adds a supported CPE by its byte id.
+     * @param id The byte id of the CPE to add.
+     */
+    fun addSupportedCPE(id: Byte) {
+        if (!supportedCPE.contains(id)) {
+            supportedCPE.add(id)
+        }
+    }
+
+    /**
+     * Gets a ByteArray of all supported CPE extension ids.
+     * @return ByteArray of supported CPE ids.
+     */
+    fun getSupportedCPE(): ByteArray = supportedCPE.toByteArray()
 }

@@ -26,7 +26,8 @@ class ClientSetBlock : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.byChannel(channel) ?: return
-        player.setBlockAsEntity(x, y, z, blockType, mode)
+        val player = Players.findPlayerByChannel(channel) ?: return
+        val destroying = mode != 0.toByte()
+        player.interactWithBlock(x, y, z, blockType, destroying)
     }
 }

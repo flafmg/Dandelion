@@ -20,6 +20,6 @@ class DisconnectHandler : ChannelInboundHandlerAdapter() {
     }
 
     private fun disconnect(channel: Channel){
-        Players.disconnect(channel)
+        Players.handlePlayerDisconnection(channel)
     }
 }

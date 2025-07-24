@@ -14,7 +14,7 @@ class StopCommand: Command {
     @RequirePermission("dandelion.server.stop")
     fun execute(executor: CommandExecutor, args: Array<String>) {
         executor.sendMessage("&eShutting down server...")
-        Players.kickAll("Shutting down server...")
+        Players.kickAllPlayers("Shutting down server...")
         Server.shutdown()
     }
 }

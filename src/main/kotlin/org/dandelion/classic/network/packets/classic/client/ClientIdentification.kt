@@ -24,6 +24,7 @@ class ClientIdentification: Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        Players.preConnect(this, channel)
+        Players.handlePreConnection(this, channel)
+        print(unused)
     }
 }

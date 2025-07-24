@@ -15,6 +15,6 @@ class SayCommand: Command {
     @ArgRange(min = 1)
     fun execute(executor: CommandExecutor, args: Array<String>) {
         val message = args.joinToString(" ")
-        Players.broadcast("[${executor.name}] $message")
+        Players.broadcastMessage("[${executor.name}] $message")
     }
 }

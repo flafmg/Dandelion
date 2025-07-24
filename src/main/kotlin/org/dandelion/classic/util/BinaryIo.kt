@@ -35,7 +35,7 @@ class BinaryReader(file: File) {
         bytesRead ++
         return data.readChar()
     }
-    fun readBool(): Boolean{
+    fun readBoolean(): Boolean{
         bytesRead++
         return data.readBoolean()
     }
@@ -111,7 +111,7 @@ class BinaryWriter(private val file: File){
         data.writeChar(value.code)
         bytesWrite ++
     }
-    fun writeBool(value: Boolean){
+    fun writeBoolean(value: Boolean){
         data.writeBoolean(value)
         bytesWrite ++
     }

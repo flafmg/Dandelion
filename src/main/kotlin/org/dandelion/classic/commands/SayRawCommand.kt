@@ -15,6 +15,6 @@ class SayRawCommand: Command {
     @ArgRange(min = 1)
     fun execute(executor: CommandExecutor, args: Array<String>) {
         val message = args.joinToString(" ")
-        Players.broadcast(message)
+        Players.broadcastMessage(message)
     }
 }

@@ -13,8 +13,19 @@ import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.server.Console
 
+/**
+ * CommandRegistry manages the registration, lookup, and unregistration of commands.
+ * It stores commands and their aliases, and provides methods to initialize and shut down the registry.
+ */
 object CommandRegistry {
+    /**
+     * Map of command names and aliases to their CommandInfo.
+     */
     private val commands = mutableMapOf<String, CommandInfo>()
+
+    /**
+     * Initializes the command registry by registering all default commands.
+     */
     internal fun init(){
         register(KickCommand())
         register(BanCommand())
@@ -26,10 +37,19 @@ object CommandRegistry {
         register(SayRawCommand())
         register(StopCommand())
     }
+    /**
+     * Shuts down the command registry by unregistering all commands.
+     */
     internal fun shutdown(){
         unregisterAll()
     }
 
+    /**
+     * Registers a command and its aliases in the registry.
+     *
+     * @param command The command to register.
+     * @return True if the command was registered successfully, false otherwise.
+     */
     fun register(command: Command): Boolean{
         val commandInfo = CommandProcessor.processCommand(command) ?: return false
         commands[commandInfo.name] = commandInfo
@@ -39,6 +59,13 @@ object CommandRegistry {
         Console.debugLog("Command ${commandInfo.name} registered")
         return true
     }
+
+    /**
+     * Unregisters a command and its aliases from the registry.
+     *
+     * @param commandName The name or alias of the command to unregister.
+     * @return True if the command was unregistered successfully, false otherwise.
+     */
     fun unregister(commandName: String): Boolean{
         val commandInfo = commands[commandName]
         if(commandInfo == null){
@@ -52,9 +79,20 @@ object CommandRegistry {
         Console.debugLog("Command ${commandInfo.name} unregistered")
         return true
     }
+
+    /**
+     * Unregisters all commands from the registry.
+     */
     private fun unregisterAll() {
         commands.clear()
     }
+
+    /**
+     * Executes a command line by parsing the command name and arguments, then dispatching to the appropriate command handler.
+     *
+     * @param commandLine The full command line string entered by the user.
+     * @param executor The executor that will run the command (e.g., player or console).
+     */
     fun execute(commandLine: String, executor: CommandExecutor){
         var cleanCommand = commandLine.trim()
         if (cleanCommand.startsWith("/")) {
@@ -68,6 +106,14 @@ object CommandRegistry {
         val args = parts.drop(1).toTypedArray()
         execute(commandName, executor, args)
     }
+
+    /**
+     * Executes a command by name with the provided arguments and executor.
+     *
+     * @param name The name or alias of the command to execute.
+     * @param executor The executor that will run the command.
+     * @param args Arguments to pass to the command.
+     */
     fun execute(name: String, executor: CommandExecutor, args: Array<String>) {
         val command = commands[name] ?: commands.values.find { it.aliases.contains(name) }
 
@@ -79,5 +125,10 @@ object CommandRegistry {
         CommandProcessor.executeCommand(command, executor, args)
     }
 
+    /**
+     * Returns a list of all registered commands.
+     *
+     * @return List of CommandInfo for all registered commands.
+     */
     fun getCommands(): List<CommandInfo> = commands.values.distinct()
 }

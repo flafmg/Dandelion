@@ -20,13 +20,13 @@ class PlayerInfoCommand: Command {
     @ArgRange(max = 1)
     fun execute(executor: CommandExecutor, args: Array<String>) {
         val playerName = args.getOrNull(0) ?: executor.name
-        val info = PlayerInfo.get(playerName)
+        val info = PlayerInfo.load(playerName)
         if (info == null) {
             executor.sendMessage("&cPlayer '&f$playerName&c' not found.")
             return
         }
 
-        val onlinePlayer = Players.byName(playerName)
+        val onlinePlayer = Players.findPlayerByName(playerName)
         var currentTotalPlaytime = info.totalPlaytime
         if (onlinePlayer != null) {
             currentTotalPlaytime += (Date().time - info.lastJoin.time)
@@ -40,11 +40,11 @@ class PlayerInfoCommand: Command {
         )
 
         executor.sendMessage("&e--- Player Info: &f${info.name} &e---")
-        executor.sendMessage("&eIs OP: &f${info.isOp}")
-        executor.sendMessage("&eBanned: &f${if (info.banned) "&cYes (&f${info.banReason}&c)" else "&aNo"}")
+        executor.sendMessage("&eIs OP: &f${info.isOperator}")
+        executor.sendMessage("&eBanned: &f${if (info.isBanned) "&cYes (&f${info.banReason}&c)" else "&aNo"}")
         executor.sendMessage("&eFirst Join: &f${dateFormat.format(info.firstJoin)}")
         executor.sendMessage("&eLast Join: &f${dateFormat.format(info.lastJoin)}")
-        executor.sendMessage("&eLast Seen: &f${ if(Players.byName(playerName) == null) dateFormat.format(info.lastSeen) else "now"}")
+        executor.sendMessage("&eLast Seen: &f${ if(Players.findPlayerByName(playerName) == null) dateFormat.format(info.lastSeen) else "now"}")
         executor.sendMessage("&ePlaytime: &f$playtime")
         executor.sendMessage("&eJoin Count: &f${info.joinCount}")
     }

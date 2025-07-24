@@ -22,7 +22,6 @@ class ServerInfoCommand: Command {
         executor.sendMessage("&e--- Server Info ---")
         executor.sendMessage("&eSoftware: &f${ServerInfo.serverSoftware}")
         executor.sendMessage("&eUptime: &f$uptime")
-        executor.sendMessage("&eCPE Enabled: &f${if (ServerInfo.isCpe) "&aYes" else "&cNo"}")
         executor.sendMessage("&ePublic: &f${if (ServerInfo.isPublic) "&aYes" else "&cNo"}")
     }
 }

@@ -17,16 +17,14 @@ class BanCommand: Command {
     fun execute(executor: CommandExecutor, args: Array<String>){
         val playerName = args[0]
         val reason = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else "You have been banned"
-        val player = Players.byName(playerName)
+        val player = Players.findPlayerByName(playerName)
         if(player == null){
-            val info = PlayerInfo.get(playerName)
+            val info = PlayerInfo.load(playerName)
             if(info == null){
                 executor.sendMessage("&cPlayer '&f$playerName&c' not found.")
                 return
             }
-            info.banned = true
-            info.banReason = reason
-            info.save()
+            info.setBanned(reason)
             executor.sendMessage("&aPlayer '&f$playerName&a' has been banned for '&f$reason&a'.")
             return
         }

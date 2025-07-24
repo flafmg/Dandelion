@@ -2,8 +2,9 @@ package org.dandelion.classic.level.generator.impl
 
 import org.dandelion.classic.level.Level
 import com.google.gson.GsonBuilder
+import org.dandelion.classic.blocks.GrassBlock
+import org.dandelion.classic.blocks.Stone
 import org.dandelion.classic.level.generator.LevelGenerator
-import org.dandelion.classic.types.Block
 
 data class Layer(
     val id: Byte,
@@ -40,8 +41,8 @@ class FlatGenerator : LevelGenerator {
 
         val defaultParams = FlatGeneratorParams(
             layers =  listOf(
-                Layer(Block.Stone.id, stoneCount),
-                Layer(Block.GrassBlock.id, grassCount)
+                Layer(Stone().id, stoneCount),
+                Layer(GrassBlock().id, grassCount)
             )
         )
         return defaultParams

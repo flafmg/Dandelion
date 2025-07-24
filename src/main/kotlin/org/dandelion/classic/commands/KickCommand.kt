@@ -16,7 +16,7 @@ class KickCommand: Command {
     fun execute(executor: CommandExecutor, args: Array<String>){
         val playerName = args[0]
         val reason = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else "You have been kicked"
-        val player = Players.byName(playerName)
+        val player = Players.findPlayerByName(playerName)
         if(player == null){
             executor.sendMessage("&cPlayer '&f$playerName&c' not found.")
             return

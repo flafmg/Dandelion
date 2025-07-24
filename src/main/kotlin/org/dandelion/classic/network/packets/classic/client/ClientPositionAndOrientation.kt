@@ -28,7 +28,7 @@ class ClientPositionAndOrientation : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.byChannel(channel)
-        player?.updateEntityPositionAndOrientation(x, y, z, yaw.toFloat(), pitch.toFloat())
+        val player = Players.findPlayerByChannel(channel)
+        player?.updatePositionAndOrientation(x, y, z, yaw.toFloat(), pitch.toFloat())
     }
 }
