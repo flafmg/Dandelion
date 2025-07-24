@@ -6,7 +6,6 @@ import org.dandelion.classic.level.Levels
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.Connection
 import org.dandelion.classic.network.PacketFactory
-import org.dandelion.classic.tests.OnMoveTest
 import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
 import java.io.File
@@ -73,9 +72,6 @@ object Server {
         Heartbeat.init()
         warns()
         Console.log("Server started")
-
-        //for testing purposes
-        ListenerRegistry.register(OnMoveTest())
     }
     fun shutdown(){
         if(!running) return;
@@ -115,8 +111,7 @@ object Server {
         ServerInfo.heartbeatInterval = config.getInt("heartbeat.interval", ServerInfo.heartbeatInterval.inWholeSeconds.toInt()).seconds
     }
     private fun warns(){
-        if(!ServerInfo.isCpe)
-            Console.warnLog("Protocol extension is disabled. Any feature relying on cpe will not work!")
+        Console.warnLog("Dandelion is currently in a highly experimental state. It is not recommended to use this software for production or serious Minecraft servers, as stability and security cannot be guaranteed.")
         if(!ServerInfo.verifyUsers)
             Console.warnLog("User verification is disabled. Your server will not validate users and will be vulnerable to attacks! Consider enabling it")
     }
