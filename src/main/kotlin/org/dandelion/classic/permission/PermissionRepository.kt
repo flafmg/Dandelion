@@ -120,12 +120,15 @@ object PermissionRepository {
             groupsConfig.setString("$groupName.display-name", group.displayName)
             groupsConfig.setInt("$groupName.priority", group.priority)
 
-            val permsSection = groupsConfig.getOrCreateSection("$groupName.permissions")
+            val permsPath = "$groupName.permissions"
+            val permsSection = groupsConfig.getOrCreateSection(permsPath)
             permsSection.root.clear()
+
             group.permissions.forEach { (perm, value) ->
-                permsSection.setBoolean(perm, value)
+                permsSection.setLiteralKey("", perm, value)
             }
         }
+        groupsConfig.save(groupsFile)
     }
 
     private fun savePlayersToFile() {
@@ -133,13 +136,17 @@ object PermissionRepository {
             val groupsToSave = player.getGroupsExcludingDefault() + "default"
             playersConfig.setStringList("$playerName.groups", groupsToSave)
 
-            val permsSection = playersConfig.getOrCreateSection("$playerName.permissions")
+            val permsPath = "$playerName.permissions"
+            val permsSection = playersConfig.getOrCreateSection(permsPath)
             permsSection.root.clear()
+
             player.permissions.forEach { (perm, value) ->
-                permsSection.setBoolean(perm, value)
+                permsSection.setLiteralKey("", perm, value)
             }
         }
+        playersConfig.save(playersFile)
     }
+
 
     /**
      * Get all groups in memory.
@@ -158,6 +165,7 @@ object PermissionRepository {
         val group = Group(name, displayName, priority)
         permissions.forEach { (perm, value) -> group.setPermission(perm, value) }
         groupsCache[name] = group
+        save()
         return group
     }
 
@@ -166,7 +174,9 @@ object PermissionRepository {
      */
     fun deleteGroup(name: String): Boolean {
         if (name == "default") return false
-        return groupsCache.remove(name) != null
+        val removed = groupsCache.remove(name) != null
+        if (removed) save()
+        return removed
     }
 
     /**
@@ -190,8 +200,6 @@ object PermissionRepository {
      * Check if a player exists in cache.
      */
     fun hasPlayer(name: String): Boolean = playersCache.containsKey(name)
-
-    // ==================== PERMISSION RESOLUTION ====================
 
     /**
      * Resolves and returns all permissions for a player, considering group priorities and individual overrides.
@@ -255,6 +263,7 @@ object PermissionRepository {
         if (!hasGroup(groupName)) return false
         val player = getPlayer(playerName)
         player.addGroup(groupName)
+        save()
         return true
     }
 
@@ -265,6 +274,7 @@ object PermissionRepository {
         if (groupName == "default") return false
         val player = getPlayer(playerName)
         player.removeGroup(groupName)
+        save()
         return true
     }
 
@@ -274,6 +284,7 @@ object PermissionRepository {
     fun setGroupPermission(groupName: String, permission: String, value: Boolean): Boolean {
         val group = getGroup(groupName) ?: return false
         group.setPermission(permission, value)
+        save()
         return true
     }
 
@@ -283,6 +294,7 @@ object PermissionRepository {
     fun setPlayerPermission(playerName: String, permission: String, value: Boolean): Boolean {
         val player = getPlayer(playerName)
         player.setPermission(permission, value)
+        save()
         return true
     }
 
@@ -292,6 +304,7 @@ object PermissionRepository {
     fun removeGroupPermission(groupName: String, permission: String): Boolean {
         val group = getGroup(groupName) ?: return false
         group.removePermission(permission)
+        save()
         return true
     }
 
@@ -301,6 +314,19 @@ object PermissionRepository {
     fun removePlayerPermission(playerName: String, permission: String): Boolean {
         val player = getPlayer(playerName)
         player.removePermission(permission)
+        save()
         return true
+    }
+
+    /**
+     * Returns a list of all group instances the player belongs to, always including the default group.
+     *
+     * @param playerName The name of the player.
+     * @return List of Group instances for the player, including the default group.
+     */
+    fun getPlayerGroups(playerName: String): List<Group> {
+        val player = getPlayer(playerName)
+        val groupNames = player.groups.distinct().plus("default").distinct()
+        return groupNames.mapNotNull { getGroup(it) }
     }
 }

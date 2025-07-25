@@ -1,3 +1,5 @@
+// File: YamlConfig.kt (atualizado)
+
 package org.dandelion.classic.util
 
 import org.yaml.snakeyaml.DumperOptions
@@ -7,12 +9,12 @@ import java.io.FileInputStream
 import java.io.InputStream
 
 class YamlConfig {
-
     var root: MutableMap<String, Any> = mutableMapOf()
     private var originFile: File? = null
 
     @Suppress("UNCHECKED_CAST")
-    private fun getMap(path: String): Map<String, Any>? {
+    fun getMap(path: String): Map<String, Any>? {
+        if (path.isEmpty()) return root
         val keys = path.split('.')
         var currentMap: Map<String, Any>? = root
         for (i in 0 until keys.size - 1) {
@@ -22,7 +24,8 @@ class YamlConfig {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun getOrCreateMap(path: String): MutableMap<String, Any> {
+    fun getOrCreateMap(path: String): MutableMap<String, Any> {
+        if (path.isEmpty()) return root
         val keys = path.split('.')
         var currentMap: MutableMap<String, Any> = root
         for (key in keys) {
@@ -31,16 +34,15 @@ class YamlConfig {
         return currentMap
     }
 
-
     fun get(path: String, default: Any? = null): Any? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return map?.get(key) ?: default
     }
 
     fun getString(path: String): String? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return map?.get(key) as? String
     }
 
@@ -50,7 +52,7 @@ class YamlConfig {
 
     fun getInt(path: String): Int? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return (map?.get(key) as? Number)?.toInt()
     }
 
@@ -60,7 +62,7 @@ class YamlConfig {
 
     fun getLong(path: String): Long? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return (map?.get(key) as? Number)?.toLong()
     }
 
@@ -70,7 +72,7 @@ class YamlConfig {
 
     fun getDouble(path: String): Double? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return (map?.get(key) as? Number)?.toDouble()
     }
 
@@ -80,7 +82,7 @@ class YamlConfig {
 
     fun getBoolean(path: String): Boolean? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return map?.get(key) as? Boolean
     }
 
@@ -91,7 +93,7 @@ class YamlConfig {
     @Suppress("UNCHECKED_CAST")
     fun getStringList(path: String): List<String>? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         return map?.get(key) as? List<String>
     }
 
@@ -101,7 +103,7 @@ class YamlConfig {
 
     fun getSection(path: String): YamlConfig? {
         val map = getMap(path)
-        val key = path.split('.').last()
+        val key = if (path.isNotEmpty()) path.split('.').last() else ""
         val sectionMap = map?.get(key) as? Map<String, Any> ?: return null
         val config = YamlConfig()
         config.root = sectionMap.toMutableMap()
@@ -110,10 +112,24 @@ class YamlConfig {
 
     @Suppress("UNCHECKED_CAST")
     fun getOrCreateSection(path: String): YamlConfig {
-        val keys = path.split('.')
+        val keys = if (path.isNotEmpty()) path.split('.') else listOf("")
         var currentMap: MutableMap<String, Any> = root
-        for (key in keys) {
-            currentMap = currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+        for (i in keys.indices) {
+            val key = keys[i]
+            if (i == keys.size - 1) {
+
+                val existingMap = currentMap[key]
+                if (existingMap is MutableMap<*, *>) {
+                    @Suppress("UNCHECKED_CAST")
+                    currentMap = existingMap as MutableMap<String, Any>
+                } else {
+                    val newMap = mutableMapOf<String, Any>()
+                    currentMap[key] = newMap
+                    currentMap = newMap
+                }
+            } else {
+                currentMap = currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+            }
         }
         val config = YamlConfig()
         config.root = currentMap
@@ -121,12 +137,20 @@ class YamlConfig {
     }
 
     fun set(path: String, value: Any) {
+        if (path.isEmpty()) {
+            throw IllegalArgumentException("Cannot set value at empty path ''")
+        }
         val keys = path.split('.')
         val key = keys.last()
         val mapPath = keys.dropLast(1).joinToString(".")
         val map = if (mapPath.isEmpty()) root else getOrCreateMap(mapPath)
         map[key] = value
     }
+    fun setLiteralKey(parentPath: String, literalKey: String, value: Any) {
+        val map = if (parentPath.isEmpty()) root else getOrCreateMap(parentPath)
+        map[literalKey] = value
+    }
+
 
     fun setString(path: String, value: String) = set(path, value)
     fun setInt(path: String, value: Int) = set(path, value)
@@ -141,7 +165,7 @@ class YamlConfig {
         options.isPrettyFlow = true
 
         val yaml = Yaml(options)
-        file.writeText(yaml.dump(root))
+        file.writeText(yaml.dumpAsMap(root))
     }
 
     fun save() {
@@ -167,7 +191,12 @@ class YamlConfig {
             val yaml = Yaml()
             val config = YamlConfig()
             inputStream.use {
-                config.root = yaml.load(it) ?: mutableMapOf()
+                try {
+                    val loadedData: Any? = yaml.load(it)
+                    config.root = (loadedData as? Map<String, Any>)?.toMutableMap() ?: mutableMapOf()
+                } catch (e: Exception) {
+                    config.root = mutableMapOf()
+                }
             }
             return config
         }

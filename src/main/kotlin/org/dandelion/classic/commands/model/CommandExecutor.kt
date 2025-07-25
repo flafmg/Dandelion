@@ -32,7 +32,7 @@ interface CommandExecutor {
      * @return True if the executor has the permission, false otherwise.
      */
     fun hasPermission(permission: String): Boolean {
-        if (permissions.contains("*") || permissions.contains(permission) || (this is Player && this.info.isOperator)) {
+        if (permissions.contains("*") || permissions.contains(permission)) {
             return true
         }
 

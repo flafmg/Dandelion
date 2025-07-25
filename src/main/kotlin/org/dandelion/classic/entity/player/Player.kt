@@ -432,6 +432,41 @@ class Player(
     }
     //endregion
 
+    /**
+     * Sets a permission for this player.
+     *
+     * @param permission the permission string
+     * @param value true to grant, false to deny
+     * @return true if the permission was set
+     */
+    fun setPermission(permission: String, value: Boolean): Boolean = Players.setPermission(this.name, permission, value)
+
+    /**
+     * Checks if this player has a specific permission.
+     *
+     * @param permission the permission string
+     * @return true if the player has the permission
+     */
+    override fun hasPermission(permission: String): Boolean {
+        return if(info.isOperator) true else super.hasPermission(permission)
+    }
+
+    /**
+     * Adds a group to this player.
+     *
+     * @param group the group name to add
+     * @return true if the group was added
+     */
+    fun addGroup(group: String): Boolean = Players.addGroup(this.name, group)
+
+    /**
+     * Removes a group from this player.
+     *
+     * @param group the group name to remove
+     * @return true if the group was removed
+     */
+    fun removeGroup(group: String): Boolean = Players.removeGroup(this.name, group)
+
     companion object {
         /**
          * Finds a player by name (case-insensitive).
@@ -460,7 +495,45 @@ class Player(
          */
         fun getPermissions(name: String): List<String> = Players.getPermissions(name)
 
-        //todo: finish mirror methods for permissionRepo
+        /**
+         * Sets a permission for a player by name.
+         *
+         * @param name the player name
+         * @param permission the permission string
+         * @param value true to grant, false to deny
+         * @return true if the permission was set
+         */
+        fun setPermission(name: String, permission: String, value: Boolean): Boolean =
+            Players.setPermission(name, permission, value)
 
+        /**
+         * Checks if a player has a specific permission by name.
+         *
+         * @param name the player name
+         * @param permission the permission string
+         * @return true if the player has the permission
+         */
+        fun hasPermission(name: String, permission: String): Boolean =
+            Players.hasPermission(name, permission)
+
+        /**
+         * Adds a group to a player by name.
+         *
+         * @param name the player name
+         * @param group the group name to add
+         * @return true if the group was added
+         */
+        fun addGroup(name: String, group: String): Boolean =
+            Players.addGroup(name, group)
+
+        /**
+         * Removes a group from a player by name.
+         *
+         * @param name the player name
+         * @param group the group name to remove
+         * @return true if the group was removed
+         */
+        fun removeGroup(name: String, group: String): Boolean =
+            Players.removeGroup(name, group)
       }
 }

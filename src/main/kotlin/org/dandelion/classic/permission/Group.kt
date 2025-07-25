@@ -1,11 +1,26 @@
 package org.dandelion.classic.permission
 
 data class Group(
-    val name: String,
-    val displayName: String,
-    val priority: Int,
+    val name: String, //in the future make name mutable?
+    private var _displayName: String,
+    private var _priority: Int,
     val permissions: MutableMap<String, Boolean> = mutableMapOf()
 ) {
+    //this is weird but will work
+    var displayName: String
+        get() = _displayName
+        set(value) {
+            _displayName = value
+            PermissionRepository.save()
+        }
+
+    var priority: Int
+        get() = _priority
+        set(value) {
+            _priority = value
+            PermissionRepository.save()
+        }
+
     fun setPermission(permission: String, value: Boolean) {
         permissions[permission] = value
     }

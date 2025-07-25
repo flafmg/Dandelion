@@ -9,6 +9,7 @@ import org.dandelion.classic.level.Levels
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerIdentification
+import org.dandelion.classic.permission.Group
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
@@ -342,11 +343,50 @@ object Players {
      * @param name the requested player name
      * @return the player's groups
      */
-    //todo: finish mirror methods for permissionRepo
-    //fun getGroups(name: String): List<Group>
+    fun getGroups(name: String): List<Group> = PermissionRepository.getPlayerGroups(name)
+
+    /**
+     * Sets a permission for a player.
+     *
+     * @param name the player name
+     * @param permission the permission string
+     * @param value true to grant, false to deny
+     * @return true if the permission was set
+     */
+    fun setPermission(name: String, permission: String, value: Boolean): Boolean =
+        PermissionRepository.setPlayerPermission(name, permission, value)
+
+    /**
+     * Checks if a player has a specific permission.
+     *
+     * @param name the player name
+     * @param permission the permission string
+     * @return true if the player has the permission
+     */
+    fun hasPermission(name: String, permission: String): Boolean =
+        PermissionRepository.hasPermission(name, permission)
+
+    /**
+     * Adds a group to a player.
+     *
+     * @param name the player name
+     * @param group the group name to add
+     * @return true if the group was added
+     */
+    fun addGroup(name: String, group: String): Boolean =
+        PermissionRepository.addGroupToPlayer(name, group)
+
+    /**
+     * Removes a group from a player.
+     *
+     * @param name the player name
+     * @param group the group name to remove
+     * @return true if the group was removed
+     */
+    fun removeGroup(name: String, group: String): Boolean =
+        PermissionRepository.removeGroupFromPlayer(name, group)
 
     //region Utility Methods
-
     /**
      * Disconnects a player with invalid protocol version
      *

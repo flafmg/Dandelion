@@ -4,6 +4,7 @@ import org.dandelion.classic.commands.BanCommand
 import org.dandelion.classic.commands.HelpCommand
 import org.dandelion.classic.commands.KickCommand
 import org.dandelion.classic.commands.LevelCommand
+import org.dandelion.classic.commands.PermissionCommand
 import org.dandelion.classic.commands.PlayerInfoCommand
 import org.dandelion.classic.commands.SayCommand
 import org.dandelion.classic.commands.SayRawCommand
@@ -16,17 +17,11 @@ import org.dandelion.classic.server.Console
 
 /**
  * CommandRegistry manages the registration, lookup, and unregistration of commands.
- * It stores commands and their aliases, and provides methods to initialize and shut down the registry.
  */
 object CommandRegistry {
-    /**
-     * Map of command names and aliases to their CommandInfo.
-     */
     private val commands = mutableMapOf<String, CommandInfo>()
 
-    /**
-     * Initializes the command registry by registering all default commands.
-     */
+
     internal fun init(){
         register(KickCommand())
         register(BanCommand())
@@ -38,6 +33,7 @@ object CommandRegistry {
         register(SayRawCommand())
         register(StopCommand())
         register(LevelCommand())
+        register(PermissionCommand())
     }
 
     /**

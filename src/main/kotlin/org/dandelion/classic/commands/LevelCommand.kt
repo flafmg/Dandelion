@@ -17,10 +17,8 @@ import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.SVec
 import kotlin.math.ceil
 
-@CommandDef(name = "level", description = "Manage server levels", usage = "/level <subcommand>")
+@CommandDef(name = "level", description = "Manage server levels", usage = "/level <subcommand>", aliases = ["l", "lvl"])
 class LevelCommand : Command {
-
-    // Basic Level Management
 
     @OnSubCommand(name = "create", description = "Create a new level", usage = "/level create <id> <description> <sizeX> <sizeY> <sizeZ> <generator> [params]")
     @RequirePermission("dandelion.level.create")
@@ -202,8 +200,6 @@ class LevelCommand : Command {
         executor.sendMessage("&7Auto-save Interval: &f${stats["autoSaveInterval"]}")
     }
 
-    // Player Management
-
     @OnSubCommand(name = "tp", description = "Teleport to a level", usage = "/level tp <levelId> [player]", aliases = ["go"])
     @RequirePermission("dandelion.level.teleport")
     @ArgRange(min = 1, max = 2)
@@ -342,9 +338,6 @@ class LevelCommand : Command {
             else -> executor.sendMessage("&cUnknown property '$property'. Available: spawn, autosave, default, description")
         }
     }
-
-    // Environment Settings
-
     @OnSubCommand(name = "env", description = "Modify level environment settings", usage = "/level env <property> <levelId> <value>")
     @RequirePermission("dandelion.level.environment")
     @ArgRange(min = 3)
@@ -582,9 +575,6 @@ class LevelCommand : Command {
             else -> executor.sendMessage("&cUnknown environment property '$property'.")
         }
     }
-
-    // Save and Reload
-
     @OnSubCommand(name = "save", description = "Save level(s) manually", usage = "/level save <levelId|all>")
     @RequirePermission("dandelion.level.edit")
     @ArgRange(min = 1, max = 1)
