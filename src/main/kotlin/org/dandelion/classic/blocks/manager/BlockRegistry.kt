@@ -14,7 +14,7 @@ object BlockRegistry {
     /**
      * Initializes the registry with all standard Minecraft blocks.
      */
-    fun init() {
+    internal fun init() {
         // Classic blocks
         internalRegister(Air())
         internalRegister(Stone())

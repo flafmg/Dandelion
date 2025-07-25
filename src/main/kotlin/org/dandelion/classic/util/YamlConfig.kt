@@ -8,7 +8,7 @@ import java.io.InputStream
 
 class YamlConfig {
 
-    private var root: MutableMap<String, Any> = mutableMapOf()
+    var root: MutableMap<String, Any> = mutableMapOf()
     private var originFile: File? = null
 
     @Suppress("UNCHECKED_CAST")

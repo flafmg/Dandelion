@@ -6,8 +6,8 @@ import org.dandelion.classic.level.io.DandelionLevelDeserializer
 import org.dandelion.classic.level.io.LevelDeserializer
 import org.dandelion.classic.level.io.LevelSerializer
 import org.dandelion.classic.network.packets.classic.server.ServerDespawnPlayer
-import org.dandelion.classic.player.Entity
-import org.dandelion.classic.player.Player
+import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Color
 import org.dandelion.classic.types.IVec
@@ -453,6 +453,7 @@ class Level(
      * @return `true` if the entity was successfully added, `false` if the level is full.
      */
     fun tryAddEntity(entity: Entity): Boolean {
+        entity.level?.removeEntity(entity)
         val entityId = getNextAvailableId() ?: return false
         entity.entityId = entityId
         entities[entityId] = entity

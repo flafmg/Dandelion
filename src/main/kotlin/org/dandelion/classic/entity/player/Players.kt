@@ -1,4 +1,4 @@
-package org.dandelion.classic.player
+package org.dandelion.classic.entity.player
 
 import io.netty.channel.Channel
 import org.dandelion.classic.events.PlayerConnectEvent
@@ -9,6 +9,7 @@ import org.dandelion.classic.level.Levels
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerIdentification
+import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
 import java.security.MessageDigest
@@ -33,7 +34,11 @@ object Players {
     internal fun handlePreConnection(clientInfo: ClientIdentification, channel: Channel) {
         ServerIdentification().send(channel)
 
-        if (!isValidProtocolVersion(clientInfo.protocolVersion)) {
+        if(clientInfo.unused != 0x42.toByte()){
+            disconnectWithNoCPESupport(channel)
+        }
+
+        if (!isValidProtocol(clientInfo.protocolVersion)) {
             disconnectWithInvalidProtocol(clientInfo.protocolVersion, channel)
             return
         }
@@ -55,7 +60,7 @@ object Players {
         }
         val player = createPlayerFromClientInfo(clientInfo, channel)
         player.levelId = Levels.getDefaultLevelId()
-        attemptPlayerConnection(player)
+        attemptConnection(player)
     }
 
     /**
@@ -63,10 +68,10 @@ object Players {
      *
      * @param player The [Player] attempting to connect.
      */
-    private fun attemptPlayerConnection(player: Player) {
-        when (val connectionResult = validatePlayerConnection(player)) {
+    private fun attemptConnection(player: Player) {
+        when (val connectionResult = validateConnection(player)) {
             is ConnectionResult.Success -> {
-                finalizePlayerConnection(player)
+                finalizeConnection(player)
             }
             is ConnectionResult.Failure -> {
                 disconnectPlayerWithReason(player.channel, connectionResult.reason)
@@ -81,7 +86,7 @@ object Players {
      *
      * @param player The [Player] to finalize the connection for.
      */
-    private fun finalizePlayerConnection(player: Player) {
+    private fun finalizeConnection(player: Player) {
         val joinLevel = Levels.getDefaultLevel()
         if (joinLevel == null) {
             disconnectPlayerWithReason(player.channel, "Default level not available")
@@ -90,7 +95,7 @@ object Players {
 
         player.info.recordJoin()
         player.joinLevel(joinLevel)
-        notifyPlayerJoined(player)
+        notifyJoined(player)
     }
 
     /**
@@ -98,13 +103,13 @@ object Players {
      *
      * @param channel The Netty [Channel] of the disconnecting player.
      */
-    internal fun handlePlayerDisconnection(channel: Channel) {
-        val player = findPlayerByChannel(channel) ?: return
+    internal fun handleDisconnection(channel: Channel) {
+        val player = find(channel) ?: return
         val level = player.level ?: return
 
         level.removeEntity(player)
         player.info.recordDisconnect()
-        notifyPlayerLeft(player)
+        notifyLeft(player)
     }
 
     //endregion
@@ -117,7 +122,7 @@ object Players {
      * @param version The protocol version byte sent by the client.
      * @return `true` if the version is valid, `false` otherwise.
      */
-    private fun isValidProtocolVersion(version: Byte): Boolean {
+    private fun isValidProtocol(version: Byte): Boolean {
         return version == EXPECTED_PROTOCOL_VERSION
     }
 
@@ -131,7 +136,7 @@ object Players {
     private fun authenticateUser(clientInfo: ClientIdentification, channel: Channel): Boolean {
         if (!ServerInfo.verifyUsers) return true
 
-        val expectedHash = generateUserVerificationHash(clientInfo.userName)
+        val expectedHash = generateHash(clientInfo.userName)
         if (clientInfo.verificationKey != expectedHash) {
             disconnectPlayerWithReason(channel, "Authentication failed - please log in properly")
             return false
@@ -146,7 +151,7 @@ object Players {
      * @param userName The username to generate the hash for.
      * @return The MD5 hash string.
      */
-    private fun generateUserVerificationHash(userName: String): String {
+    private fun generateHash(userName: String): String {
         val messageDigest = MessageDigest.getInstance(MD5_ALGORITHM)
         val hashBytes = messageDigest.digest("${ServerInfo.salt}$userName".toByteArray())
         return hashBytes.joinToString("") { HEX_FORMAT.format(it) }
@@ -158,12 +163,12 @@ object Players {
      * @param player The [Player] to validate.
      * @return A [ConnectionResult] indicating success or failure with reason.
      */
-    private fun validatePlayerConnection(player: Player): ConnectionResult {
+    private fun validateConnection(player: Player): ConnectionResult {
         return when {
             player.info.isBanned -> {
                 ConnectionResult.Failure("You are banned: ${player.info.banReason}")
             }
-            isPlayerAlreadyConnected(player) -> {
+            isConnected(player) -> {
                 ConnectionResult.Failure("You are already connected to this server")
             }
             isServerFull() -> {
@@ -179,8 +184,8 @@ object Players {
      * @param player The [Player] to check for existing connections.
      * @return `true` if the player is already connected, `false` otherwise.
      */
-    private fun isPlayerAlreadyConnected(player: Player): Boolean {
-        return findPlayerByChannel(player.channel) != null ||
+    private fun isConnected(player: Player): Boolean {
+        return find(player.channel) != null ||
                 getAllPlayers().any { it.name.equals(player.name, ignoreCase = true) }
     }
 
@@ -214,9 +219,10 @@ object Players {
      *
      * @param player The [Player] who joined.
      */
-    internal fun notifyPlayerJoined(player: Player) {
-        Console.log("${player.name} joined the server")
-        broadcastMessage("${player.name} joined the server")
+    internal fun notifyJoined(player: Player) {
+        val message = "&a+ &7${player.name} &ajoined the server"
+        Console.log(message)
+        broadcastMessage(message)
     }
 
     /**
@@ -224,9 +230,10 @@ object Players {
      *
      * @param player The [Player] who left.
      */
-    internal fun notifyPlayerLeft(player: Player) {
-        Console.log("${player.name} left the server")
-        broadcastMessage("${player.name} left the server")
+    internal fun notifyLeft(player: Player) {
+        val message = "&c- &7${player.name} &cleft the server"
+        Console.log(message)
+        broadcastMessage(message)
     }
 
     /**
@@ -235,9 +242,10 @@ object Players {
      * @param player The [Player] who joined the level.
      * @param level The [Level] the player joined.
      */
-    internal fun notifyPlayerJoinedLevel(player: Player, level: Level) {
-        Console.log("${player.name} joined level ${level.id}")
-        broadcastMessage("${player.name} joined level ${level.id}")
+    internal fun notifyJoinedLevel(player: Player, level: Level) {
+        val message = "&e* &7${player.name} &ejoined level &7${level.id}"
+        Console.log(message)
+        broadcastMessage(message)
     }
 
     //endregion
@@ -250,7 +258,7 @@ object Players {
      * @param channel The Netty [Channel] to search for.
      * @return The [Player] associated with the channel, or `null` if not found.
      */
-    fun findPlayerByChannel(channel: Channel): Player? {
+    fun find(channel: Channel): Player? {
         return Levels.getAllPlayers().find { it.channel == channel }
     }
 
@@ -260,7 +268,7 @@ object Players {
      * @param name The username string to search for.
      * @return The [Player] with the matching name, or `null` if not found.
      */
-    fun findPlayerByName(name: String): Player? {
+    fun find(name: String): Player? {
         return Levels.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
     }
 
@@ -303,40 +311,10 @@ object Players {
      *
      * @param reason The reason for kicking all players. Defaults to "Server maintenance".
      */
-    fun kickAllPlayers(reason: String = "Server maintenance") {
+    fun kickAll(reason: String = "Server maintenance") {
         getAllPlayers().forEach { player ->
             player.kick(reason)
         }
-    }
-
-    /**
-     * Kicks a specific player by name
-     *
-     * @param name The name of the player to kick.
-     * @param reason The reason for kicking the player. Defaults to "You have been kicked".
-     */
-    fun kickPlayerByName(name: String, reason: String = "You have been kicked") {
-        findPlayerByName(name)?.kick(reason)
-    }
-
-    /**
-     * Kicks a specific player instance
-     *
-     * @param player The [Player] instance to kick.
-     * @param reason The reason for kicking the player. Defaults to "You have been kicked".
-     */
-    fun kickPlayer(player: Player, reason: String = "You have been kicked") {
-        player.kick(reason)
-    }
-
-    /**
-     * Bans a player by name
-     *
-     * @param name The name of the player to ban.
-     * @param reason The reason for banning the player. Defaults to "You have been banned".
-     */
-    fun banPlayerByName(name: String, reason: String = "You have been banned") {
-        findPlayerByName(name)?.ban(reason)
     }
 
     /**
@@ -351,6 +329,22 @@ object Players {
 
     //endregion
 
+    /**
+     * Gets the permissions of a player
+     * @param name the requested player name
+     * @return a list containing all player permissions
+     */
+    fun getPermissions(name: String): List<String> = PermissionRepository.getPermissionList(name)
+
+    /**
+     * Gets the permission groups of a player
+     *
+     * @param name the requested player name
+     * @return the player's groups
+     */
+    //todo: finish mirror methods for permissionRepo
+    //fun getGroups(name: String): List<Group>
+
     //region Utility Methods
 
     /**
@@ -364,6 +358,10 @@ object Players {
         ServerDisconnectPlayer(message).send(channel)
     }
 
+    private fun disconnectWithNoCPESupport(channel: Channel){
+        val message = "Your client does not support CPE (disable classic mode)"
+        ServerDisconnectPlayer(message).send(channel)
+    }
     /**
      * Disconnects a player with a specific reason
      *

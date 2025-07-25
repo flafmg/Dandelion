@@ -17,6 +17,7 @@ object PacketFactory {
     internal fun init() {
         Console.log("initializing packet handler...")
         registerPackets()
+        registerSupportedCPE()
     }
 
     private fun registerPackets(){
@@ -24,6 +25,9 @@ object PacketFactory {
         registerPacket(0x05, ::ClientSetBlock)
         registerPacket(0x08, ::ClientPositionAndOrientation)
         registerPacket(0x0D, ::ClientMessage)
+    }
+    private fun registerSupportedCPE(){
+
     }
 
     fun registerPacket(id: Byte, factory : () -> Packet){
@@ -76,10 +80,6 @@ object PacketFactory {
             Console.errLog("Error processing packet ${ex.message}")
             ctx.close()
         }
-    }
-
-    internal fun shutdown(){
-        unregisterAllPackets()
     }
 
     //this is made public in case this software dies community can still maintain CPE support

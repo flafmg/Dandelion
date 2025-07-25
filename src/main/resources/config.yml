@@ -1,0 +1,18 @@
+# Dandelion configuration file v1
+server:
+  name: "dandelion dev server"
+  motd: "powered by dandelion"
+  port: 25566
+  max-players: 255
+  public: true
+  verify-users: true # This will define if your server allow direct connection
+  debug-mode: false # If console should show debug logs
+level:
+  default-level: "main"
+  auto-save-interval: 120
+heartbeat:
+  enabled: true
+  url: "http://www.classicube.net/server/heartbeat/"
+  data: "name={server-name}&port={server-port}&users={players-online}&max={players-max}&public={server-public}&salt={server-salt}&software={server-software}"
+  interval: 45
+

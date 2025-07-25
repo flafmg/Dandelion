@@ -1,7 +1,9 @@
-package org.dandelion.classic.player
+package org.dandelion.classic.entity
 
 import org.dandelion.classic.blocks.model.Block
+import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.events.PlayerBlockInteractionEvent
+import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.types.Position
@@ -339,11 +341,15 @@ open class Entity(
                 Position(x.toFloat(), y.toFloat(), z.toFloat()),
                 level!!
             )
+            EventDispatcher.dispatch(event)
+            if(event.isCancelled){
+                ServerSetBlock(x, y, z, blockAtPos.id).send(this)
+                return
+            }
         }
 
         currentLevel.setBlock(x, y, z, finalBlockType)
-        val actualBlock = currentLevel.getBlock(x, y, z)
-        broadcastBlockUpdate(x, y, z, actualBlock)
+        broadcastBlockUpdate(x, y, z, finalBlockType)
     }
 
     /**

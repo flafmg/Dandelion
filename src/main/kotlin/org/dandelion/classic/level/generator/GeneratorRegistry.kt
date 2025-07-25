@@ -9,9 +9,6 @@ object GeneratorRegistry {
     internal fun init(){
         register(FlatGenerator())
     }
-    internal fun shutdown(){
-        unregister(FlatGenerator())
-    }
 
     fun register(generator: LevelGenerator){
         if(generators.containsKey(generator.id)){

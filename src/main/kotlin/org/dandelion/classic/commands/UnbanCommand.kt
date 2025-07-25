@@ -6,7 +6,7 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
-import org.dandelion.classic.player.PlayerInfo
+import org.dandelion.classic.entity.player.PlayerInfo
 
 @CommandDef(name = "unban", description = "unbans a player from the server", usage = "/unban <player>")
 class UnbanCommand: Command {

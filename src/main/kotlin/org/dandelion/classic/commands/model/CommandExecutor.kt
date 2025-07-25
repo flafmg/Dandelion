@@ -1,6 +1,7 @@
 package org.dandelion.classic.commands.model
 
 import org.dandelion.classic.commands.manager.CommandRegistry
+import org.dandelion.classic.entity.player.Player
 
 /**
  * CommandExecutor is an interface for entities that can execute commands.
@@ -31,7 +32,7 @@ interface CommandExecutor {
      * @return True if the executor has the permission, false otherwise.
      */
     fun hasPermission(permission: String): Boolean {
-        if (permissions.contains("*") || permissions.contains(permission)) {
+        if (permissions.contains("*") || permissions.contains(permission) || (this is Player && this.info.isOperator)) {
             return true
         }
 

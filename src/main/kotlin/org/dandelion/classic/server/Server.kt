@@ -1,11 +1,14 @@
 package org.dandelion.classic.server
 
+import org.dandelion.classic.blocks.manager.BlockRegistry
+import org.dandelion.classic.blocks.model.Block
 import org.dandelion.classic.commands.manager.CommandRegistry
 import org.dandelion.classic.events.manager.ListenerRegistry
 import org.dandelion.classic.level.Levels
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.Connection
 import org.dandelion.classic.network.PacketFactory
+import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
 import java.io.File
@@ -67,9 +70,12 @@ object Server {
         PacketFactory.init()
         Connection.init()
         CommandRegistry.init()
+        BlockRegistry.init()
         GeneratorRegistry.init()
         Levels.init()
         Heartbeat.init()
+        PermissionRepository.init()
+
         warns()
         Console.log("Server started")
     }
@@ -78,10 +84,7 @@ object Server {
         running = false
 
         Heartbeat.shutdown()
-        PacketFactory.shutdown()
         Connection.shutdown()
-        CommandRegistry.shutdown()
-        GeneratorRegistry.shutdown()
         Levels.shutdown()
         Console.log("Server stopped")
         Console.shutdown()

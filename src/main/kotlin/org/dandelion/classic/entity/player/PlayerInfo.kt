@@ -1,4 +1,4 @@
-package org.dandelion.classic.player
+package org.dandelion.classic.entity.player
 
 import org.dandelion.classic.util.YamlConfig
 import java.util.Date
@@ -141,7 +141,7 @@ class PlayerInfo(
      * @return `true` if the player is currently online, `false` otherwise.
      */
     private fun isOnline(): Boolean {
-        return Players.findPlayerByName(name) != null
+        return Players.find(name) != null
     }
 
     /**

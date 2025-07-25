@@ -3,7 +3,7 @@ package org.dandelion.classic.commands.manager
 import org.dandelion.classic.commands.annotations.*
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
-import org.dandelion.classic.player.Player
+import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.server.Console
 import java.lang.reflect.Method
 

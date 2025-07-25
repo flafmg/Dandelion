@@ -2,7 +2,7 @@ package org.dandelion.classic.events
 
 import org.dandelion.classic.events.model.Cancellable
 import org.dandelion.classic.events.model.Event
-import org.dandelion.classic.player.Player
+import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.types.Position
 
 class PlayerMoveEvent(

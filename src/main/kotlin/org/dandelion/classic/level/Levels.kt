@@ -1,8 +1,8 @@
 package org.dandelion.classic.level
 import kotlinx.coroutines.*
 import org.dandelion.classic.level.generator.LevelGenerator
-import org.dandelion.classic.player.Entity
-import org.dandelion.classic.player.Player
+import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
 import org.dandelion.classic.types.Position
@@ -191,7 +191,7 @@ object Levels {
         }
     }
     /**
-     * Gets a level by ID
+     * Gets a loaded [Level] by ID
      *
      * @param levelId The ID of the level to retrieve.
      * @return The [Level] instance if found, `null` otherwise.

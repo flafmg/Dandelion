@@ -3,7 +3,7 @@ package org.dandelion.classic.server
 import kotlinx.coroutines.*
 import org.dandelion.classic.events.HeartbeatSendEvent
 import org.dandelion.classic.events.manager.EventDispatcher
-import org.dandelion.classic.player.Players
+import org.dandelion.classic.entity.player.Players
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder

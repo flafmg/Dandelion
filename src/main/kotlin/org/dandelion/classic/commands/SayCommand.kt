@@ -6,7 +6,7 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
-import org.dandelion.classic.player.Players
+import org.dandelion.classic.entity.player.Players
 
 @CommandDef(name = "say", description = "Broadcast a message to all players", usage = "/say <message>")
 class SayCommand: Command {

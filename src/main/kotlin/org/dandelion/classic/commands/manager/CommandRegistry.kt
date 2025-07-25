@@ -3,6 +3,7 @@ package org.dandelion.classic.commands.manager
 import org.dandelion.classic.commands.BanCommand
 import org.dandelion.classic.commands.HelpCommand
 import org.dandelion.classic.commands.KickCommand
+import org.dandelion.classic.commands.LevelCommand
 import org.dandelion.classic.commands.PlayerInfoCommand
 import org.dandelion.classic.commands.SayCommand
 import org.dandelion.classic.commands.SayRawCommand
@@ -36,12 +37,7 @@ object CommandRegistry {
         register(SayCommand())
         register(SayRawCommand())
         register(StopCommand())
-    }
-    /**
-     * Shuts down the command registry by unregistering all commands.
-     */
-    internal fun shutdown(){
-        unregisterAll()
+        register(LevelCommand())
     }
 
     /**

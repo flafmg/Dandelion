@@ -1,15 +1,17 @@
-package org.dandelion.classic.player
+package org.dandelion.classic.entity.player
 import io.netty.channel.Channel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.entity.Entity
 import org.dandelion.classic.events.PlayerChangeLevel
 import org.dandelion.classic.events.PlayerMoveEvent
 import org.dandelion.classic.events.PlayerSendMessageEvent
 import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
+import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.util.toFShort
@@ -36,11 +38,55 @@ class Player(
     entityId: Byte = -1,
     position: Position = Position(0f, 0f, 0f, 0f, 0f),
     val info: PlayerInfo = PlayerInfo.getOrCreate(name),
-    override val permissions: List<String> = listOf(),
 ) : Entity(name, levelId, entityId, position), CommandExecutor {
+    override val permissions: List<String>
+        get() = PermissionRepository.getPermissionList(name)
+
     private val MAX_MESSAGE_LENGTH = 64
     private val LEVEL_DATA_CHUNK_SIZE = 1024
     private val COLOR_CODE_REGEX = "&[0-9a-fA-F]"
+
+    private val supportedCPE = mutableListOf<Byte>()
+
+    /**
+     * Adds a CPE ID to the supported list if not already present.
+     *
+     * @param cpeId The CPE ID to add.
+     */
+    fun addCPE(cpeId: Byte) {
+        if (!supportedCPE.contains(cpeId)) {
+            supportedCPE.add(cpeId)
+        }
+    }
+
+    /**
+     * Removes a CPE ID from the supported list.
+     *
+     * @param cpeId The CPE ID to remove.
+     */
+    fun removeCPE(cpeId: Byte) {
+        supportedCPE.remove(cpeId)
+    }
+
+    /**
+     * Retrieves the list of supported CPE IDs.
+     *
+     * @return A list of supported CPE IDs.
+     */
+    fun getCPE(): List<Byte> {
+        return supportedCPE.toList()
+    }
+
+    /**
+     * Checks if a specific CPE ID is supported by this player.
+     *
+     * @param cpeId The CPE ID to check.
+     * @return `true` if the CPE is supported, `false` otherwise.
+     */
+    fun supportsCPE(cpeId: Byte): Boolean {
+        return supportedCPE.contains(cpeId)
+    }
+
     //region message system
 
     /**
@@ -142,7 +188,7 @@ class Player(
      */
     fun kick(reason: String = "You have been kicked") {
         ServerDisconnectPlayer(reason).send(channel)
-        Players.handlePlayerDisconnection(channel)
+        Players.handleDisconnection(channel)
     }
     /**
      * Bans the player and kicks them from the server
@@ -237,7 +283,7 @@ class Player(
             }
         }
         this.level = level
-        if(notifyJoin) Players.notifyPlayerJoinedLevel(this, level)
+        if(notifyJoin) Players.notifyJoinedLevel(this, level)
         GlobalScope.launch {
             transmitLevelData(level)
         }
@@ -359,6 +405,7 @@ class Player(
      * @param message The message string sent by the player.
      */
     override fun sendMessageAs(message: String) {
+        val message = message.replace("%", "&")
         val event = PlayerSendMessageEvent(this, message)
         EventDispatcher.dispatch(event)
         if(event.isCancelled) return
@@ -381,7 +428,39 @@ class Player(
      * @param block The new [Byte] block type ID.
      */
     override fun updateBlock(x: Short, y: Short, z: Short, block: Byte) {
-        ServerSetBlock(x, y, z, block).send(channel)
+        ServerSetBlock(x, y, z, block).send(this)
     }
     //endregion
+
+    companion object {
+        /**
+         * Finds a player by name (case-insensitive).
+         * @param name The name of the player to find.
+         * @return The [Player] instance if found, or null if not found.
+         */
+        fun find(name: String): Player? = Players.find(name)
+
+        /**
+         * Gets all connected players.
+         * @return A list of all [Player] instances currently connected.
+         */
+        fun getAllPlayers(): List<Player> = Players.getAllPlayers()
+
+        /**
+         * Gets the number of connected players.
+         * @return The count of currently connected players.
+         */
+        fun getPlayerCount(): Int = Players.count()
+
+        /**
+         * Gets the permissions of a player
+         *
+         * @param name the requested player name
+         * @return a list containing all player permissions
+         */
+        fun getPermissions(name: String): List<String> = Players.getPermissions(name)
+
+        //todo: finish mirror methods for permissionRepo
+
+      }
 }

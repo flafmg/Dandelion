@@ -6,8 +6,8 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
-import org.dandelion.classic.player.Players
-import org.dandelion.classic.player.PlayerInfo
+import org.dandelion.classic.entity.player.Players
+import org.dandelion.classic.entity.player.PlayerInfo
 
 @CommandDef(name = "ban", description = "bans a player from the server", usage = "/ban <player> [reason]")
 class BanCommand: Command {
@@ -17,7 +17,7 @@ class BanCommand: Command {
     fun execute(executor: CommandExecutor, args: Array<String>){
         val playerName = args[0]
         val reason = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else "You have been banned"
-        val player = Players.findPlayerByName(playerName)
+        val player = Players.find(playerName)
         if(player == null){
             val info = PlayerInfo.load(playerName)
             if(info == null){

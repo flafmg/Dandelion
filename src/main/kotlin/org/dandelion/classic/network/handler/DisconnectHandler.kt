@@ -3,7 +3,7 @@ package org.dandelion.classic.network.handler
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
-import org.dandelion.classic.player.Players
+import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.server.Console
 
 class DisconnectHandler : ChannelInboundHandlerAdapter() {
@@ -20,6 +20,6 @@ class DisconnectHandler : ChannelInboundHandlerAdapter() {
     }
 
     private fun disconnect(channel: Channel){
-        Players.handlePlayerDisconnection(channel)
+        Players.handleDisconnection(channel)
     }
 }

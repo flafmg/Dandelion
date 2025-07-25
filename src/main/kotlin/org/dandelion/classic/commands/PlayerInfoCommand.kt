@@ -6,8 +6,8 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.ReferSelf
 import org.dandelion.classic.commands.model.Command
-import org.dandelion.classic.player.PlayerInfo
-import org.dandelion.classic.player.Players
+import org.dandelion.classic.entity.player.PlayerInfo
+import org.dandelion.classic.entity.player.Players
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -26,7 +26,7 @@ class PlayerInfoCommand: Command {
             return
         }
 
-        val onlinePlayer = Players.findPlayerByName(playerName)
+        val onlinePlayer = Players.find(playerName)
         var currentTotalPlaytime = info.totalPlaytime
         if (onlinePlayer != null) {
             currentTotalPlaytime += (Date().time - info.lastJoin.time)
@@ -44,7 +44,7 @@ class PlayerInfoCommand: Command {
         executor.sendMessage("&eBanned: &f${if (info.isBanned) "&cYes (&f${info.banReason}&c)" else "&aNo"}")
         executor.sendMessage("&eFirst Join: &f${dateFormat.format(info.firstJoin)}")
         executor.sendMessage("&eLast Join: &f${dateFormat.format(info.lastJoin)}")
-        executor.sendMessage("&eLast Seen: &f${ if(Players.findPlayerByName(playerName) == null) dateFormat.format(info.lastSeen) else "now"}")
+        executor.sendMessage("&eLast Seen: &f${ if(Players.find(playerName) == null) dateFormat.format(info.lastSeen) else "now"}")
         executor.sendMessage("&ePlaytime: &f$playtime")
         executor.sendMessage("&eJoin Count: &f${info.joinCount}")
     }
