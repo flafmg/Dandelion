@@ -45,7 +45,7 @@ It's designed to be a lightweight and modern alternative to existing server soft
 - [x] Command system  
 - [x] Level system  
 - [x] implement base cmmands
-- [-] implement permission system
+- [.] implement permission system
 - [x] Event system 
 - [ ] [CPE (Classic Protocol Extensions)](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Classic_Protocol_Extension) support  
 - [ ] Plugin system  
