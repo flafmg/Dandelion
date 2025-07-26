@@ -1,11 +1,13 @@
 package org.dandelion.classic.entity.player
 
 import io.netty.channel.Channel
+import jdk.internal.net.http.common.Log.channel
 import org.dandelion.classic.events.PlayerConnectEvent
 import org.dandelion.classic.events.PlayerPreConnectEvent
 import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.level.Levels
+import org.dandelion.classic.network.PacketRegistry
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
 import org.dandelion.classic.network.packets.classic.server.ServerIdentification
@@ -24,6 +26,19 @@ object Players {
     private const val MD5_ALGORITHM = "MD5"
     private const val HEX_FORMAT = "%02x"
 
+    //hold connecting players while packetregistry resolves it's cpe support
+    private val connectingPlayers: MutableMap<Channel, Player> = mutableMapOf()
+
+    internal fun getConnecting(channel: Channel): Player?{
+        return connectingPlayers[channel]
+    }
+    private fun addConnecting(player: Player){
+        connectingPlayers[player.channel] = player
+    }
+    internal fun removeConnecting(player: Player){
+        connectingPlayers.remove(player.channel)
+    }
+
     //region Connection Management
 
     /**
@@ -33,8 +48,6 @@ object Players {
      * @param channel The Netty [Channel] for the connecting client.
      */
     internal fun handlePreConnection(clientInfo: ClientIdentification, channel: Channel) {
-        ServerIdentification().send(channel)
-
         if(clientInfo.unused != 0x42.toByte()){
             disconnectWithNoCPESupport(channel)
         }
@@ -72,7 +85,7 @@ object Players {
     private fun attemptConnection(player: Player) {
         when (val connectionResult = validateConnection(player)) {
             is ConnectionResult.Success -> {
-                finalizeConnection(player)
+                CPEHandshake(player)
             }
             is ConnectionResult.Failure -> {
                 disconnectPlayerWithReason(player.channel, connectionResult.reason)
@@ -83,11 +96,28 @@ object Players {
     }
 
     /**
+     * Sends the CPE handshake to the player
+     *
+     * @param player The [Player] to send the handshake for.
+     */
+    private fun CPEHandshake(player: Player){
+        addConnecting(player)
+        PacketRegistry.sendCPEHandshake(player)
+        PacketRegistry.sendCPEEntries(player)
+    }
+
+    /**
      * Finalizes successful player connection
      *
      * @param player The [Player] to finalize the connection for.
      */
-    private fun finalizeConnection(player: Player) {
+    internal fun finalizeHandshake(player: Player) {
+        removeConnecting(player)
+        if(!player.channel.isOpen){
+            return
+        }
+        ServerIdentification().send(player.channel)
+
         val joinLevel = Levels.getDefaultLevel()
         if (joinLevel == null) {
             disconnectPlayerWithReason(player.channel, "Default level not available")
@@ -106,9 +136,10 @@ object Players {
      */
     internal fun handleDisconnection(channel: Channel) {
         val player = find(channel) ?: return
-        val level = player.level ?: return
+        val level = player.level
 
-        level.removeEntity(player)
+        removeConnecting(player)
+        level?.removeEntity(player)
         player.info.recordDisconnect()
         notifyLeft(player)
     }

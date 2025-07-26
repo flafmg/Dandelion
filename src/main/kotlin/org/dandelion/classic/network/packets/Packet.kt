@@ -38,5 +38,11 @@ abstract class Packet {
             channel.disconnect()
         }
     }
+    fun send(list: List<*>) { //stupif plataform declaration clash
+        when {
+            list.isNotEmpty() && list[0] is Player -> list.forEach { send(it as Player) }
+            list.isNotEmpty() && list[0] is Channel -> list.forEach { send(it as Channel) }
+        }
+    }
 
 }

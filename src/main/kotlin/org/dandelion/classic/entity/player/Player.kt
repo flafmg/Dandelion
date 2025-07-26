@@ -32,7 +32,7 @@ import java.util.zip.GZIPOutputStream
  */
 class Player(
     val channel: Channel,
-    val client: String,
+    var client: String,
     name: String,
     levelId: String = "",
     entityId: Byte = -1,
@@ -46,46 +46,34 @@ class Player(
     private val LEVEL_DATA_CHUNK_SIZE = 1024
     private val COLOR_CODE_REGEX = "&[0-9a-fA-F]"
 
-    private val supportedCPE = mutableListOf<Byte>()
+    private val supportedCPE = mutableListOf<Pair<String, Int>>()
+    internal var supportedCpeCount: Short = 0
 
-    /**
-     * Adds a CPE ID to the supported list if not already present.
-     *
-     * @param cpeId The CPE ID to add.
-     */
-    fun addCPE(cpeId: Byte) {
-        if (!supportedCPE.contains(cpeId)) {
-            supportedCPE.add(cpeId)
+    fun addCPE(name: String, version: Int) {
+        if (!supportedCPE.any { it.first == name && it.second == version }) {
+            supportedCPE.add(name to version)
         }
     }
 
-    /**
-     * Removes a CPE ID from the supported list.
-     *
-     * @param cpeId The CPE ID to remove.
-     */
-    fun removeCPE(cpeId: Byte) {
-        supportedCPE.remove(cpeId)
+    fun addCPE(name: String) {
+        addCPE(name, 1)
+    }
+    fun supports(name: String, version: Int? = null): Boolean {
+        return if (version == null) {
+            supportedCPE.any { it.first == name }
+        } else {
+            supportedCPE.any { it.first == name && it.second == version }
+        }
     }
 
-    /**
-     * Retrieves the list of supported CPE IDs.
-     *
-     * @return A list of supported CPE IDs.
-     */
-    fun getCPE(): List<Byte> {
+    fun removeCPE(name: String, version: Int) {
+        supportedCPE.removeIf { it.first == name && it.second == version }
+    }
+
+    fun getCPE(): List<Pair<String, Int>> {
         return supportedCPE.toList()
     }
 
-    /**
-     * Checks if a specific CPE ID is supported by this player.
-     *
-     * @param cpeId The CPE ID to check.
-     * @return `true` if the CPE is supported, `false` otherwise.
-     */
-    fun supportsCPE(cpeId: Byte): Boolean {
-        return supportedCPE.contains(cpeId)
-    }
 
     //region message system
 
@@ -374,6 +362,7 @@ class Player(
         teleportTo(level.spawn)
         level.spawnPlayerInLevel(this)
         ServerLevelFinalize(level.size.x, level.size.y, level.size.z).send(channel)
+        level.sendEnv(this)
     }
 
     //endregion

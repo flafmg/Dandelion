@@ -1,13 +1,11 @@
 package org.dandelion.classic.server
 
 import org.dandelion.classic.blocks.manager.BlockRegistry
-import org.dandelion.classic.blocks.model.Block
 import org.dandelion.classic.commands.manager.CommandRegistry
-import org.dandelion.classic.events.manager.ListenerRegistry
 import org.dandelion.classic.level.Levels
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.Connection
-import org.dandelion.classic.network.PacketFactory
+import org.dandelion.classic.network.PacketRegistry
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
@@ -19,7 +17,6 @@ object ServerInfo {
     const val dandelionVersion = "0.1a"
     const val serverSoftware = "Dandelion $dandelionVersion"
 
-    val isCpe = false
     var isPublic = true
         internal set
     var port = 25566
@@ -67,7 +64,7 @@ object Server {
         Console.init()
         reloadConfig()
         Salt.regenerate()
-        PacketFactory.init()
+        PacketRegistry.init()
         Connection.init()
         CommandRegistry.init()
         BlockRegistry.init()
@@ -123,7 +120,9 @@ object Server {
         return running
     }
 
-
+    fun getSoftware(): String{
+        return ServerInfo.serverSoftware
+    }
 }
 fun main(){
     Server.init()

@@ -40,7 +40,7 @@ class PlayerInfoCommand: Command {
         )
 
         executor.sendMessage("&e--- Player Info: &f${info.name} &e---")
-        executor.sendMessage("&eIs OP: &f${info.isOperator}")
+        executor.sendMessage("&eClient: &f${onlinePlayer?.client ?: "Unknown"}")
         executor.sendMessage("&eBanned: &f${if (info.isBanned) "&cYes (&f${info.banReason}&c)" else "&aNo"}")
         executor.sendMessage("&eFirst Join: &f${dateFormat.format(info.firstJoin)}")
         executor.sendMessage("&eLast Join: &f${dateFormat.format(info.lastJoin)}")

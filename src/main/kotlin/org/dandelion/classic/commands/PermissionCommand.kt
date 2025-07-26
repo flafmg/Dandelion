@@ -1,5 +1,3 @@
-// File: PermissionCommand.kt (com cores hardcoded e ajustes)
-
 package org.dandelion.classic.commands
 
 import org.dandelion.classic.commands.model.CommandExecutor
@@ -81,9 +79,6 @@ class PermissionCommand : Command {
         }
     }
 
-    // O subcomando 'save' foi removido conforme solicitado.
-    // @OnSubCommand(name = "save", ...)
-
     @OnSubCommand(name = "who", description = "List who has a specific permission", usage = "/perm who <permission>")
     @RequirePermission("dandelion.permission.view")
     @ArgRange(min = 1, max = 1)
@@ -102,15 +97,12 @@ class PermissionCommand : Command {
         }
 
         PermissionRepository.getAllPlayers().forEach { player ->
-            // hasPermission considera GRANTED, REVOKED é false e não encontrada é null
-            // Para mostrar REVOKED, precisamos verificar individualmente
             val individualPerm = player.permissions[permission]
             if (individualPerm != null) {
                 val statusColor = if (individualPerm) "&a" else "&c"
                 val statusText = if (individualPerm) "GRANTED" else "REVOKED"
                 playersWithPerm.add("&7${player.name} [&b$statusText&f]")
             } else if (PermissionRepository.hasPermission(player.name, permission)) {
-                // Se tem a permissão mas não está individual (herdada), mostramos como GRANTED
                 playersWithPerm.add("&7${player.name} [&aGRANTED&f via group]")
             }
         }
@@ -148,8 +140,6 @@ class PermissionCommand : Command {
             executor.sendMessage("&eAvailable SubCommands: ${available.joinToString(", ")}")
         }
     }
-
-    // --- Private Helper Methods ---
 
     private fun showGroupHelp(executor: CommandExecutor) {
         executor.sendMessage("&eGroup Management Commands:")
@@ -191,9 +181,6 @@ class PermissionCommand : Command {
         executor.sendMessage("&7- hasperm <player> <permission> &f- Check if has permission")
         executor.sendMessage("&7- check <player> <permission> &f- Check permission with source")
     }
-
-    // --- Group Management Methods ---
-
     private fun handleGroupCreate(executor: CommandExecutor, args: Array<String>) {
         if (!executor.hasPermission("dandelion.permission.group.create")) {
             executor.sendMessage("&cYou don't have permission to create groups.")
@@ -350,8 +337,6 @@ class PermissionCommand : Command {
         executor.sendMessage("&aGroup '&7$name&a' display name set to '&7$displayName&a'.")
     }
 
-    // --- Group Permission Methods (Atualizados) ---
-
     private fun handleGroupGrantPermission(executor: CommandExecutor, args: Array<String>) {
         if (!executor.hasPermission("dandelion.permission.group.edit")) {
             executor.sendMessage("&cYou don't have permission to edit group permissions.")
@@ -388,7 +373,6 @@ class PermissionCommand : Command {
         }
     }
 
-    // Novo: Remove completamente a entrada da permissão
     private fun handleGroupRemovePermissionEntry(executor: CommandExecutor, args: Array<String>) {
         if (!executor.hasPermission("dandelion.permission.group.edit")) {
             executor.sendMessage("&cYou don't have permission to edit group permissions.")
@@ -452,9 +436,6 @@ class PermissionCommand : Command {
             executor.sendMessage("&eGroup '&7$name&e' has permission '&7$permission&e': $statusColor$statusText")
         }
     }
-
-    // --- Player Management Methods ---
-
     private fun handlePlayerInfo(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
             executor.sendMessage("&cUsage: /perm player info <player>")
@@ -554,9 +535,6 @@ class PermissionCommand : Command {
             executor.sendMessage("  &7${group.name} &f(${group.displayName}&f) &7- Priority: &b${group.priority}")
         }
     }
-
-    // --- Player Permission Methods (Atualizados) ---
-
     private fun handlePlayerGrantPermission(executor: CommandExecutor, args: Array<String>) {
         if (!executor.hasPermission("dandelion.permission.player.perms")) {
             executor.sendMessage("&cYou don't have permission to manage player permissions.")
@@ -586,8 +564,6 @@ class PermissionCommand : Command {
         PermissionRepository.setPlayerPermission(playerName, permission, false) // false = REVOKE
         executor.sendMessage("&aPermission '&7$permission&a' revoked from player '&7$playerName&a'.")
     }
-
-    // Novo: Remove completamente a entrada da permissão individual
     private fun handlePlayerRemovePermissionEntry(executor: CommandExecutor, args: Array<String>) {
         if (!executor.hasPermission("dandelion.permission.player.perms")) {
             executor.sendMessage("&cYou don't have permission to manage player permissions.")
@@ -605,8 +581,6 @@ class PermissionCommand : Command {
             executor.sendMessage("&cPlayer '&7$playerName&c' does not have permission entry '&7$permission&c' set.")
         }
     }
-
-
     private fun handlePlayerListPermissions(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
             executor.sendMessage("&cUsage: /perm player listperms <player>")
@@ -620,7 +594,6 @@ class PermissionCommand : Command {
         }
         executor.sendMessage("&eEffective permissions for player '&7$playerName&e':")
         permissions.sorted().forEach { perm ->
-            // Para mostrar o status correto, precisamos verificar individualmente
             val player = PermissionRepository.getPlayer(playerName)
             val individualValue = player.permissions[perm]
             if (individualValue != null) {
@@ -628,7 +601,6 @@ class PermissionCommand : Command {
                 val statusText = if (individualValue) "GRANTED" else "REVOKED"
                 executor.sendMessage("&7- $perm: $statusColor$statusText &7(Individual)")
             } else {
-                // Se não está individual, foi herdada. Mostramos como GRANTED.
                 executor.sendMessage("&7- $perm: &aGRANTED &7(via group)")
             }
         }
@@ -641,7 +613,7 @@ class PermissionCommand : Command {
         }
         val playerName = args[0]
         val player = PermissionRepository.getPlayer(playerName)
-        val ownPermissions = player.permissions // Agora pegamos o mapa inteiro
+        val ownPermissions = player.permissions
         if (ownPermissions.isEmpty()) {
             executor.sendMessage("&ePlayer '&7$playerName&e' has no individual permissions.")
             return
@@ -676,8 +648,6 @@ class PermissionCommand : Command {
 
         val player = PermissionRepository.getPlayer(playerName)
         val groups = PermissionRepository.getPlayerGroups(playerName)
-
-        // Check individual permission first
         val individualValue = player.permissions[permission]
         if (individualValue != null) {
             val statusColor = if (individualValue) "&a" else "&c"
@@ -686,7 +656,6 @@ class PermissionCommand : Command {
             return
         }
 
-        // Check group permissions
         var foundInGroup: String? = null
         var isGrantedInGroup = false
         for (group in groups) {

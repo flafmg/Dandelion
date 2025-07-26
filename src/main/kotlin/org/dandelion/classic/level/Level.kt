@@ -8,6 +8,10 @@ import org.dandelion.classic.level.io.LevelSerializer
 import org.dandelion.classic.network.packets.classic.server.ServerDespawnPlayer
 import org.dandelion.classic.entity.Entity
 import org.dandelion.classic.entity.player.Player
+import org.dandelion.classic.network.packets.cpe.server.ServerEnvColors
+import org.dandelion.classic.network.packets.cpe.server.ServerEnvWeatherType
+import org.dandelion.classic.network.packets.cpe.server.ServerSetMapEnvProperty
+import org.dandelion.classic.network.packets.cpe.server.ServerSetMapEnvUrl
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.types.Color
 import org.dandelion.classic.types.IVec
@@ -97,6 +101,7 @@ class Level(
      */
     fun setSideBlock(blockId: Byte) {
         sideBlock = blockId
+        ServerSetMapEnvProperty(0, blockId.toInt()).send(getPlayers())
     }
 
     /**
@@ -113,6 +118,7 @@ class Level(
      */
     fun setEdgeBlock(blockId: Byte) {
         edgeBlock = blockId
+        ServerSetMapEnvProperty(1, blockId.toInt()).send(getPlayers())
     }
 
     /**
@@ -129,6 +135,7 @@ class Level(
      */
     fun setEdgeHeight(height: Int) {
         edgeHeight = height
+        ServerSetMapEnvProperty(2, height).send(getPlayers())
     }
 
     /**
@@ -145,6 +152,7 @@ class Level(
      */
     fun setCloudsHeight(height: Int) {
         cloudsHeight = height
+        ServerSetMapEnvProperty(3, height).send(getPlayers())
     }
 
     /**
@@ -161,6 +169,7 @@ class Level(
      */
     fun setMaxFogDistance(distance: Int) {
         maxFogDistance = distance
+        ServerSetMapEnvProperty(4, distance).send(getPlayers())
     }
 
     /**
@@ -177,6 +186,7 @@ class Level(
      */
     fun setCloudsSpeed(speed: Int) {
         cloudsSpeed = speed
+        ServerSetMapEnvProperty(5, speed).send(getPlayers())
     }
 
     /**
@@ -193,6 +203,7 @@ class Level(
      */
     fun setWeatherSpeed(speed: Int) {
         weatherSpeed = speed
+        ServerSetMapEnvProperty(6, speed).send(getPlayers())
     }
 
     /**
@@ -209,6 +220,7 @@ class Level(
      */
     fun setWeatherFade(fade: Int) {
         weatherFade = fade
+        ServerSetMapEnvProperty(7, fade).send(getPlayers())
     }
 
     /**
@@ -225,6 +237,8 @@ class Level(
      */
     fun setExponentialFog(useExponential: Boolean) {
         exponentialFog = useExponential
+        val exponentialFogValue = if (exponentialFog) 1 else 0
+        ServerSetMapEnvProperty(8, exponentialFogValue).send(getPlayers())
     }
 
     /**
@@ -241,6 +255,7 @@ class Level(
      */
     fun setSidesOffset(offset: Int) {
         sidesOffset = offset
+        ServerSetMapEnvProperty(9, offset).send(getPlayers())
     }
 
     /**
@@ -258,6 +273,7 @@ class Level(
     fun setWeatherType(type: Byte) {
         if (type in 0..2) {
             weatherType = type
+            ServerEnvWeatherType(type).send(getPlayers())
         } else {
             Console.warnLog("Invalid weather type $type, ignoring")
         }
@@ -277,6 +293,12 @@ class Level(
      */
     fun setSkyColor(color: Color?) {
         skyColor = color
+        val colorPacket = ServerEnvColors(
+            0,
+            color?.red ?: -1,
+            color?.green ?: -1,
+            color?.blue ?: -1
+        ).send(getPlayers())
     }
 
     /**
@@ -293,6 +315,12 @@ class Level(
      */
     fun setCloudColor(color: Color?) {
         cloudColor = color
+        val colorPacket = ServerEnvColors(
+            1,
+            color?.red ?: -1,
+            color?.green ?: -1,
+            color?.blue ?: -1
+        ).send(getPlayers())
     }
 
     /**
@@ -309,6 +337,12 @@ class Level(
      */
     fun setFogColor(color: Color?) {
         fogColor = color
+        val colorPacket = ServerEnvColors(
+            2,
+            color?.red ?: -1,
+            color?.green ?: -1,
+            color?.blue ?: -1
+        ).send(getPlayers())
     }
 
     /**
@@ -325,6 +359,12 @@ class Level(
      */
     fun setAmbientLightColor(color: Color?) {
         ambientLightColor = color
+        val colorPacket = ServerEnvColors(
+            3,
+            color?.red ?: -1,
+            color?.green ?: -1,
+            color?.blue ?: -1
+        ).send(getPlayers())
     }
 
     /**
@@ -341,6 +381,12 @@ class Level(
      */
     fun setDiffuseLightColor(color: Color?) {
         diffuseLightColor = color
+        val colorPacket = ServerEnvColors(
+            4,
+            color?.red ?: -1,
+            color?.green ?: -1,
+            color?.blue ?: -1
+        ).send(getPlayers())
     }
 
     /**
@@ -357,6 +403,12 @@ class Level(
      */
     fun setSkyboxColor(color: Color?) {
         skyboxColor = color
+        val colorPacket = ServerEnvColors(
+            5,
+            color?.red ?: -1,
+            color?.green ?: -1,
+            color?.blue ?: -1
+        ).send(getPlayers())
     }
 
     /**
@@ -365,6 +417,54 @@ class Level(
      * @return The skybox color, null means default
      */
     fun getSkyboxColor(): Color? = skyboxColor
+
+
+    /**
+     * Sends all env packets to the player
+     *
+     * @param player the [Player] that will receive the env update
+     */
+    fun sendEnv(player: Player){
+        val weather = ServerEnvWeatherType(weatherType)
+        weather.send(player)
+
+        listOf(
+            Pair(0, skyColor),
+            Pair(1, cloudColor),
+            Pair(2, fogColor),
+            Pair(3, ambientLightColor),
+            Pair(4, diffuseLightColor),
+            Pair(5, skyboxColor)
+        ).forEach { (variable, color) ->
+            if (color != null) {
+                val colorPacket = ServerEnvColors(variable.toByte(), color.red, color.green, color.blue)
+                colorPacket.send(player)
+            }
+        }
+
+        if(texturePackUrl.isNotEmpty()){
+            val texture = ServerSetMapEnvUrl(texturePackUrl)
+            texture.send(player)
+        }
+
+        val exponentialFogValue = if (exponentialFog) 1 else 0
+        listOf(
+            Pair(0, sideBlock.toInt()),
+            Pair(1, edgeBlock.toInt()),
+            Pair(2, edgeHeight),
+            Pair(3, cloudsHeight),
+            Pair(4, maxFogDistance),
+            Pair(5, cloudsSpeed),
+            Pair(6, weatherSpeed),
+            Pair(7, weatherFade),
+            Pair(8, exponentialFogValue),
+            Pair(9, sidesOffset)
+        ).forEach { (propertyType, value) ->
+            val propertyPacket = ServerSetMapEnvProperty(propertyType.toByte(), value)
+            propertyPacket.send(player.channel)
+        }
+    }
+
 
     /**
      * Initializes the pool of available entity IDs (0-254, 255 reserved for player's own view)

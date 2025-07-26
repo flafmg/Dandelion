@@ -3,7 +3,7 @@ package org.dandelion.classic.network.handler
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import org.dandelion.classic.network.PacketFactory
+import org.dandelion.classic.network.PacketRegistry
 import org.dandelion.classic.server.Console
 import java.util.concurrent.ConcurrentHashMap
 
@@ -21,15 +21,13 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
         processCompleteMessage(ctx, channelKey)
     }
 
-    //sometimes the data dont arrive fully so we need to read it until it is complete, but first we need our packet implementation
-    // * probably there is a better way to this but im dumb so im going to the dumb approach
     private fun processCompleteMessage(ctx: ChannelHandlerContext, channelKey: String) {
         var bufferToProcess = channelBuffers[channelKey] ?: return
         var offset = 0
 
         while (offset < bufferToProcess.size) {
             val packetId = bufferToProcess[offset]
-            val expectedSize = PacketFactory.getPacketSize(packetId)
+            val expectedSize = PacketRegistry.getPacketSize(packetId)
 
             if (expectedSize == -1) {
                 Console.errLog("Unknown packet ID: 0X%02X for channel $channelKey. Closing connection.".format(packetId))
@@ -51,7 +49,7 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
 
             val packetData = bufferToProcess.copyOfRange(offset, offset + expectedSize)
             try {
-                PacketFactory.handlePacket(ctx, packetData)
+                PacketRegistry.handlePacket(ctx, packetData)
             } catch (e: Exception) {
                 Console.errLog("Error handling packet ID 0X%02X ($channelKey): ${e.message}. Closing connection.")
                 channelBuffers.remove(channelKey)

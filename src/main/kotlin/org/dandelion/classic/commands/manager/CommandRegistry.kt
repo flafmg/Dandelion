@@ -1,9 +1,11 @@
 package org.dandelion.classic.commands.manager
 
 import org.dandelion.classic.commands.BanCommand
+import org.dandelion.classic.commands.ClientsCommand
 import org.dandelion.classic.commands.HelpCommand
 import org.dandelion.classic.commands.KickCommand
 import org.dandelion.classic.commands.LevelCommand
+import org.dandelion.classic.commands.OnlineCommand
 import org.dandelion.classic.commands.PermissionCommand
 import org.dandelion.classic.commands.PlayerInfoCommand
 import org.dandelion.classic.commands.SayCommand
@@ -34,6 +36,8 @@ object CommandRegistry {
         register(StopCommand())
         register(LevelCommand())
         register(PermissionCommand())
+        register(OnlineCommand())
+        register(ClientsCommand())
     }
 
     /**
