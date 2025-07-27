@@ -443,6 +443,10 @@ class PermissionCommand : Command {
         }
         val playerName = args[0]
         val player = PermissionRepository.getPlayer(playerName)
+        if (player == null) {
+            executor.sendMessage("&cPlayer '&7$playerName&c' not found.")
+            return
+        }
         val groups = PermissionRepository.getPlayerGroups(playerName)
         val highestGroup = PermissionRepository.getHighestGroup(playerName)
         val totalPermissions = PermissionRepository.getPermissionList(playerName).size
@@ -676,3 +680,4 @@ class PermissionCommand : Command {
         }
     }
 }
+

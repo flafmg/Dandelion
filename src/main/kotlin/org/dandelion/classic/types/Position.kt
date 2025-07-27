@@ -43,8 +43,11 @@ data class Position(
         return Position(x / scalar, y / scalar, z / scalar, yaw, pitch)
     }
 
+    fun clone(): Position {
+        return Position(x, y, z, yaw, pitch)
+    }
+
     override fun toString(): String {
         return "Position(x=$x, y=$y, z=$z, yaw=$yaw, pitch=$pitch)"
     }
 }
-

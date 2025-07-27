@@ -17,13 +17,13 @@ class ClientsCommand : Command {
             return
         }
         val grouped = players.groupBy { it.client }
-        val msg = StringBuilder()
+        val lines = mutableListOf<String>()
         grouped.forEach { (client, list) ->
-            msg.append("&e$client&f: ")
-            msg.append(list.joinToString(", ") { "&7${it.name}" })
-            msg.append("\n")
+            val line = StringBuilder()
+            line.append("&e$client&f: ")
+            line.append(list.joinToString(", ") { "&7${it.name}" })
+            lines.add(line.toString())
         }
-        executor.sendMessage(msg.toString().trimEnd())
+        lines.forEach { executor.sendMessage(it) }
     }
 }
-

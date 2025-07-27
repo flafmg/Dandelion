@@ -66,25 +66,29 @@ object Console: CommandExecutor{
     private fun timestamp(): String = if (showTimestamp) {
         "[${LocalDateTime.now().format(TIMESTAMP_FORMAT)}] "
     } else ""
-
+    @JvmStatic
     fun log(message: String) {
         val formattedMessage = "${timestamp()}${processColorCodes(message)}$RESET"
         lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
+    @JvmStatic
     fun debugLog(message: String) {
         if (ServerInfo.debugMode) {
             val formattedMessage = "${timestamp()}$GRAY[DEBUG] ${processColorCodes(message)}$RESET"
             lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
         }
     }
+    @JvmStatic
     fun infoLog(message: String) {
         val formattedMessage = "${timestamp()}$BLUE[INFO] ${processColorCodes(message)}$RESET"
         lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
+    @JvmStatic
     fun warnLog(message: String) {
         val formattedMessage = "${timestamp()}$YELLOW[WARN] ${processColorCodes(message)}$RESET"
         lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)
     }
+    @JvmStatic
     fun errLog(message: String) {
         val formattedMessage = "${timestamp()}$RED[ERROR] ${processColorCodes(message)}$RESET"
         lineReader?.printAbove(formattedMessage) ?: println(formattedMessage)

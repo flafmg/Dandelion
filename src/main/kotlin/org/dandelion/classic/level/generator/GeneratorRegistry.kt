@@ -10,6 +10,7 @@ object GeneratorRegistry {
         register(FlatGenerator())
     }
 
+    @JvmStatic
     fun register(generator: LevelGenerator){
         if(generators.containsKey(generator.id)){
             Console.warnLog("A generator by the same id is already registered")
@@ -19,9 +20,12 @@ object GeneratorRegistry {
         generators[generator.id] = generator
     }
 
+    @JvmStatic
     fun unregister(generator: LevelGenerator){
         unregister(generator.id)
     }
+
+    @JvmStatic
     fun unregister(id: String){
         if(!generators.containsKey(id)){
             Console.warnLog("This generator doesnt exist")
@@ -29,7 +33,7 @@ object GeneratorRegistry {
         }
         generators.remove(id)
     }
-
+    @JvmStatic
     fun getGenerator(id: String): LevelGenerator?{
         if(!generators.containsKey(id)){
             Console.warnLog("This generator doesnt exist")
@@ -37,6 +41,7 @@ object GeneratorRegistry {
         }
         return generators[id]
     }
+    @JvmStatic
     fun getAllGenerators(): List<LevelGenerator> = generators.values.toList()
 
 }

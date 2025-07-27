@@ -7,6 +7,7 @@ import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.Connection
 import org.dandelion.classic.network.PacketRegistry
 import org.dandelion.classic.permission.PermissionRepository
+import org.dandelion.classic.plugins.manager.PluginRegistry
 import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
 import java.io.File
@@ -72,7 +73,7 @@ object Server {
         Levels.init()
         Heartbeat.init()
         PermissionRepository.init()
-
+        PluginRegistry.init()
         warns()
         Console.log("Server started")
     }
@@ -80,6 +81,7 @@ object Server {
         if(!running) return;
         running = false
 
+        PluginRegistry.shutdown()
         Heartbeat.shutdown()
         Connection.shutdown()
         Levels.shutdown()

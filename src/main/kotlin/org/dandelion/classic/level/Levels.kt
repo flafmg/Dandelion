@@ -56,6 +56,7 @@ object Levels {
     /**
      * Saves all levels that have auto-save enabled
      */
+    @JvmStatic
     fun saveAllLevels() {
         val autoSaveLevels = levels.values.filter { it.autoSave }
         autoSaveLevels.forEach { level ->
@@ -76,6 +77,7 @@ object Levels {
      * @param levelId The ID of the level to load.
      * @return `true` if the level was successfully loaded, `false` otherwise.
      */
+    @JvmStatic
     fun loadLevel(levelId: String): Boolean {
         if (isLevelLoaded(levelId)) {
             Console.warnLog("Level '$levelId' is already loaded")
@@ -94,6 +96,7 @@ object Levels {
      * @param level The [Level] instance to load.
      * @return `true` if the level was successfully loaded, `false` otherwise.
      */
+    @JvmStatic
     fun loadLevel(level: Level): Boolean {
         if (isLevelLoaded(level.id)) {
             Console.warnLog("Level '${level.id}' is already loaded")
@@ -109,6 +112,7 @@ object Levels {
      * @param levelId The ID of the level to unload.
      * @return `true` if the level was successfully unloaded, `false` otherwise.
      */
+    @JvmStatic
     fun unloadLevel(levelId: String): Boolean {
         val level = levels[levelId] ?: run {
             Console.warnLog("Cannot unload level '$levelId' - not found")
@@ -132,6 +136,7 @@ object Levels {
     /**
      * Unloads all levels
      */
+    @JvmStatic
     private fun unloadAllLevels() {
         val levelIds = levels.keys.toList()
         levelIds.forEach { levelId ->
@@ -154,6 +159,7 @@ object Levels {
      * @param autoSave Whether the level should be automatically saved periodically. Defaults to `true`.
      * @return The newly created [Level] instance if successful, `null` otherwise.
      */
+    @JvmStatic
     fun createLevel(
         id: String,
         author: String,
@@ -196,6 +202,7 @@ object Levels {
      * @param levelId The ID of the level to retrieve.
      * @return The [Level] instance if found, `null` otherwise.
      */
+    @JvmStatic
     fun getLevel(levelId: String): Level? {
         return levels[levelId]
     }
@@ -204,6 +211,7 @@ object Levels {
      *
      * @return A list of all currently loaded [Level] instances.
      */
+    @JvmStatic
     fun getAllLevels(): List<Level> {
         return levels.values.toList()
     }
@@ -212,6 +220,7 @@ object Levels {
      *
      * @return The default [Level] instance if loaded, `null` otherwise.
      */
+    @JvmStatic
     fun getDefaultLevel(): Level? {
         return getLevel(defaultLevelId)
     }
@@ -220,6 +229,7 @@ object Levels {
      *
      * @param levelId The ID of the level to set as the default.
      */
+    @JvmStatic
     fun setDefaultLevel(levelId: String) {
         defaultLevelId = levelId
         if (isLevelLoaded(levelId)) {
@@ -233,6 +243,7 @@ object Levels {
      *
      * @return The ID of the currently configured default level.
      */
+    @JvmStatic
     fun getDefaultLevelId(): String {
         return defaultLevelId
     }
@@ -242,6 +253,7 @@ object Levels {
      * @param levelId The ID of the level to check.
      * @return `true` if the level is loaded, `false` otherwise.
      */
+    @JvmStatic
     fun isLevelLoaded(levelId: String): Boolean {
         return levels.containsKey(levelId)
     }
@@ -250,6 +262,7 @@ object Levels {
      *
      * @return The total count of currently loaded levels.
      */
+    @JvmStatic
     fun getLevelCount(): Int {
         return levels.size
     }
@@ -258,6 +271,7 @@ object Levels {
      *
      * @return A flat list of all [Entity] instances present in any loaded level.
      */
+    @JvmStatic
     fun getAllEntities(): List<Entity> {
         return levels.values.flatMap { it.getAllEntities() }
     }
@@ -266,6 +280,7 @@ object Levels {
      *
      * @return A flat list of all [Player] instances present in any loaded level.
      */
+    @JvmStatic
     fun getAllPlayers(): List<Player> {
         return levels.values.flatMap { it.getPlayers() }
     }
@@ -274,6 +289,7 @@ object Levels {
      *
      * @return A flat list of all non-player [Entity] instances present in any loaded level.
      */
+    @JvmStatic
     fun getAllNonPlayerEntities(): List<Entity> {
         return levels.values.flatMap { it.getNonPlayerEntities() }
     }
@@ -282,6 +298,7 @@ object Levels {
      *
      * @return The sum of player counts across all loaded levels.
      */
+    @JvmStatic
     fun getTotalPlayerCount(): Int {
         return levels.values.sumOf { it.playerCount() }
     }
@@ -290,41 +307,18 @@ object Levels {
      *
      * @return The sum of entity counts (players and non-players) across all loaded levels.
      */
+    @JvmStatic
     fun getTotalEntityCount(): Int {
         return levels.values.sumOf { it.entityCount() }
     }
-    /**
-     * Finds a player by their entity ID across all levels
-     *
-     * @param entityId The unique byte ID of the player entity to find.
-     * @return The [Player] instance if found in any level, `null` otherwise.
-     */
-    fun findPlayerById(entityId: Byte): Player? {
-        levels.values.forEach { level ->
-            val player = level.findPlayerById(entityId)
-            if (player != null) return player
-        }
-        return null
-    }
-    /**
-     * Finds an entity by its ID across all levels
-     *
-     * @param entityId The unique byte ID of the entity to find.
-     * @return The [Entity] instance if found in any level, `null` otherwise.
-     */
-    fun findEntityById(entityId: Byte): Entity? {
-        levels.values.forEach { level ->
-            val entity = level.findEntityById(entityId)
-            if (entity != null) return entity
-        }
-        return null
-    }
+
     /**
      * Finds which level contains the specified player
      *
      * @param player The [Player] instance to search for.
      * @return The [Level] instance containing the player, or `null` if the player is not found in any loaded level.
      */
+    @JvmStatic
     fun findLevelContainingPlayer(player: Player): Level? {
         return levels.values.find { level ->
             level.isPlayerInLevel(player)
@@ -336,6 +330,7 @@ object Levels {
      * @param entity The [Entity] instance to search for.
      * @return The [Level] instance containing the entity, or `null` if the entity is not found in any loaded level.
      */
+    @JvmStatic
     fun findLevelContainingEntity(entity: Entity): Level? {
         return levels.values.find { level ->
             level.isEntityInLevel(entity)
@@ -346,6 +341,7 @@ object Levels {
      *
      * @param directoryPath The path to the directory containing `.dlvl` files.
      */
+    @JvmStatic
     fun loadAllFromDirectory(directoryPath: String) {
         Console.log("Loading levels from '$directoryPath' directory")
         val directory = File(directoryPath)
@@ -381,6 +377,7 @@ object Levels {
      * @param fromLevel The source [Level] from which players will be moved.
      * @param toLevel The target [Level] to which players will be moved.
      */
+    @JvmStatic
     fun redirectAllPlayers(fromLevel: Level, toLevel: Level) {
         val playersToRedirect = fromLevel.getPlayers().toList()
         if (playersToRedirect.isEmpty()) {
@@ -407,6 +404,7 @@ object Levels {
      * @param toLevelId The ID of the target level.
      * @return `true` if the redirection process was initiated, `false` if either level was not found.
      */
+    @JvmStatic
     fun redirectAllPlayers(fromLevelId: String, toLevelId: String): Boolean {
         val fromLevel = getLevel(fromLevelId) ?: run {
             Console.warnLog("Cannot redirect players - source level '$fromLevelId' not found")
@@ -425,7 +423,8 @@ object Levels {
      * @param message The message string to broadcast.
      * @param messageTypeId An optional byte identifier for the type of message. Defaults to `0x00`.
      */
-    fun broadcastToAllPlayers(message: String, messageTypeId: Byte = 0x00) {
+    @JvmStatic
+    fun broadcast(message: String, messageTypeId: Byte = 0x00) {
         val totalPlayers = getTotalPlayerCount()
         if (totalPlayers == 0) {
             Console.debugLog("No players online to broadcast message to")

@@ -8,6 +8,7 @@ import org.dandelion.classic.commands.LevelCommand
 import org.dandelion.classic.commands.OnlineCommand
 import org.dandelion.classic.commands.PermissionCommand
 import org.dandelion.classic.commands.PlayerInfoCommand
+import org.dandelion.classic.commands.PluginCommand
 import org.dandelion.classic.commands.SayCommand
 import org.dandelion.classic.commands.SayRawCommand
 import org.dandelion.classic.commands.ServerInfoCommand
@@ -38,6 +39,7 @@ object CommandRegistry {
         register(PermissionCommand())
         register(OnlineCommand())
         register(ClientsCommand())
+        register(PluginCommand())
     }
 
     /**
@@ -46,6 +48,7 @@ object CommandRegistry {
      * @param command The command to register.
      * @return True if the command was registered successfully, false otherwise.
      */
+    @JvmStatic
     fun register(command: Command): Boolean{
         val commandInfo = CommandProcessor.processCommand(command) ?: return false
         commands[commandInfo.name] = commandInfo
@@ -62,6 +65,7 @@ object CommandRegistry {
      * @param commandName The name or alias of the command to unregister.
      * @return True if the command was unregistered successfully, false otherwise.
      */
+    @JvmStatic
     fun unregister(commandName: String): Boolean{
         val commandInfo = commands[commandName]
         if(commandInfo == null){
@@ -89,6 +93,7 @@ object CommandRegistry {
      * @param commandLine The full command line string entered by the user.
      * @param executor The executor that will run the command (e.g., player or console).
      */
+    @JvmStatic
     fun execute(commandLine: String, executor: CommandExecutor){
         var cleanCommand = commandLine.trim()
         if (cleanCommand.startsWith("/")) {
@@ -110,6 +115,7 @@ object CommandRegistry {
      * @param executor The executor that will run the command.
      * @param args Arguments to pass to the command.
      */
+    @JvmStatic
     fun execute(name: String, executor: CommandExecutor, args: Array<String>) {
         val command = commands[name] ?: commands.values.find { it.aliases.contains(name) }
 

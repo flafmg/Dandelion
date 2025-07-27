@@ -443,7 +443,7 @@ class LevelCommand : Command {
                 executor.sendMessage("&cConsole must specify coordinates: /level set spawn <levelId> <x> <y> <z>")
                 return
             }
-            level.spawn = executor.position
+            level.spawn = executor.position.clone()
             executor.sendMessage("&aSpawn set to your current position for level '&7$levelId&a'.")
         } else if (args.size == 5) {
             val x = args[2].toFloatOrNull()
