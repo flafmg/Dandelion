@@ -12,20 +12,6 @@ cache:
     - .gradle/wrapper
     - .gradle/caches
 
-build:
-  stage: build
-  image: openjdk:21-jdk
-  script:
-    - ./gradlew clean build
-    - ./gradlew jar
-    - ls -la build/libs/
-  artifacts:
-    paths:
-      - build/libs/*.jar
-    expire_in: 1 hour
-  except:
-    - tags
-
 build_for_release:
   stage: build
   image: openjdk:21-jdk
