@@ -23,7 +23,7 @@ private const val VERSION_V2: Byte = 2
  * The file is structured as follows:
  *
  * 1. HEADER
- *    - Magic (String, 4 bytes, unprefixed) (for v2 this is "DLVL")
+ *    - Magic (String, 4 bytes, unprefixed)
  *    - Version (Byte) (currently 2)
  *
  * 2. INFO SECTION

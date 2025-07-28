@@ -1,5 +1,3 @@
-// File: YamlConfig.kt (atualizado)
-
 package org.dandelion.classic.util
 
 import org.yaml.snakeyaml.DumperOptions

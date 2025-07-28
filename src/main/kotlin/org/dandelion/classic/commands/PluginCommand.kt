@@ -60,10 +60,6 @@ class PluginCommand : Command {
             return
         }
         val name = args[0]
-        if (PluginRegistry.getPlugin(name) != null) {
-            executor.sendMessage("&cPlugin '&7$name&c' is already loaded.")
-            return
-        }
         val success = PluginRegistry.loadPluginByName(name)
         if (success) {
             executor.sendMessage("&aPlugin '&7$name&a' loaded successfully.")
@@ -80,11 +76,6 @@ class PluginCommand : Command {
             return
         }
         val name = args[0]
-        val plugin = PluginRegistry.getPlugin(name)
-        if (plugin == null) {
-            executor.sendMessage("&cPlugin '&7$name&c' not found.")
-            return
-        }
         val success = PluginRegistry.unloadPluginByName(name)
         if (success) {
             executor.sendMessage("&aPlugin '&7$name&a' unloaded successfully.")
@@ -106,13 +97,12 @@ class PluginCommand : Command {
             PluginRegistry.init()
             executor.sendMessage("&aAll plugins reloaded successfully.")
         } else {
-            val plugin = PluginRegistry.getPlugin(target)
-            if (plugin == null) {
-                executor.sendMessage("&cPlugin '&7$target&c' not found.")
-                return
+            val success = PluginRegistry.reloadPluginByName(target)
+            if (success) {
+                executor.sendMessage("&aPlugin '&7$target&a' reloaded successfully.")
+            } else {
+                executor.sendMessage("&cFailed to reload plugin '&7$target&c'.")
             }
-            // Not implemented: dynamic reload of single plugin
-            executor.sendMessage("&cDynamic reload of a single plugin is not supported yet. Use '/plugin reload all'.")
         }
     }
 

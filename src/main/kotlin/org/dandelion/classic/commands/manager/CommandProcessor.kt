@@ -134,6 +134,7 @@ internal object CommandProcessor {
             return true
         } catch (e: Exception) {
             executor.sendMessage("&cError executing command: ${e.message}")
+            e.printStackTrace()
             return false
         }
     }

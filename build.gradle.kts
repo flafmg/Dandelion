@@ -6,8 +6,8 @@ kotlin {
     jvmToolchain(21)
 }
 
-group = "org.dandelion"
-version = "1.0-SNAPSHOT"
+group = "org.dandelion.classic"
+version = "0.0.1-dev"
 
 repositories {
     mavenCentral()
