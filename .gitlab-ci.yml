@@ -1,0 +1,99 @@
+stages:
+  - build
+  - upload
+  - release
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+build:
+  stage: build
+  image: openjdk:21-jdk
+  script:
+    - ./gradlew clean build
+    - ./gradlew jar
+    - ls -la build/libs/
+  artifacts:
+    paths:
+      - build/libs/*.jar
+    expire_in: 1 hour
+  except:
+    - tags
+
+build_for_release:
+  stage: build
+  image: openjdk:21-jdk
+  script:
+    - ./gradlew clean build
+    - ./gradlew jar
+    - ls -la build/libs/
+    - JAR_FILE=$(find build/libs/ -name "*.jar" -type f | head -n 1)
+    - JAR_NAME=$(basename "$JAR_FILE")
+    - echo "JAR_NAME=$JAR_NAME" >> build.env
+    - echo "JAR_FILE=$JAR_FILE" >> build.env
+    - echo "Detected JAR: $JAR_NAME"
+  artifacts:
+    paths:
+      - build/libs/*.jar
+      - CHANGELOG.md
+    reports:
+      dotenv: build.env
+    expire_in: 1 week
+  only:
+    - tags
+
+upload_assets:
+  stage: upload
+  image: curlimages/curl:latest
+  needs:
+    - job: build_for_release
+      artifacts: true
+  script:
+    - echo "Uploading JAR: $JAR_NAME"
+    - |
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+           --upload-file "$JAR_FILE" \
+           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dandelion/${CI_COMMIT_TAG}/${JAR_NAME}"
+    - |
+      if [ -f "CHANGELOG.md" ]; then
+        curl --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+             --upload-file "CHANGELOG.md" \
+             "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dandelion/${CI_COMMIT_TAG}/CHANGELOG.md"
+      fi
+  only:
+    - tags
+
+create_release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: upload_assets
+      artifacts: true
+  script:
+    - |
+      if [ -f "CHANGELOG.md" ]; then
+        CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+      else
+        CHANGELOG_CONTENT="Release $CI_COMMIT_TAG"
+      fi
+    - echo "Creating release for tag $CI_COMMIT_TAG"
+  release:
+    name: "Release $CI_COMMIT_TAG"
+    description: "$CHANGELOG_CONTENT"
+    tag_name: "$CI_COMMIT_TAG"
+    assets:
+      links:
+        - name: "$JAR_NAME"
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dandelion/${CI_COMMIT_TAG}/${JAR_NAME}"
+          link_type: package
+        - name: "Changelog"
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dandelion/${CI_COMMIT_TAG}/CHANGELOG.md"
+          link_type: other
+  only:
+    - tags
