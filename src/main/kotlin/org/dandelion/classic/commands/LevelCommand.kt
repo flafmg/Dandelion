@@ -118,7 +118,7 @@ class LevelCommand : Command {
 
         val levelId = args[0]
         if (args.size == 1) {
-            executor.sendMessage("&c⚠️ This action will permanently remove level '&7$levelId&c' and its file.")
+            executor.sendMessage("&c/!\\ This action will permanently remove level '&7$levelId&c' and its file.")
             executor.sendMessage("&cExecute &7'/level delete $levelId confirm' &cto confirm.")
             return
         }
