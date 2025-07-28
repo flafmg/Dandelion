@@ -1,0 +1,1 @@
+- added gitlab ci automated build
