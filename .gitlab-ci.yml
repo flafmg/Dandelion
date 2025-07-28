@@ -33,11 +33,12 @@ build_for_release:
     - ./gradlew clean build
     - ./gradlew jar
     - ls -la build/libs/
-    - JAR_FILE=$(find build/libs/ -name "*.jar" -type f | head -n 1)
-    - JAR_NAME=$(basename "$JAR_FILE")
-    - echo "JAR_NAME=$JAR_NAME" >> build.env
-    - echo "JAR_FILE=$JAR_FILE" >> build.env
-    - echo "Detected JAR: $JAR_NAME"
+    - |
+      JAR_FILE=$(find build/libs/ -name "*.jar" -type f | head -n 1)
+      JAR_NAME=$(basename "$JAR_FILE")
+      echo "JAR_NAME=$JAR_NAME" >> build.env
+      echo "JAR_FILE=$JAR_FILE" >> build.env
+      echo "Detected JAR: $JAR_NAME"
   artifacts:
     paths:
       - build/libs/*.jar
