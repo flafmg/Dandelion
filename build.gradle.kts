@@ -7,7 +7,7 @@ kotlin {
 }
 
 group = "org.dandelion.classic"
-version = "0.1"
+version = "0.1.0-dev"
 
 repositories {
     mavenCentral()

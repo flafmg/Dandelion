@@ -48,7 +48,7 @@ object Players {
      * @param channel The Netty [Channel] for the connecting client.
      */
     internal fun handlePreConnection(clientInfo: ClientIdentification, channel: Channel) {
-        if(clientInfo.unused != 0x42.toByte()){
+        if(clientInfo.unused == 0x00.toByte()){
             disconnectWithNoCPESupport(channel)
         }
 

@@ -2,18 +2,17 @@ package org.dandelion.classic.network
 
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
-import jdk.internal.net.http.common.Log.channel
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.entity.player.Players
-import org.dandelion.classic.entity.player.Players.count
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.classic.client.ClientIdentification
 import org.dandelion.classic.network.packets.classic.client.ClientMessage
 import org.dandelion.classic.network.packets.classic.client.ClientPositionAndOrientation
 import org.dandelion.classic.network.packets.classic.client.ClientSetBlock
-import org.dandelion.classic.network.packets.classic.server.ServerDisconnectPlayer
+import org.dandelion.classic.network.packets.cpe.client.ClientCustomBlockLevel
 import org.dandelion.classic.network.packets.cpe.client.ClientExtEntry
 import org.dandelion.classic.network.packets.cpe.client.ClientExtInfo
+import org.dandelion.classic.network.packets.cpe.server.ServerCustomBlockLevel
 import org.dandelion.classic.network.packets.cpe.server.ServerExtEntry
 import org.dandelion.classic.network.packets.cpe.server.ServerExtInfo
 import org.dandelion.classic.server.Console
@@ -40,11 +39,13 @@ object PacketRegistry {
         //cpe
         registerPacket(0x10, ::ClientExtInfo)
         registerPacket(0x11, ::ClientExtEntry)
+        registerPacket(0x13, ::ClientCustomBlockLevel)
     }
     private fun registerSupportedCPE(){
         addCPE("EnvColors")
         addCPE("EnvWeatherType")
         addCPE("EnvMapAspect")
+        addCPE("CustomBlocks")
     }
 
     fun registerPacket(id: Byte, factory : () -> Packet){
@@ -131,6 +132,7 @@ object PacketRegistry {
         player.addCPE(extName, version)
 
         if(player.getCPE().size.toShort() == player.supportedCpeCount){
+            handleClientPostCPE(player)
             Players.finalizeHandshake(player)
         }
     }
@@ -138,6 +140,13 @@ object PacketRegistry {
     internal fun sendCPEEntries(player: Player){
         supportedCPE.forEach { (extName, version) ->
             ServerExtEntry(extName, version).send(player)
+        }
+    }
+
+    //handle client postCPe and before ServerInfo
+    internal fun handleClientPostCPE(player: Player){
+        if(player.supports("CustomBlocks")){
+            ServerCustomBlockLevel(1).send(player)
         }
     }
 
