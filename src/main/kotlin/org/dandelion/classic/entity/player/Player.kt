@@ -542,63 +542,98 @@ class Player(
     //region hack control
 
     /**
-     * Indicates whether the player can fly.
+     * Indicates whether the player can fly
      */
     var canFly: Boolean = true
+        /**
+         * Sets whether the player can fly
+         *
+         * @param value true to allow flying, false to disable
+         */
         set(value) {
             field = value
             updateHackControl()
         }
 
     /**
-     * Indicates whether the player can use noclip.
+     * Indicates whether the player can use noclip
      */
     var canNoClip: Boolean = true
+        /**
+         * Sets whether the player can use noclip
+         *
+         * @param value true to allow noclip, false to disable
+         */
         set(value) {
             field = value
             updateHackControl()
         }
 
     /**
-     * Indicates whether the player can use speed.
+     * Indicates whether the player can use speed
      */
     var canSpeed: Boolean = true
+        /**
+         * Sets whether the player can use speed
+         *
+         * @param value true to allow speed, false to disable
+         */
         set(value) {
             field = value
             updateHackControl()
         }
 
     /**
-     * Indicates whether the player can use spawn control.
+     * Indicates whether the player can use spawn control
      */
     var canSpawnControl: Boolean = true
+        /**
+         * Sets whether the player can use spawn control
+         *
+         * @param value true to allow spawn control, false to disable
+         */
         set(value) {
             field = value
             updateHackControl()
         }
 
     /**
-     * Indicates whether the player can use third person view.
+     * Indicates whether the player can use third person view
      */
     var canThirdPerson: Boolean = true
+        /**
+         * Sets whether the player can use third person view
+         *
+         * @param value true to allow third person view, false to disable
+         */
         set(value) {
             field = value
             updateHackControl()
         }
 
     /**
-     * The jump height value for the player.
+     * The jump height value for the player
      */
     var jumpHeight: Short = -1
+        /**
+         * Sets the jump height value for the player
+         *
+         * @param value The jump height value
+         */
         set(value) {
             field = value
             updateHackControl()
         }
 
     /**
-     * The maximum click distance for the player.
+     * The maximum click distance for the player
      */
     var clickDistance: Short = 160
+        /**
+         * Sets the maximum click distance for the player
+         *
+         * @param value The maximum click distance
+         */
         set(value) {
             field = value
             if (supports("ClickDistance")) {
@@ -648,6 +683,11 @@ class Player(
      * It is showed when the player joins a level
      */
     var motd: String = ServerInfo.motd
+        /**
+         * Sets the message of the day (MOTD) for this player
+         *
+         * @param value The MOTD string to set
+         */
         set(value) {
             field = value
             when {

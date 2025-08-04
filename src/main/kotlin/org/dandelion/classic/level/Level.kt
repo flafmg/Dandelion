@@ -48,377 +48,303 @@ class Level(
     internal val availableEntityIds = ArrayDeque<Byte>(MAX_ENTITIES)
     internal val entities = HashMap<Byte, Entity>(MAX_ENTITIES)
 
-    // Environment properties from SetMapEnvUrl packet
-    internal var texturePackUrl: String = ""
-
-    // Environment properties from SetMapEnvProperty packet
-    internal var sideBlock: Byte = 7
-    internal var edgeBlock: Byte = 8
-    internal var edgeHeight: Int = size.y / 2
-    internal var cloudsHeight: Int = size.y + 2
-    internal var maxFogDistance: Int = 0
-    internal var cloudsSpeed: Int = 256
-    internal var weatherSpeed: Int = 256
-    internal var weatherFade: Int = 128
-    internal var exponentialFog: Boolean = false
-    internal var sidesOffset: Int = -2
-
-    // Environment property from EnvSetWeatherType packet
-    internal var weatherType: Byte = 0
-
-    // Environment properties fom EnvSetColor packet
-    internal var skyColor: Color? = null
-    internal var cloudColor: Color? = null
-    internal var fogColor: Color? = null
-    internal var ambientLightColor: Color? = null
-    internal var diffuseLightColor: Color? = null
-    internal var skyboxColor: Color? = null
-
     init {
         initializeEntityIdPool()
     }
 
-    /**
-     * Sets the texture pack URL for this level (from SetMapEnvUrl)
-     *
-     * @param url The texture pack URL
-     */
-    fun setTexturePackUrl(url: String) {
-        texturePackUrl = url
-    }
+    //region Environment Control
 
     /**
-     * Gets the texture pack URL for this level (from SetMapEnvUrl)
-     *
-     * @return The texture pack URL
+     * The texture pack URL for this level (from SetMapEnvUrl)
      */
-    fun getTexturePackUrl(): String = texturePackUrl
-
-    /**
-     * Sets the map sides block ID (from SetMapEnvProperty)
-     *
-     * @param blockId The block ID for map sides
-     */
-    fun setSideBlock(blockId: Byte) {
-        sideBlock = blockId
-        ServerSetMapEnvProperty(0, blockId.toInt()).send(getPlayers())
-    }
-
-    /**
-     * Gets the map sides block ID (from SetMapEnvProperty)
-     *
-     * @return The block ID for map sides
-     */
-    fun getSideBlock(): Byte = sideBlock
-
-    /**
-     * Sets the map edge/horizon block ID (from SetMapEnvProperty)
-     *
-     * @param blockId The block ID for map edge
-     */
-    fun setEdgeBlock(blockId: Byte) {
-        edgeBlock = blockId
-        ServerSetMapEnvProperty(1, blockId.toInt()).send(getPlayers())
-    }
-
-    /**
-     * Gets the map edge/horizon block ID (from SetMapEnvProperty)
-     *
-     * @return The block ID for map edge
-     */
-    fun getEdgeBlock(): Byte = edgeBlock
-
-    /**
-     * Sets the map edge height (from SetMapEnvProperty)
-     *
-     * @param height The edge height
-     */
-    fun setEdgeHeight(height: Int) {
-        edgeHeight = height
-        ServerSetMapEnvProperty(2, height).send(getPlayers())
-    }
-
-    /**
-     * Gets the map edge height (from SetMapEnvProperty)
-     *
-     * @return The edge height
-     */
-    fun getEdgeHeight(): Int = edgeHeight
-
-    /**
-     * Sets the map clouds height (from SetMapEnvProperty)
-     *
-     * @param height The clouds height
-     */
-    fun setCloudsHeight(height: Int) {
-        cloudsHeight = height
-        ServerSetMapEnvProperty(3, height).send(getPlayers())
-    }
-
-    /**
-     * Gets the map clouds height (from SetMapEnvProperty)
-     *
-     * @return The clouds height
-     */
-    fun getCloudsHeight(): Int = cloudsHeight
-
-    /**
-     * Sets the max fog/view distance (from SetMapEnvProperty)
-     *
-     * @param distance The max fog distance
-     */
-    fun setMaxFogDistance(distance: Int) {
-        maxFogDistance = distance
-        ServerSetMapEnvProperty(4, distance).send(getPlayers())
-    }
-
-    /**
-     * Gets the max fog/view distance (from SetMapEnvProperty)
-     *
-     * @return The max fog distance
-     */
-    fun getMaxFogDistance(): Int = maxFogDistance
-
-    /**
-     * Sets the clouds speed (from SetMapEnvProperty)
-     *
-     * @param speed The clouds speed * 256
-     */
-    fun setCloudsSpeed(speed: Int) {
-        cloudsSpeed = speed
-        ServerSetMapEnvProperty(5, speed).send(getPlayers())
-    }
-
-    /**
-     * Gets the clouds speed (from SetMapEnvProperty)
-     *
-     * @return The clouds speed * 256
-     */
-    fun getCloudsSpeed(): Int = cloudsSpeed
-
-    /**
-     * Sets the weather speed (from SetMapEnvProperty)
-     *
-     * @param speed The weather speed * 256
-     */
-    fun setWeatherSpeed(speed: Int) {
-        weatherSpeed = speed
-        ServerSetMapEnvProperty(6, speed).send(getPlayers())
-    }
-
-    /**
-     * Gets the weather speed (from SetMapEnvProperty)
-     *
-     * @return The weather speed * 256
-     */
-    fun getWeatherSpeed(): Int = weatherSpeed
-
-    /**
-     * Sets the weather fade (from SetMapEnvProperty)
-     *
-     * @param fade The weather fade * 128
-     */
-    fun setWeatherFade(fade: Int) {
-        weatherFade = fade
-        ServerSetMapEnvProperty(7, fade).send(getPlayers())
-    }
-
-    /**
-     * Gets the weather fade (from SetMapEnvProperty)
-     *
-     * @return The weather fade * 128
-     */
-    fun getWeatherFade(): Int = weatherFade
-
-    /**
-     * Sets whether to use exponential fog (from SetMapEnvProperty)
-     *
-     * @param useExponential Whether to use exponential fog
-     */
-    fun setExponentialFog(useExponential: Boolean) {
-        exponentialFog = useExponential
-        val exponentialFogValue = if (exponentialFog) 1 else 0
-        ServerSetMapEnvProperty(8, exponentialFogValue).send(getPlayers())
-    }
-
-    /**
-     * Gets whether to use exponential fog (from SetMapEnvProperty)
-     *
-     * @return Whether to use exponential fog
-     */
-    fun getExponentialFog(): Boolean = exponentialFog
-
-    /**
-     * Sets the offset of map sides height from map edge height (from SetMapEnvProperty)
-     *
-     * @param offset The sides offset
-     */
-    fun setSidesOffset(offset: Int) {
-        sidesOffset = offset
-        ServerSetMapEnvProperty(9, offset).send(getPlayers())
-    }
-
-    /**
-     * Gets the offset of map sides height from map edge height (from SetMapEnvProperty)
-     *
-     * @return The sides offset
-     */
-    fun getSidesOffset(): Int = sidesOffset
-
-    /**
-     * Sets the weather type (from EnvSetWeatherType)
-     *
-     * @param type The weather type (0 = sunny, 1 = raining, 2 = snowing)
-     */
-    fun setWeatherType(type: Byte) {
-        when {
-            type in 0..2 -> {
-                weatherType = type
-                ServerEnvWeatherType(type).send(getPlayers())
+    var texturePackUrl: String = ""
+        /**
+         * Sets the texture pack URL for this level
+         *
+         * @param value The texture pack URL
+         */
+        set(value) {
+            field = value
+            if (value.isNotEmpty()) {
+                ServerSetMapEnvUrl(value).send(getPlayers().filter { it.supports("EnvMapAspect") })
             }
-            else -> Console.warnLog("Invalid weather type $type, ignoring")
         }
-    }
 
     /**
-     * Gets the weather type (from EnvSetWeatherType)
-     *
-     * @return The weather type (0 = sunny, 1 = raining, 2 = snowing)
+     * The block ID used for map sides (from SetMapEnvProperty)
      */
-    fun getWeatherType(): Byte = weatherType
+    var sideBlock: Byte = 7
+        /**
+         * Sets the map sides block ID
+         *
+         * @param value The block ID for map sides
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(0, value.toInt()).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Sets the sky color (from EnvSetColor)
-     *
-     * @param color The sky color, null to reset to default
+     * The block ID used for map edge/horizon (from SetMapEnvProperty)
      */
-    fun setSkyColor(color: Color?) {
-        skyColor = color
-        ServerEnvColors(
-            0,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
+    var edgeBlock: Byte = 8
+        /**
+         * Sets the map edge/horizon block ID
+         *
+         * @param value The block ID for map edge
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(1, value.toInt()).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Gets the sky color (from EnvSetColor)
-     *
-     * @return The sky color, null means default
+     * The height of the map edge (from SetMapEnvProperty)
      */
-    fun getSkyColor(): Color? = skyColor
+    var edgeHeight: Int = size.y / 2
+        /**
+         * Sets the map edge height
+         *
+         * @param value The edge height
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(2, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Sets the cloud color (from EnvSetColor)
-     *
-     * @param color The cloud color, null to reset to default
+     * The height of the clouds (from SetMapEnvProperty)
      */
-    fun setCloudColor(color: Color?) {
-        cloudColor = color
-        ServerEnvColors(
-            1,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
+    var cloudsHeight: Int = size.y + 2
+        /**
+         * Sets the map clouds height
+         *
+         * @param value The clouds height
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(3, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Gets the cloud color (from EnvSetColor)
-     *
-     * @return The cloud color, null means default
+     * The maximum fog/view distance (from SetMapEnvProperty)
      */
-    fun getCloudColor(): Color? = cloudColor
+    var maxFogDistance: Int = 0
+        /**
+         * Sets the max fog/view distance
+         *
+         * @param value The max fog distance
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(4, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Sets the fog color (from EnvSetColor)
-     *
-     * @param color The fog color, null to reset to default
+     * The clouds speed multiplied by 256 (from SetMapEnvProperty)
      */
-    fun setFogColor(color: Color?) {
-        fogColor = color
-        ServerEnvColors(
-            2,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
+    var cloudsSpeed: Int = 256
+        /**
+         * Sets the clouds speed
+         *
+         * @param value The clouds speed * 256
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(5, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Gets the fog color (from EnvSetColor)
-     *
-     * @return The fog color, null means default
+     * The weather speed multiplied by 256 (from SetMapEnvProperty)
      */
-    fun getFogColor(): Color? = fogColor
+    var weatherSpeed: Int = 256
+        /**
+         * Sets the weather speed
+         *
+         * @param value The weather speed * 256
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(6, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Sets the ambient light color (from EnvSetColor)
-     *
-     * @param color The ambient light color, null to reset to default
+     * The weather fade multiplied by 128 (from SetMapEnvProperty)
      */
-    fun setAmbientLightColor(color: Color?) {
-        ambientLightColor = color
-        ServerEnvColors(
-            3,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
+    var weatherFade: Int = 128
+        /**
+         * Sets the weather fade
+         *
+         * @param value The weather fade * 128
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(7, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Gets the ambient light color (from EnvSetColor)
-     *
-     * @return The ambient light color, null means default
+     * Whether to use exponential fog (from SetMapEnvProperty)
      */
-    fun getAmbientLightColor(): Color? = ambientLightColor
+    var exponentialFog: Boolean = false
+        /**
+         * Sets whether to use exponential fog
+         *
+         * @param value Whether to use exponential fog
+         */
+        set(value) {
+            field = value
+            val exponentialFogValue = if (value) 1 else 0
+            ServerSetMapEnvProperty(8, exponentialFogValue).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Sets the diffuse light color (from EnvSetColor)
-     *
-     * @param color The diffuse light color, null to reset to default
+     * The offset of map sides height from map edge height (from SetMapEnvProperty)
      */
-    fun setDiffuseLightColor(color: Color?) {
-        diffuseLightColor = color
-        ServerEnvColors(
-            4,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
+    var sidesOffset: Int = -2
+        /**
+         * Sets the offset of map sides height from map edge height
+         *
+         * @param value The sides offset
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(9, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
 
     /**
-     * Gets the diffuse light color (from EnvSetColor)
-     *
-     * @return The diffuse light color, null means default
+     * The weather type (0 = sunny, 1 = raining, 2 = snowing) (from EnvSetWeatherType)
      */
-    fun getDiffuseLightColor(): Color? = diffuseLightColor
+    var weatherType: Byte = 0
+        /**
+         * Sets the weather type
+         *
+         * @param value The weather type (0 = sunny, 1 = raining, 2 = snowing)
+         */
+        set(value) {
+            when {
+                value in 0..2 -> {
+                    field = value
+                    ServerEnvWeatherType(value).send(getPlayers().filter { it.supports("EnvWeatherType") })
+                }
+                else -> Console.warnLog("Invalid weather type $value, ignoring")
+            }
+        }
 
     /**
-     * Sets the skybox color (from EnvSetColor)
-     *
-     * @param color The skybox color, null to reset to default
+     * The sky color, null to reset to default (from EnvSetColor)
      */
-    fun setSkyboxColor(color: Color?) {
-        skyboxColor = color
-        ServerEnvColors(
-            5,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
+    var skyColor: Color? = null
+        /**
+         * Sets the sky color
+         *
+         * @param value The sky color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                0,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
 
     /**
-     * Gets the skybox color (from EnvSetColor)
-     *
-     * @return The skybox color, null means default
+     * The cloud color, null to reset to default (from EnvSetColor)
      */
-    fun getSkyboxColor(): Color? = skyboxColor
+    var cloudColor: Color? = null
+        /**
+         * Sets the cloud color
+         *
+         * @param value The cloud color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                1,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
 
+    /**
+     * The fog color, null to reset to default (from EnvSetColor)
+     */
+    var fogColor: Color? = null
+        /**
+         * Sets the fog color
+         *
+         * @param value The fog color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                2,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The ambient light color, null to reset to default (from EnvSetColor)
+     */
+    var ambientLightColor: Color? = null
+        /**
+         * Sets the ambient light color
+         *
+         * @param value The ambient light color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                3,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The diffuse light color, null to reset to default (from EnvSetColor)
+     */
+    var diffuseLightColor: Color? = null
+        /**
+         * Sets the diffuse light color
+         *
+         * @param value The diffuse light color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                4,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The skybox color, null to reset to default (from EnvSetColor)
+     */
+    var skyboxColor: Color? = null
+        /**
+         * Sets the skybox color
+         *
+         * @param value The skybox color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                5,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    //endregion
 
     /**
      * Sends all env packets to the player
@@ -426,8 +352,9 @@ class Level(
      * @param player the [Player] that will receive the env update
      */
     fun sendEnv(player: Player) {
-        ServerEnvWeatherType(weatherType).send(player)
-
+        if(player.supports("EnvWeatherType")) {
+            ServerEnvWeatherType(weatherType).send(player)
+        }
         listOf(
             0 to skyColor,
             1 to cloudColor,
@@ -437,11 +364,13 @@ class Level(
             5 to skyboxColor
         ).forEach { (variable, color) ->
             color?.let {
-                ServerEnvColors(variable.toByte(), it.red, it.green, it.blue).send(player)
+                if(player.supports("EnvColors")) {
+                    ServerEnvColors(variable.toByte(), it.red, it.green, it.blue).send(player)
+                }
             }
         }
 
-        if (texturePackUrl.isNotEmpty()) {
+        if (texturePackUrl.isNotEmpty() && player.supports("EnvMapAspect")) {
             ServerSetMapEnvUrl(texturePackUrl).send(player)
         }
 
@@ -458,7 +387,9 @@ class Level(
             8 to exponentialFogValue,
             9 to sidesOffset
         ).forEach { (propertyType, value) ->
-            ServerSetMapEnvProperty(propertyType.toByte(), value).send(player.channel)
+            if(player.supports("EnvMapAspect")) {
+                ServerSetMapEnvProperty(propertyType.toByte(), value).send(player.channel)
+            }
         }
     }
 

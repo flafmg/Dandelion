@@ -201,9 +201,9 @@ class LevelCommand : Command {
         MessageRegistry.Commands.Level.Info.sendPlayers(executor, level.playerCount().toString(), level.getAvailableIds().toString())
         MessageRegistry.Commands.Level.Info.sendEntities(executor, level.entityCount().toString())
         MessageRegistry.Commands.Level.Info.sendAutoSave(executor, if (level.autoSave) "Enabled" else "Disabled")
-        MessageRegistry.Commands.Level.Info.sendWeather(executor, getWeatherName(level.getWeatherType()))
-        if (level.getTexturePackUrl().isNotEmpty()) {
-            MessageRegistry.Commands.Level.Info.sendTexturePack(executor, level.getTexturePackUrl())
+        MessageRegistry.Commands.Level.Info.sendWeather(executor, getWeatherName(level.weatherType))
+        if (level.texturePackUrl.isNotEmpty()) {
+            MessageRegistry.Commands.Level.Info.sendTexturePack(executor, level.texturePackUrl)
         }
     }
 
@@ -539,10 +539,10 @@ class LevelCommand : Command {
 
         val value = args[2]
         if (value.lowercase() == "reset") {
-            level.setTexturePackUrl("")
+            level.texturePackUrl = ""
             MessageRegistry.Commands.Level.Env.Texture.sendReset(executor, levelId)
         } else {
-            level.setTexturePackUrl(value)
+            level.texturePackUrl = (value)
             MessageRegistry.Commands.Level.Env.Texture.sendSuccess(executor, levelId)
         }
     }
@@ -570,7 +570,7 @@ class LevelCommand : Command {
                 return
             }
         }
-        level.setWeatherType(weatherType)
+        level.weatherType = weatherType
         MessageRegistry.Commands.Level.Env.Weather.sendSuccess(executor, weather, levelId)
     }
 
