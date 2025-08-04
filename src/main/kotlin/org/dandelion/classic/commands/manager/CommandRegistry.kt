@@ -28,7 +28,7 @@ object CommandRegistry {
 
     internal fun init(){
         // Initialize the message system first
-        MessageRegistry.Commands.init()
+        MessageRegistry.init()
 
         register(KickCommand())
         register(BanCommand())
