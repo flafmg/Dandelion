@@ -30,7 +30,6 @@ open class Entity(
     companion object {
         private const val MAX_RELATIVE_MOVEMENT = 3.96875f
         private const val MIN_RELATIVE_MOVEMENT = -4.0f
-        private const val MAX_BLOCK_INTERACTION_DISTANCE = 6.0
     }
 
     //region Position Management
@@ -399,12 +398,12 @@ open class Entity(
      * @param z The Z coordinate (Float) to check.
      * @return `true` if the coordinates are within interaction range, `false` otherwise.
      */
-    protected fun isWithinInteractionRange(x: Float, y: Float, z: Float): Boolean {
+    protected fun isWithinInteractionRange(x: Float, y: Float, z: Float, range: Float = 6.0f): Boolean {
         val dx = position.x - x
         val dy = position.y - y
         val dz = position.z - z
         val distance = sqrt(dx * dx + dy * dy + dz * dz)
-        return distance <= MAX_BLOCK_INTERACTION_DISTANCE
+        return distance <= distance
     }
     //endregion
 }

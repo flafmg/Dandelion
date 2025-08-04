@@ -3,18 +3,30 @@ import io.netty.channel.Channel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dandelion.classic.blocks.model.Block
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.events.PlayerBlockInteractionEvent
 import org.dandelion.classic.events.PlayerChangeLevel
 import org.dandelion.classic.events.PlayerMoveEvent
 import org.dandelion.classic.events.PlayerSendMessageEvent
 import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
+import org.dandelion.classic.level.Levels
 import org.dandelion.classic.network.packets.classic.server.*
+import org.dandelion.classic.network.packets.cpe.server.ServerClickDistance
+import org.dandelion.classic.network.packets.cpe.server.ServerHackControl
+import org.dandelion.classic.network.packets.cpe.server.ServerHoldThis
+import org.dandelion.classic.network.packets.cpe.server.ServerSetBlockPermission
+import org.dandelion.classic.network.packets.cpe.server.ServerSetHotbar
+import org.dandelion.classic.network.packets.cpe.server.ServerSetSpawnpoint
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
+import org.dandelion.classic.server.MessageRegistry
+import org.dandelion.classic.types.MessageType
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.util.toFShort
+import org.jetbrains.annotations.Blocking
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 /**
@@ -38,7 +50,25 @@ class Player(
     entityId: Byte = -1,
     position: Position = Position(0f, 0f, 0f, 0f, 0f),
     val info: PlayerInfo = PlayerInfo.getOrCreate(name),
+
 ) : Entity(name, levelId, entityId, position), CommandExecutor {
+    var displayName: String = name
+
+    var supportsCpe: Boolean = false
+    private val supportedCPE = mutableListOf<Pair<String, Int>>()
+    internal var supportedCpeCount: Short = 0
+
+    var heldBlock: Byte = 0x00
+    var canFly: Boolean = true
+    var canNoClip: Boolean = true
+    var canSpeed: Boolean = true
+    var canSpawnControl: Boolean = true
+    var canThirdPerson: Boolean = true
+    var jumpHeight: Short = -1
+    var clickDistance: Short = 160
+
+    var motd: String = ""
+
     override val permissions: List<String>
         get() = PermissionRepository.getPermissionList(name)
 
@@ -46,9 +76,8 @@ class Player(
     private val LEVEL_DATA_CHUNK_SIZE = 1024
     private val COLOR_CODE_REGEX = "&[0-9a-fA-F]"
 
-    private val supportedCPE = mutableListOf<Pair<String, Int>>()
-    internal var supportedCpeCount: Short = 0
 
+    //region cpe support
     fun addCPE(name: String, version: Int) {
         if (!supportedCPE.any { it.first == name && it.second == version }) {
             supportedCPE.add(name to version)
@@ -73,7 +102,7 @@ class Player(
     fun getCPE(): List<Pair<String, Int>> {
         return supportedCPE.toList()
     }
-
+    //endregion
 
     //region message system
 
@@ -86,15 +115,28 @@ class Player(
         sendMessage(message, 0x00)
     }
     /**
+     * Sends a message to the player with specified message type
+     *
+     * @param message The message string to send.
+     * @param messageType the [MessageType] of the message. Defaults to [MessageType.Chat].
+     */
+    fun sendMessage(message: String, messageType: MessageType = MessageType.Chat) {
+        sendMessage(message, messageType.code.toByte())
+    }
+    /**
      * Sends a message to the player with specified message type ID
      *
      * @param message The message string to send.
      * @param messageTypeId An optional byte identifier for the type of message. Defaults to `0x00`.
      */
     fun sendMessage(message: String, messageTypeId: Byte = 0x00) {
+        if (messageTypeId == 0x00.toByte()) {
         val messageChunks = splitMessageIntoChunks(message)
         messageChunks.forEach { chunk ->
             ServerMessage(messageTypeId, chunk).send(channel)
+        }
+        } else {
+            ServerMessage(messageTypeId, message).send(channel)
         }
     }
     /**
@@ -232,6 +274,7 @@ class Player(
             super.updatePositionAndOrientation(newX, newY, newZ, newYaw, newPitch, forceAbsolute)
         }
     }
+
     /**
      * Rejects player movement by sending them back to the original position
      *
@@ -260,7 +303,7 @@ class Player(
     override fun joinLevel(level: Level, notifyJoin: Boolean) {
         initializeLevelTransfer()
         if (!level.tryAddEntity(this)) {
-            sendMessage("Level is full")
+            sendMessage(MessageRegistry.Server.Level.getFull())
             return
         }
         if(this.level != null) {
@@ -394,17 +437,21 @@ class Player(
      * @param message The message string sent by the player.
      */
     override fun sendMessageAs(message: String) {
+
         val message = message.replace("%", "&")
         val event = PlayerSendMessageEvent(this, message)
         EventDispatcher.dispatch(event)
         if(event.isCancelled) return
 
-        Console.log("[$levelId] $name: $message")
+        val messageFormat = MessageRegistry.Server.Chat.getPlayerFormat(this, message)
+        val consoleFormat = MessageRegistry.Server.Chat.getConsoleFormat(this, message)
+
+        Console.log(consoleFormat)
         if (message.startsWith("/")) {
             sendCommand(message)
             return
         }
-        level?.broadcast("$name: &7$message")
+        Levels.broadcast(messageFormat)
     }
     //endregion
     //region Block Updates
@@ -416,10 +463,196 @@ class Player(
      * @param z The Z coordinate (Short) of the block to update.
      * @param block The new [Byte] block type ID.
      */
+    override fun interactWithBlock(x: Short, y: Short, z: Short, blockType: Byte, isDestroying: Boolean) {
+        val currentLevel = level ?: return
+        if (!isWithinInteractionRange(x.toFloat(), y.toFloat(), z.toFloat(), clickDistance / 32.0f)) {
+            return
+        }
+
+        val finalBlockType = if (isDestroying) Block.get(0)?.id ?: 0 else blockType
+        val blockAtPos = Block.get(currentLevel.getBlock(x, y, z))
+
+        if(Block.get(finalBlockType) == null){
+            return
+        }
+
+        if (this is Player) {
+            val event = PlayerBlockInteractionEvent(
+                this,
+                blockAtPos!!,
+                Block.get( finalBlockType)!!,
+                Position(x.toFloat(), y.toFloat(), z.toFloat()),
+                level!!
+            )
+            EventDispatcher.dispatch(event)
+            if(event.isCancelled){
+                ServerSetBlock(x, y, z, blockAtPos.id).send(this)
+                return
+            }
+        }
+
+        currentLevel.setBlock(x, y, z, finalBlockType)
+        broadcastBlockUpdate(x, y, z, finalBlockType)
+    }
+
     override fun updateBlock(x: Short, y: Short, z: Short, block: Byte) {
         ServerSetBlock(x, y, z, block).send(this)
     }
+
+    /**
+     * Sets the held block for this player and optionally prevents changes
+     *
+     * @param block The block type ID (Byte) to set as the held block.
+     * @param preventChange Whether to prevent changes to the held block. Defaults to `false`
+     */
+    fun setHeldBlock(block: Byte, preventChange: Boolean = false) {
+        if (supports("HeldBlock")) {
+            this.heldBlock = block
+            val preventChange: Byte = if (preventChange) 1.toByte() else 0.toByte()
+            ServerHoldThis(block, preventChange).send(channel)
+        }
+    }
+
+    /**
+     * Sets a block in the player's hotbar at the specified index
+     *
+     * @param block The block type ID (Byte) to set in the hotbar.
+     * @param index The index in the hotbar (0-8) where the block should be set.
+     */
+    fun setHotbarBlock(block: Byte, index: Byte){
+        if(supports("SetHotbar")){
+            ServerSetHotbar(block, index).send(channel)
+        }
+    }
+
+    internal fun updateHeldBlock(block: Byte) {
+        if(supports("HeldBlock"))
+            this.heldBlock = block
+    }
     //endregion
+
+    //region hack control
+
+    /**
+     * Enables or disables flying for the player and updates the hack control state.
+     *
+     * @param canFly true to allow flying, false to disallow.
+     */
+    fun setCanFly(canFly: Boolean) {
+        this.canFly = canFly
+        if(!supports("HackControl")) return
+        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+    }
+
+    /**
+     * Enables or disables noclip for the player and updates the hack control state.
+     *
+     * @param canNoClip true to allow noclip, false to disallow.
+     */
+    fun setCanNoClip(canNoClip: Boolean) {
+        this.canNoClip = canNoClip
+        if(!supports("HackControl")) return
+        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+    }
+
+    /**
+     * Enables or disables speed for the player and updates the hack control state.
+     *
+     * @param canSpeed true to allow speed, false to disallow.
+     */
+    fun setCanSpeed(canSpeed: Boolean) {
+        this.canSpeed = canSpeed
+        if(!supports("HackControl")) return
+        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+    }
+
+    /**
+     * Enables or disables spawn control for the player and updates the hack control state.
+     *
+     * @param canSpawnControl true to allow spawn control, false to disallow.
+     */
+    fun setCanSpawnControl(canSpawnControl: Boolean) {
+        this.canSpawnControl = canSpawnControl
+        if(!supports("HackControl")) return
+        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+    }
+
+    /**
+     * Enables or disables third person view for the player and updates the hack control state.
+     *
+     * @param canThirdPerson true to allow third person, false to disallow.
+     */
+    fun setCanThirdPerson(canThirdPerson: Boolean) {
+        this.canThirdPerson = canThirdPerson
+        if(!supports("HackControl")) return
+        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+    }
+
+    /**
+     * Sets the jump height for the player and updates the hack control state.
+     *
+     * @param jumpHeight the new jump height value.
+     */
+    fun setJumpHeight(jumpHeight: Short) {
+        this.jumpHeight = jumpHeight
+        if(!supports("HackControl")) return
+        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+    }
+
+    fun setClickDistance(distance: Short) {
+        clickDistance = distance
+        if(!supports("ClickDistance")) return
+        ServerClickDistance(distance).send(channel)
+    }
+
+    //endregion
+
+    /**
+     * Sets the spawn point for this player at the specified position.
+     *
+     * @param position The [Position] to set as the spawn point.
+     */
+    fun setSpawnPoint(position: Position) {
+        setSpawnPoint(position.x.toInt().toShort(),
+            position.y.toInt().toShort(), position.z.toInt().toShort(),
+            position.yaw.toInt().toByte(), position.pitch.toInt().toByte()
+        )
+    }
+
+    /**
+     * Sets the spawn point for this player at the specified position.
+     *
+     * @param x The X coordinate (Short) of the spawn point.
+     * @param y The Y coordinate (Short) of the spawn point.
+     * @param z The Z coordinate (Short) of the spawn point.
+     * @param yaw The yaw rotation (Byte) for the spawn point.
+     * @param pitch The pitch rotation (Byte) for the spawn point.
+     */
+    fun setSpawnPoint(x: Short, y: Short, z: Short, yaw: Byte, pitch: Byte) {
+        if(!supports("SetSpawnpoint")) return
+        ServerSetSpawnpoint(x, y, z, yaw, pitch).send(channel)
+    }
+
+    /**
+     * sets this players motd
+     *
+     * @param motd the mots to set
+     */
+    fun setMotd(motd: String){
+        this.motd = motd
+        ServerIdentification(serverMotd = motd).send(channel)
+        if(!supports("InstantMOTD")){
+            if(level == null) return
+            joinLevel(level!!, false)
+        }
+
+    }
+
+    //region permissions and Groups
+
+    fun setBlockPermission(blockType: Byte, allowPlacement: Boolean, allowDeletion: Boolean) {
+        ServerSetBlockPermission(blockType, allowPlacement, allowDeletion).send(channel)
+    }
 
     /**
      * Sets a permission for this player.
@@ -455,7 +688,7 @@ class Player(
      * @return true if the group was removed
      */
     fun removeGroup(group: String): Boolean = Players.removeGroup(this.name, group)
-
+    //endregion
     companion object {
         /**
          * Finds a player by name (case-insensitive).
@@ -512,8 +745,7 @@ class Player(
          * @param group the group name to add
          * @return true if the group was added
          */
-        fun addGroup(name: String, group: String): Boolean =
-            Players.addGroup(name, group)
+        fun addGroup(name: String, group: String): Boolean = Players.addGroup(name, group)
 
         /**
          * Removes a group from a player by name.
@@ -522,7 +754,6 @@ class Player(
          * @param group the group name to remove
          * @return true if the group was removed
          */
-        fun removeGroup(name: String, group: String): Boolean =
-            Players.removeGroup(name, group)
-      }
+        fun removeGroup(name: String, group: String): Boolean = Players.removeGroup(name, group)
+    }
 }

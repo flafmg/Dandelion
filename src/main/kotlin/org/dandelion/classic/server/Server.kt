@@ -90,6 +90,8 @@ object Server {
     }
 
     fun reloadConfig() {
+        MessageRegistry.init()
+
         val configFile = File("config.yml")
         if (!configFile.exists()) {
             Utils.copyResourceTo("config.yml", "config.yml")

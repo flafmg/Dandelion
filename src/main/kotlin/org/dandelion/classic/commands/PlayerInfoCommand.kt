@@ -6,6 +6,7 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.ReferSelf
 import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.entity.player.PlayerInfo
 import org.dandelion.classic.entity.player.Players
 import java.text.SimpleDateFormat
@@ -22,7 +23,7 @@ class PlayerInfoCommand: Command {
         val playerName = args.getOrNull(0) ?: executor.name
         val info = PlayerInfo.load(playerName)
         if (info == null) {
-            executor.sendMessage("&cPlayer '&f$playerName&c' not found.")
+            MessageRegistry.Commands.sendPlayerNotFound(executor, playerName)
             return
         }
 
@@ -32,20 +33,20 @@ class PlayerInfoCommand: Command {
             currentTotalPlaytime += (Date().time - info.lastJoin.time)
         }
 
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss") //ya americans use MM-dd, we here use dd-MM, so to avoid confusion this uses yyyy-MM-dd
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
         val playtime = String.format("%d days, %d hours, %d min",
             TimeUnit.MILLISECONDS.toDays(currentTotalPlaytime),
             TimeUnit.MILLISECONDS.toHours(currentTotalPlaytime) % 24,
             TimeUnit.MILLISECONDS.toMinutes(currentTotalPlaytime) % 60
         )
 
-        executor.sendMessage("&e--- Player Info: &f${info.name} &e---")
-        executor.sendMessage("&eClient: &f${onlinePlayer?.client ?: "Unknown"}")
-        executor.sendMessage("&eBanned: &f${if (info.isBanned) "&cYes (&f${info.banReason}&c)" else "&aNo"}")
-        executor.sendMessage("&eFirst Join: &f${dateFormat.format(info.firstJoin)}")
-        executor.sendMessage("&eLast Join: &f${dateFormat.format(info.lastJoin)}")
-        executor.sendMessage("&eLast Seen: &f${ if(Players.find(playerName) == null) dateFormat.format(info.lastSeen) else "now"}")
-        executor.sendMessage("&ePlaytime: &f$playtime")
-        executor.sendMessage("&eJoin Count: &f${info.joinCount}")
+        MessageRegistry.Commands.Player.Info.sendHeader(executor, info.name)
+        MessageRegistry.Commands.Player.Info.sendClient(executor, onlinePlayer?.client ?: MessageRegistry.Commands.Player.Info.getUnknownClient())
+        MessageRegistry.Commands.Player.Info.sendBannedStatus(executor, info.isBanned, info.banReason)
+        MessageRegistry.Commands.Player.Info.sendFirstJoin(executor, dateFormat.format(info.firstJoin))
+        MessageRegistry.Commands.Player.Info.sendLastJoin(executor, dateFormat.format(info.lastJoin))
+        MessageRegistry.Commands.Player.Info.sendLastSeen(executor, dateFormat.format(info.lastSeen), Players.find(playerName) != null)
+        MessageRegistry.Commands.Player.Info.sendPlaytime(executor, playtime)
+        MessageRegistry.Commands.Player.Info.sendJoinCount(executor, info.joinCount)
     }
 }

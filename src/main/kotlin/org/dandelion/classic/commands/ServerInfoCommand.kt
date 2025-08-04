@@ -4,6 +4,7 @@ import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.Server
 import org.dandelion.classic.server.ServerInfo
 import java.util.concurrent.TimeUnit
@@ -19,9 +20,10 @@ class ServerInfoCommand: Command {
             TimeUnit.MILLISECONDS.toHours(uptimeMillis) % 24,
             TimeUnit.MILLISECONDS.toMinutes(uptimeMillis) % 60
         )
-        executor.sendMessage("&e--- Server Info ---")
-        executor.sendMessage("&eSoftware: &f${ServerInfo.serverSoftware}")
-        executor.sendMessage("&eUptime: &f$uptime")
-        executor.sendMessage("&ePublic: &f${if (ServerInfo.isPublic) "&aYes" else "&cNo"}")
+
+        MessageRegistry.Commands.Server.Info.sendHeader(executor)
+        MessageRegistry.Commands.Server.Info.sendSoftware(executor, ServerInfo.serverSoftware)
+        MessageRegistry.Commands.Server.Info.sendUptime(executor, uptime)
+        MessageRegistry.Commands.Server.Info.sendPublic(executor, ServerInfo.isPublic)
     }
 }

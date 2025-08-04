@@ -3,6 +3,7 @@ package org.dandelion.classic.commands
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.commands.manager.CommandInfo
 import org.dandelion.classic.commands.manager.CommandRegistry
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.commands.annotations.ArgRange
 import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
@@ -46,11 +47,11 @@ class HelpCommand: Command {
         val totalPages = ceil(commands.size.toDouble() / commandsPerPage).toInt()
 
         if (page < 1 || page > totalPages) {
-            executor.sendMessage("&cInvalid page number.")
+            MessageRegistry.Commands.Help.sendInvalidPage(executor)
             return
         }
 
-        executor.sendMessage("&e--- Showing help page ($page/$totalPages) ---")
+        MessageRegistry.Commands.Help.sendHeader(executor, page, totalPages)
         val startIndex = (page - 1) * commandsPerPage
         val endIndex = (startIndex + commandsPerPage).coerceAtMost(commands.size)
 
@@ -59,10 +60,10 @@ class HelpCommand: Command {
             showCommandDetails(executor, command)
 
             if (i < endIndex - 1) {
-                executor.sendMessage("&8---")
+                MessageRegistry.Commands.Help.sendSeparator(executor)
             }
         }
-        executor.sendMessage("&e--- Page $page of $totalPages ---")
+        MessageRegistry.Commands.Help.sendFooter(executor, page, totalPages)
     }
 
     private fun showSubCommandInfo(executor: CommandExecutor, commands: List<CommandInfo>, commandName: String, subCommandName: String) {
@@ -71,7 +72,7 @@ class HelpCommand: Command {
                     it.aliases.any { alias -> alias.lowercase() == commandName.lowercase() }
         }
         if (command == null) {
-            executor.sendMessage("&cCommand '&f$commandName&c' not found.")
+            MessageRegistry.Commands.Help.sendCommandNotFound(executor, commandName)
             return
         }
 
@@ -81,20 +82,20 @@ class HelpCommand: Command {
         }
 
         if (subCommand == null) {
-            executor.sendMessage("&cSubcommand '&f$subCommandName&c' not found for command '&f$commandName&c'.")
+            MessageRegistry.Commands.Help.sendSubcommandNotFound(executor, subCommandName, commandName)
             return
         }
 
         val pathStr = subCommand.path.joinToString(" ")
-        executor.sendMessage("&e--- Subcommand Info: &f$pathStr &e---")
-        executor.sendMessage("&eSubcommand: &f${subCommand.name}")
+        MessageRegistry.Commands.Help.sendSubcommandInfoHeader(executor, pathStr)
+        MessageRegistry.Commands.Help.Fields.sendSubcommand(executor, subCommand.name)
         if (subCommand.aliases.isNotEmpty()) {
-            executor.sendMessage("&eAliases: &f${subCommand.aliases.joinToString(", ")}")
+            MessageRegistry.Commands.Help.Fields.sendAliases(executor, subCommand.aliases.joinToString(", "))
         }
-        executor.sendMessage("&eDescription: &f${subCommand.description}")
-        executor.sendMessage("&eUsage: &f${subCommand.usage}")
+        MessageRegistry.Commands.Help.Fields.sendDescription(executor, subCommand.description)
+        MessageRegistry.Commands.Help.Fields.sendUsage(executor, subCommand.usage)
         if (subCommand.permission.isNotEmpty()) {
-            executor.sendMessage("&ePermission: &f${subCommand.permission}")
+            MessageRegistry.Commands.Help.Fields.sendPermission(executor, subCommand.permission)
         }
     }
 
@@ -104,12 +105,12 @@ class HelpCommand: Command {
                     it.aliases.any { alias -> alias.lowercase() == commandName.lowercase() }
         }
         if (command == null) {
-            executor.sendMessage("&cCommand '&f$commandName&c' not found.")
+            MessageRegistry.Commands.Help.sendCommandNotFound(executor, commandName)
             return
         }
 
         if (command.subCommands.isEmpty()) {
-            executor.sendMessage("&e--- Command Info: &f${command.name} &e---")
+            MessageRegistry.Commands.Help.sendCommandInfoHeader(executor, command.name)
             showCommandDetails(executor, command)
             return
         }
@@ -120,14 +121,14 @@ class HelpCommand: Command {
         val totalPages = ceil(uniqueSubCommands.size.toDouble() / subCommandsPerPage).toInt()
 
         if (page < 1 || page > totalPages) {
-            executor.sendMessage("&cInvalid page number.")
+            MessageRegistry.Commands.Help.sendInvalidPage(executor)
             return
         }
 
-        executor.sendMessage("&e--- Command Info: &f${command.name} &e(${page}/${totalPages}) ---")
+        MessageRegistry.Commands.Help.sendSubcommandListHeader(executor, command.name, page, totalPages)
         showCommandDetails(executor, command)
-        executor.sendMessage("&8---")
-        executor.sendMessage("&eSubcommands:")
+        MessageRegistry.Commands.Help.sendSeparator(executor)
+        MessageRegistry.Commands.Help.Fields.sendSubcommands(executor)
 
         val startIndex = (page - 1) * subCommandsPerPage
         val endIndex = (startIndex + subCommandsPerPage).coerceAtMost(uniqueSubCommands.size)
@@ -135,31 +136,31 @@ class HelpCommand: Command {
         for (i in startIndex until endIndex) {
             val subCommand = uniqueSubCommands[i]
             val pathStr = subCommand.path.joinToString(" ")
-            executor.sendMessage("&eSubcommand: &f$pathStr")
+            MessageRegistry.Commands.Help.Fields.sendSubcommand(executor, pathStr)
             if (subCommand.aliases.isNotEmpty()) {
-                executor.sendMessage("&eAliases: &f${subCommand.aliases.joinToString(", ")}")
+                MessageRegistry.Commands.Help.Fields.sendAliases(executor, subCommand.aliases.joinToString(", "))
             }
-            executor.sendMessage("&eDescription: &f${subCommand.description}")
-            executor.sendMessage("&eUsage: &f${subCommand.usage}")
+            MessageRegistry.Commands.Help.Fields.sendDescription(executor, subCommand.description)
+            MessageRegistry.Commands.Help.Fields.sendUsage(executor, subCommand.usage)
             if (subCommand.permission.isNotEmpty()) {
-                executor.sendMessage("&ePermission: &f${subCommand.permission}")
+                MessageRegistry.Commands.Help.Fields.sendPermission(executor, subCommand.permission)
             }
             if (i < endIndex - 1) {
-                executor.sendMessage("&8---")
+                MessageRegistry.Commands.Help.sendSeparator(executor)
             }
         }
-        executor.sendMessage("&e--- Page $page of $totalPages ---")
+        MessageRegistry.Commands.Help.sendFooter(executor, page, totalPages)
     }
 
     private fun showCommandDetails(executor: CommandExecutor, command: CommandInfo) {
-        executor.sendMessage("&eCommand: &f${command.name}")
+        MessageRegistry.Commands.Help.Fields.sendCommand(executor, command.name)
         if (command.aliases.isNotEmpty()) {
-            executor.sendMessage("&eAliases: &f${command.aliases.joinToString(", ")}")
+            MessageRegistry.Commands.Help.Fields.sendAliases(executor, command.aliases.joinToString(", "))
         }
-        executor.sendMessage("&eDescription: &f${command.description}")
-        executor.sendMessage("&eUsage: &f${command.usage}")
+        MessageRegistry.Commands.Help.Fields.sendDescription(executor, command.description)
+        MessageRegistry.Commands.Help.Fields.sendUsage(executor, command.usage)
         if (command.permission.isNotEmpty()) {
-            executor.sendMessage("&ePermission: &f${command.permission}")
+            MessageRegistry.Commands.Help.Fields.sendPermission(executor, command.permission)
         }
     }
 }

@@ -6,6 +6,7 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.entity.player.PlayerInfo
 
 @CommandDef(name = "unban", description = "unbans a player from the server", usage = "/unban <player>")
@@ -17,10 +18,10 @@ class UnbanCommand: Command {
         val playerName = args[0]
         val info = PlayerInfo.load(playerName)
         if(info == null || !info.isBanned){
-            executor.sendMessage("&cPlayer '&f$playerName&c' is not banned.")
+            MessageRegistry.Commands.Server.Unban.sendNotBanned(executor, playerName)
             return
         }
         info.removeBan()
-        executor.sendMessage("&aPlayer '&f$playerName&a' was unbanned.")
+        MessageRegistry.Commands.Server.Unban.sendSuccess(executor, playerName)
     }
 }

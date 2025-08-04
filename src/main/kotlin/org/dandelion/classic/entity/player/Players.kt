@@ -1,7 +1,6 @@
 package org.dandelion.classic.entity.player
 
 import io.netty.channel.Channel
-import jdk.internal.net.http.common.Log.channel
 import org.dandelion.classic.events.PlayerConnectEvent
 import org.dandelion.classic.events.PlayerPreConnectEvent
 import org.dandelion.classic.events.manager.EventDispatcher
@@ -15,6 +14,7 @@ import org.dandelion.classic.permission.Group
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.MessageRegistry
 import java.security.MessageDigest
 
 /**
@@ -48,9 +48,6 @@ object Players {
      * @param channel The Netty [Channel] for the connecting client.
      */
     internal fun handlePreConnection(clientInfo: ClientIdentification, channel: Channel) {
-        if(clientInfo.unused == 0x00.toByte()){
-            disconnectWithNoCPESupport(channel)
-        }
 
         if (!isValidProtocol(clientInfo.protocolVersion)) {
             disconnectWithInvalidProtocol(clientInfo.protocolVersion, channel)
@@ -74,6 +71,8 @@ object Players {
         }
         val player = createPlayerFromClientInfo(clientInfo, channel)
         player.levelId = Levels.getDefaultLevelId()
+        val supportsCpe = clientInfo.unused == 0x42.toByte()
+        player.supportsCpe = supportsCpe
         attemptConnection(player)
     }
 
@@ -102,6 +101,10 @@ object Players {
      */
     private fun CPEHandshake(player: Player){
         addConnecting(player)
+        if(!player.supportsCpe){
+            finalizeHandshake(player)
+            return
+        }
         PacketRegistry.sendCPEHandshake(player)
         PacketRegistry.sendCPEEntries(player)
     }
@@ -120,7 +123,7 @@ object Players {
 
         val joinLevel = Levels.getDefaultLevel()
         if (joinLevel == null) {
-            disconnectPlayerWithReason(player.channel, "Default level not available")
+            disconnectPlayerWithReason(player.channel, MessageRegistry.Server.Level.getNotAvailable())
             return
         }
 
@@ -170,7 +173,7 @@ object Players {
 
         val expectedHash = generateHash(clientInfo.userName)
         if (clientInfo.verificationKey != expectedHash) {
-            disconnectPlayerWithReason(channel, "Authentication failed - please log in properly")
+            disconnectPlayerWithReason(channel, MessageRegistry.Server.Connection.getAuthenticationFailed())
             return false
         }
 
@@ -201,10 +204,10 @@ object Players {
                 ConnectionResult.Failure("You are banned: ${player.info.banReason}")
             }
             isConnected(player) -> {
-                ConnectionResult.Failure("You are already connected to this server")
+                ConnectionResult.Failure(MessageRegistry.Server.Connection.getAlreadyConnected())
             }
             isServerFull() -> {
-                ConnectionResult.Failure("The server is full")
+                ConnectionResult.Failure(MessageRegistry.Server.Connection.getServerFull())
             }
             else -> ConnectionResult.Success
         }
@@ -252,7 +255,7 @@ object Players {
      * @param player The [Player] who joined.
      */
     internal fun notifyJoined(player: Player) {
-        val message = "&a+ &7${player.name} &ajoined the server"
+        val message = MessageRegistry.Server.Player.getJoined(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
@@ -263,7 +266,7 @@ object Players {
      * @param player The [Player] who left.
      */
     internal fun notifyLeft(player: Player) {
-        val message = "&c- &7${player.name} &cleft the server"
+        val message = MessageRegistry.Server.Player.getLeft(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
@@ -275,7 +278,7 @@ object Players {
      * @param level The [Level] the player joined.
      */
     internal fun notifyJoinedLevel(player: Player, level: Level) {
-        val message = "&e* &7${player.name} &ejoined level &7${level.id}"
+        val message = MessageRegistry.Server.Player.getJoinedLevel(player.name, level.id)
         Console.log(message)
         broadcastMessage(message)
     }
@@ -425,12 +428,12 @@ object Players {
      * @param channel The Netty [Channel] to disconnect.
      */
     private fun disconnectWithInvalidProtocol(version: Byte, channel: Channel) {
-        val message = "Invalid protocol version ($version, expected $EXPECTED_PROTOCOL_VERSION)"
+        val message = MessageRegistry.Server.Connection.getInvalidProtocol(version.toInt(), EXPECTED_PROTOCOL_VERSION.toInt())
         ServerDisconnectPlayer(message).send(channel)
     }
 
     private fun disconnectWithNoCPESupport(channel: Channel){
-        val message = "Your client does not support CPE (disable classic mode)"
+        val message = MessageRegistry.Server.Connection.getNoCpeSupport()
         ServerDisconnectPlayer(message).send(channel)
     }
     /**
