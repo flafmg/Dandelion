@@ -1,4 +1,4 @@
-# Dandelion Server Messages Configuration
+# dandelion server messages configuration
 server:
   connection:
     invalid_protocol: "&cInvalid protocol version ({version}, expected {expected})"
@@ -19,7 +19,7 @@ server:
     being_unloaded: "&eLevel is being unloaded"
 
   chat_format:
-    player: "{player}: &f{message}"
+    player: "{player}: &7{message}"
     console: "[{level}] {player}: {message}"
     say: "[{sender}] {message}"
 

@@ -59,15 +59,7 @@ class Player(
     internal var supportedCpeCount: Short = 0
 
     var heldBlock: Byte = 0x00
-    var canFly: Boolean = true
-    var canNoClip: Boolean = true
-    var canSpeed: Boolean = true
-    var canSpawnControl: Boolean = true
-    var canThirdPerson: Boolean = true
-    var jumpHeight: Short = -1
-    var clickDistance: Short = 160
 
-    var motd: String = ""
 
     override val permissions: List<String>
         get() = PermissionRepository.getPermissionList(name)
@@ -402,6 +394,7 @@ class Player(
      * @param level The [Level] the player has been transferred to.
      */
     private fun finalizeLevelTransfer(level: Level) {
+        setSpawnPoint(level.spawn)
         teleportTo(level.spawn)
         level.spawnPlayerInLevel(this)
         ServerLevelFinalize(level.size.x, level.size.y, level.size.z).send(channel)
@@ -533,77 +526,106 @@ class Player(
 
     //region hack control
 
-    /**
-     * Enables or disables flying for the player and updates the hack control state.
-     *
-     * @param canFly true to allow flying, false to disallow.
-     */
-    fun setCanFly(canFly: Boolean) {
-        this.canFly = canFly
-        if(!supports("HackControl")) return
-        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
-    }
 
     /**
-     * Enables or disables noclip for the player and updates the hack control state.
-     *
-     * @param canNoClip true to allow noclip, false to disallow.
+     * Indicates whether the player can fly.
      */
-    fun setCanNoClip(canNoClip: Boolean) {
-        this.canNoClip = canNoClip
-        if(!supports("HackControl")) return
-        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
-    }
+    var canFly: Boolean = true
+        /**
+         * Enables or disables flying for the player and updates the hack control state.
+         *
+         * @param canFly true to allow flying, false to disallow.
+         */
+        set(value) {
+            field = value
+            if(!supports("HackControl")) return
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
 
     /**
-     * Enables or disables speed for the player and updates the hack control state.
-     *
-     * @param canSpeed true to allow speed, false to disallow.
+     * Indicates whether the player can use noclip.
      */
-    fun setCanSpeed(canSpeed: Boolean) {
-        this.canSpeed = canSpeed
-        if(!supports("HackControl")) return
-        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
-    }
+    var canNoClip: Boolean = true
+        /**
+         * Enables or disables noclip for the player and updates the hack control state.
+         *
+         * @param canNoClip true to allow noclip, false to disallow.
+         */
+        set(value) {
+            field = value
+            if(!supports("HackControl")) return
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
 
     /**
-     * Enables or disables spawn control for the player and updates the hack control state.
-     *
-     * @param canSpawnControl true to allow spawn control, false to disallow.
+     * Indicates whether the player can use speed.
      */
-    fun setCanSpawnControl(canSpawnControl: Boolean) {
-        this.canSpawnControl = canSpawnControl
-        if(!supports("HackControl")) return
-        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
-    }
+    var canSpeed: Boolean = true
+        /**
+         * Enables or disables speed for the player and updates the hack control state.
+         *
+         * @param canSpeed true to allow speed, false to disallow.
+         */
+        set(value) {
+            field = value
+            if(!supports("HackControl")) return
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
 
     /**
-     * Enables or disables third person view for the player and updates the hack control state.
-     *
-     * @param canThirdPerson true to allow third person, false to disallow.
+     * Indicates whether the player can use spawn control.
      */
-    fun setCanThirdPerson(canThirdPerson: Boolean) {
-        this.canThirdPerson = canThirdPerson
-        if(!supports("HackControl")) return
-        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
-    }
+    var canSpawnControl: Boolean = true
+        /**
+         * Enables or disables spawn control for the player and updates the hack control state.
+         *
+         * @param canSpawnControl true to allow spawn control, false to disallow.
+         */
+        set(value) {
+            field = value
+            if(!supports("HackControl")) return
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
 
     /**
-     * Sets the jump height for the player and updates the hack control state.
-     *
-     * @param jumpHeight the new jump height value.
+     * Indicates whether the player can use third person view.
      */
-    fun setJumpHeight(jumpHeight: Short) {
-        this.jumpHeight = jumpHeight
-        if(!supports("HackControl")) return
-        ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
-    }
+    var canThirdPerson: Boolean = true
+        /**
+         * Enables or disables third person view for the player and updates the hack control state.
+         *
+         * @param canThirdPerson true to allow third person, false to disallow.
+         */
+        set(value) {
+            field = value
+            if(!supports("HackControl")) return
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
 
-    fun setClickDistance(distance: Short) {
-        clickDistance = distance
-        if(!supports("ClickDistance")) return
-        ServerClickDistance(distance).send(channel)
-    }
+    /**
+     * The jump height value for the player.
+     */
+    var jumpHeight: Short = -1
+        /**
+         * Sets the jump height for the player and updates the hack control state.
+         *
+         * @param jumpHeight the new jump height value.
+         */
+        set(value) {
+            field = value
+            if(!supports("HackControl")) return
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
+
+    /**
+     * The maximum click distance for the player.
+     */
+    var clickDistance: Short = 160
+        set(value) {
+            field = value
+            if(!supports("ClickDistance")) return
+            ServerClickDistance(value).send(channel)
+        }
 
     //endregion
 
@@ -613,9 +635,12 @@ class Player(
      * @param position The [Position] to set as the spawn point.
      */
     fun setSpawnPoint(position: Position) {
-        setSpawnPoint(position.x.toInt().toShort(),
-            position.y.toInt().toShort(), position.z.toInt().toShort(),
-            position.yaw.toInt().toByte(), position.pitch.toInt().toByte()
+        setSpawnPoint(
+            (position.x * 32).toInt().toShort(),
+            (position.y * 32).toInt().toShort(),
+            (position.z * 32).toInt().toShort(),
+            position.yaw.toInt().toByte(),
+            position.pitch.toInt().toByte()
         )
     }
 
@@ -634,19 +659,24 @@ class Player(
     }
 
     /**
-     * sets this players motd
-     *
-     * @param motd the mots to set
+     * The message of the day (MOTD) for this player.
+     * It is showed when the player joins a level
      */
-    fun setMotd(motd: String){
-        this.motd = motd
-        ServerIdentification(serverMotd = motd).send(channel)
-        if(!supports("InstantMOTD")){
-            if(level == null) return
-            joinLevel(level!!, false)
+    var motd: String = ""
+        /**
+         * sets this players motd
+         *
+         * @param motd the mots to set
+         */
+        set(value){
+            field = value
+            if(supports("InstantMOTD")){
+                ServerIdentification(serverMotd = value).send(channel)
+            } else {
+                if(level == null) return
+                joinLevel(level!!, false)
+            }
         }
-
-    }
 
     //region permissions and Groups
 

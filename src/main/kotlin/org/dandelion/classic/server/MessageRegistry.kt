@@ -81,9 +81,9 @@ internal object MessageRegistry {
         }
 
         object Chat {
-            fun getPlayerFormat(player: org.dandelion.classic.entity.player.Player, message: String): String = getMessage("server.chat_format.player", "player" to player.displayName, "level" to player.levelId, "group" to PermissionRepository.getGroup(PermissionRepository.getHighestGroup(player.name))!!.displayName) //WHATAFUK IS THIS LINE
+            fun getPlayerFormat(player: org.dandelion.classic.entity.player.Player, message: String): String = getMessage("server.chat_format.player", "player" to player.displayName, "level" to player.levelId, "group" to PermissionRepository.getGroup(PermissionRepository.getHighestGroup(player.name))!!.displayName, "message" to message) //WHATAFUK IS THIS LINE
 
-            fun getConsoleFormat(player: org.dandelion.classic.entity.player.Player, message: String): String = getMessage("server.chat_format.console", "player" to player.displayName, "level" to player.levelId, "group" to PermissionRepository.getGroup(PermissionRepository.getHighestGroup(player.name))!!.displayName)
+            fun getConsoleFormat(player: org.dandelion.classic.entity.player.Player, message: String): String = getMessage("server.chat_format.console", "player" to player.displayName, "level" to player.levelId, "group" to PermissionRepository.getGroup(PermissionRepository.getHighestGroup(player.name))!!.displayName, "message" to message)
 
             fun getSayFormat(executor: CommandExecutor, message: String): String = getMessage("server.chat_format.say", "sender" to executor.name, "message" to message)
         }
@@ -116,7 +116,7 @@ internal object MessageRegistry {
                 fun sendAlreadyBanned(executor: CommandExecutor, player: String) {
                     sendMessage(executor, "commands.server.ban.already_banned", "player" to player)
                 }
-                fun getDefaultReason(): String = getMessage("server.ban.default_reason")
+                fun getDefaultReason(): String = getMessage("commands.server.ban.default_reason")
             }
             object Unban {
                 fun sendSuccess(executor: CommandExecutor, player: String) {
@@ -130,13 +130,13 @@ internal object MessageRegistry {
                 fun sendSuccess(executor: CommandExecutor, player: String) {
                     sendMessage(executor, "commands.server.kick.success", "player" to player)
                 }
-                fun getDefaultReason(): String = getMessage("server.kick.default_reason")
+                fun getDefaultReason(): String = getMessage("commands.server.kick.default_reason")
             }
             object Stop {
                 fun sendShuttingDown(executor: CommandExecutor) {
                     sendMessage(executor, "commands.server.stop.shutting_down")
                 }
-                fun getKickMessage(): String = getMessage("server.stop.kick_message")
+                fun getKickMessage(): String = getMessage("commands.server.stop.kick_message")
             }
             object Info {
                 fun sendHeader(executor: CommandExecutor) {
@@ -171,9 +171,9 @@ internal object MessageRegistry {
                 }
                 fun sendBannedStatus(executor: CommandExecutor, isBanned: Boolean, reason: String = "") {
                     val status = if (isBanned) {
-                        getMessage("player.info.banned_yes", "reason" to reason)
+                        getMessage("commands.player.info.banned_yes", "reason" to reason)
                     } else {
-                        getMessage("player.info.banned_no")
+                        getMessage("commands.player.info.banned_no")
                     }
                     sendMessage(executor, "commands.player.info.banned", "status" to status)
                 }
@@ -193,7 +193,7 @@ internal object MessageRegistry {
                 fun sendJoinCount(executor: CommandExecutor, count: Int) {
                     sendMessage(executor, "commands.player.info.join_count", "count" to count)
                 }
-                fun getUnknownClient(): String = getMessage("player.info.unknown_client")
+                fun getUnknownClient(): String = getMessage("commands.player.info.unknown_client")
             }
         }
         object Online {
