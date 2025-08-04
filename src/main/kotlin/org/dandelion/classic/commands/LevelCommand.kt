@@ -25,21 +25,20 @@ import kotlin.math.ceil
 )
 class LevelCommand : Command {
 
-    @OnSubCommand(name = "create", description = "Create a new level", usage = "/level create <id> <description> <sizeX> <sizeY> <sizeZ> <generator> [params]")
+    @OnSubCommand(name = "create", description = "Create a new level", usage = "/level create <id> <sizeX> <sizeY> <sizeZ> <generator> [params]")
     @RequirePermission("dandelion.level.create")
     fun createLevel(executor: CommandExecutor, args: Array<String>) {
-        if (args.size < 6) {
+        if (args.size < 5) {
             MessageRegistry.Commands.Level.Create.sendUsage(executor)
             return
         }
 
         val id = args[0]
-        val description = args[1]
-        val sizeX = args[2].toIntOrNull()
-        val sizeY = args[3].toIntOrNull()
-        val sizeZ = args[4].toIntOrNull()
-        val generatorId = args[5]
-        val params = if (args.size > 6) args.slice(6 until args.size).joinToString(" ") else ""
+        val sizeX = args[1].toIntOrNull()
+        val sizeY = args[2].toIntOrNull()
+        val sizeZ = args[3].toIntOrNull()
+        val generatorId = args[4]
+        val params = if (args.size > 5) args.slice(5 until args.size).joinToString(" ") else ""
 
         if (sizeX == null || sizeY == null || sizeZ == null) {
             MessageRegistry.Commands.Level.Create.sendInvalidDimensions(executor)
@@ -65,7 +64,7 @@ class LevelCommand : Command {
         val spawn = Position(sizeX / 2f, sizeY / 2f, sizeZ / 2f)
         val size = SVec(sizeX.toShort(), sizeY.toShort(), sizeZ.toShort())
 
-        val level = Levels.createLevel(id, author, description, size, spawn, generator, params)
+        val level = Levels.createLevel(id, author, "", size, spawn, generator, params)
         if (level != null) {
             MessageRegistry.Commands.Level.Create.sendSuccess(executor, id)
         } else {
@@ -509,7 +508,7 @@ class LevelCommand : Command {
 
     private fun handleDescriptionProperty(executor: CommandExecutor, args: Array<String>) {
         if (args.size < 3) {
-            executor.sendMessage("&cUsage: /level set description <levelId> <description>")
+            MessageRegistry.Commands.Level.Set.Description.sendUsage(executor)
             return
         }
 
@@ -521,7 +520,8 @@ class LevelCommand : Command {
         }
 
         val description = args.slice(2 until args.size).joinToString(" ")
-        executor.sendMessage("&aDescription intended to be updated for level '&7$levelId&a'. (Implementation needed in Level class)")
+        level.description = description
+        MessageRegistry.Commands.Level.Set.Description.sendSuccess(executor, levelId, description)
     }
 
     private fun handleTextureProperty(executor: CommandExecutor, args: Array<String>) {

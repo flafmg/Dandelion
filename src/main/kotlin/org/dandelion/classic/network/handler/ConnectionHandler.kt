@@ -83,7 +83,7 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
     private fun handleChannelError(ctx: ChannelHandlerContext, channelKey: String, reason: String) {
         try {
             channelBuffers.remove(channelKey)
-            Players.handleDisconnection(ctx.channel())
+            Players.forceDisconnect(ctx.channel())
 
             Console.log("Closing connection for channel $channelKey due to: $reason")
             if (ctx.channel().isActive) {

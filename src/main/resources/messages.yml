@@ -109,7 +109,7 @@ commands:
       invalid_dimensions: "&cInvalid dimensions. Please provide valid numbers."
       invalid_generator: "&cGenerator '{generator}' not found."
       available_generators: "&7Available generators: {generators}"
-      usage: "&cUsage: /level create <id> <description> <sizeX> <sizeY> <sizeZ> <generator> [params]"
+      usage: "&cUsage: /level create <id> <sizeX> <sizeY> <sizeZ> <generator> [params]"
     load:
       success: "&aLevel '&7{id}&a' loaded successfully."
       failed: "&cFailed to load level '&7{id}&c'. Check if the file exists or if the level is already loaded."
@@ -183,6 +183,9 @@ commands:
       default:
         success: "&aDefault level set to '&7{id}&a'."
         usage: "&cUsage: /level set default <levelId>"
+      description:
+        success: "&aDescription set to '&7{description}&a' for level '&7{id}&a'."
+        usage: "&cUsage: /level set description <levelId> <description>"
     env:
       usage: "&cUsage: /level env <property> <levelId> <value>"
       properties: "&eProperties: &7texture, weather, blocks, height, fog, speed, fade, offset, colors"

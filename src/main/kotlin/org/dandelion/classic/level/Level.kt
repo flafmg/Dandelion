@@ -36,7 +36,7 @@ import kotlin.collections.filter
 class Level(
     val id: String,
     val author: String,
-    val description: String,
+    var description: String,
     val size: SVec,
     var spawn: Position,
     var extraData: String = "",

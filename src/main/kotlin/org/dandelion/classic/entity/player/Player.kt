@@ -27,7 +27,6 @@ import org.dandelion.classic.server.ServerInfo
 import org.dandelion.classic.types.MessageType
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.util.toFShort
-import org.jetbrains.annotations.Blocking
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 /**
@@ -334,7 +333,8 @@ class Player(
      * @param level The [Level] whose data should be transmitted.
      */
     private suspend fun transmitLevelData(level: Level) {
-        val compressedLevelData = compressLevelData(level)
+        val blocskWithFallback = substituteBlocksForFallback(level.blocks)
+        val compressedLevelData = compressLevelData(level, blocskWithFallback)
         sendLevelDataInChunks(compressedLevelData)
         finalizeLevelTransfer(level)
     }
@@ -344,8 +344,7 @@ class Player(
      * @param level The [Level] whose block data should be compressed.
      * @return The compressed byte array containing the prefixed block data.
      */
-    private fun compressLevelData(level: Level): ByteArray {
-        val blockData = level.blocks
+    private fun compressLevelData(level: Level, blockData: ByteArray): ByteArray {
         val prefixedData = createPrefixedBlockData(blockData)
         return ByteArrayOutputStream().use { outputStream ->
             GZIPOutputStream(outputStream).use { gzipStream ->
@@ -353,6 +352,38 @@ class Player(
             }
             outputStream.toByteArray()
         }
+    }
+
+    /**
+     * Substitutes blocks with their fallback IDs based on client CPE support
+     *
+     * @param originalBlockData The original block data byte array
+     * @return A new byte array with blocks substituted for their fallback IDs
+     */
+    private fun substituteBlocksForFallback(originalBlockData: ByteArray): ByteArray {
+        val processedData = ByteArray(originalBlockData.size)
+        for (i in originalBlockData.indices) {
+            val blockId = originalBlockData[i]
+
+            processedData[i] = when {
+                blockId in 50..65 -> {
+                    if (!supports("CustomBlocks")) {
+                        Block.get(blockId)?.fallback ?: blockId
+                    } else {
+                        blockId
+                    }
+                }
+                blockId > 65 -> {
+                    if (!supports("BlockDefinitions")) {
+                        Block.get(blockId)?.fallback ?: blockId
+                    } else {
+                        blockId
+                    }
+                }
+                else -> blockId
+            }
+        }
+         return processedData
     }
     /**
      * Creates block data with 4-byte size prefix

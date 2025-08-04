@@ -249,6 +249,27 @@ object Players {
         }
     }
 
+    /**
+     * Forces player disconnection without sending any packets to the client.
+     * This method should be used when there are connection errors and the channel may be corrupted.
+     * Only removes the player instance and notifies server-side that the player left.
+     *
+     * @param channel The Netty [Channel] of the player to force disconnect.
+     */
+    internal fun forceDisconnect(channel: Channel) {
+        connectingPlayers[channel]?.let { connectingPlayer ->
+            removeConnecting(connectingPlayer)
+            connectingPlayer.level?.removeEntity(connectingPlayer)
+            return
+        }
+
+        getAllPlayers().find { it.channel == channel }?.let { connectedPlayer ->
+            connectedPlayer.level?.removeEntity(connectedPlayer)
+            connectedPlayer.info.recordDisconnect()
+            notifyLeft(connectedPlayer)
+        }
+    }
+
     //endregion
 
     //region Authentication & Validation

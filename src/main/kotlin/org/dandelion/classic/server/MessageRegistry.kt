@@ -149,13 +149,13 @@ internal object MessageRegistry {
                     sendMessage(executor, "commands.server.info.uptime", "uptime" to uptime)
                 }
                 fun sendPublic(executor: CommandExecutor, isPublic: Boolean) {
-                    val status = if (isPublic) getMessage("server.info.public_yes") else getMessage("server.info.public_no")
+                    val status = if (isPublic) getMessage("server.info.public_yes") else getMessage("commands.server.info.public_no")
                     sendMessage(executor, "commands.server.info.public", "status" to status)
                 }
             }
         }
         object Chat {
-            fun getSayFormat(): String = getMessage("chat.say.format")
+            fun getSayFormat(): String = getMessage("commands.chat.say.format")
 
             fun sendNoPlayersOnline(executor: CommandExecutor) {
                 sendMessage(executor, "commands.chat.no_players_online")
@@ -428,7 +428,7 @@ internal object MessageRegistry {
                 fun sendSuccess(executor: CommandExecutor, count: Int, id: String) {
                     sendMessage(executor, "commands.level.kick.success", "count" to count, "id" to id)
                 }
-                fun getDefaultReason(): String = getMessage("level.kick.default_reason")
+                fun getDefaultReason(): String = getMessage("commands.level.kick.default_reason")
 
                 fun sendUsage(executor: CommandExecutor) {
                     sendMessage(executor, "commands.level.kick.usage")
@@ -494,6 +494,14 @@ internal object MessageRegistry {
                         sendMessage(executor, "commands.level.set.default.usage")
                     }
                 }
+                object Description {
+                    fun sendSuccess(executor: CommandExecutor, id: String, description: String) {
+                        sendMessage(executor, "commands.level.set.description.success", "id" to id, "description" to description)
+                    }
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(executor, "commands.level.set.description.usage")
+                    }
+                }
             }
             object Env {
                 fun sendUsage(executor: CommandExecutor) {
@@ -555,7 +563,7 @@ internal object MessageRegistry {
                 fun sendFailed(executor: CommandExecutor, id: String) {
                     sendMessage(executor, "commands.level.reload.failed", "id" to id)
                 }
-                fun getKickMessage(): String = getMessage("level.reload.kick_message")
+                fun getKickMessage(): String = getMessage("commands.level.reload.kick_message")
 
                 fun sendUsage(executor: CommandExecutor) {
                     sendMessage(executor, "commands.level.reload.usage")
@@ -698,8 +706,8 @@ internal object MessageRegistry {
                     fun sendPermissionEntry(executor: CommandExecutor, permission: String, status: String) {
                         sendMessage(executor, "commands.permission.group.info.permission_entry", "permission" to permission, "status" to status)
                     }
-                    fun getGranted(): String = getMessage("permission.group.info.granted")
-                    fun getRevoked(): String = getMessage("permission.group.info.revoked")
+                    fun getGranted(): String = getMessage("commands.permission.group.info.granted")
+                    fun getRevoked(): String = getMessage("commands.permission.group.info.revoked")
 
                     fun sendUsage(executor: CommandExecutor) {
                         sendMessage(executor, "commands.permission.group.info.usage")
@@ -863,8 +871,8 @@ internal object MessageRegistry {
                     fun sendOwnFormat(executor: CommandExecutor, permission: String, status: String) {
                         sendMessage(executor, "commands.permission.player.permissions.own_format", "permission" to permission, "status" to status)
                     }
-                    fun getCheckYes(): String = getMessage("permission.player.permissions.check_yes")
-                    fun getCheckNo(): String = getMessage("permission.player.permissions.check_no")
+                    fun getCheckYes(): String = getMessage("commands.permission.player.permissions.check_yes")
+                    fun getCheckNo(): String = getMessage("commands.permission.player.permissions.check_no")
 
                     fun sendCheckResult(executor: CommandExecutor, player: String, permission: String, status: String) {
                         sendMessage(executor, "commands.permission.player.permissions.check_result", "player" to player, "permission" to permission, "status" to status)
