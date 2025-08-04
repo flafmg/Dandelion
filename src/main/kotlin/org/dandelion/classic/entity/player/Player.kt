@@ -23,6 +23,7 @@ import org.dandelion.classic.network.packets.cpe.server.ServerSetSpawnpoint
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
+import org.dandelion.classic.server.ServerInfo
 import org.dandelion.classic.types.MessageType
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.util.toFShort
@@ -70,20 +71,16 @@ class Player(
 
 
     //region cpe support
-    fun addCPE(name: String, version: Int) {
+    fun addCPE(name: String, version: Int = 1) {
         if (!supportedCPE.any { it.first == name && it.second == version }) {
             supportedCPE.add(name to version)
         }
     }
 
-    fun addCPE(name: String) {
-        addCPE(name, 1)
-    }
     fun supports(name: String, version: Int? = null): Boolean {
-        return if (version == null) {
-            supportedCPE.any { it.first == name }
-        } else {
-            supportedCPE.any { it.first == name && it.second == version }
+        return when (version) {
+            null -> supportedCPE.any { it.first == name }
+            else -> supportedCPE.any { it.first == name && it.second == version }
         }
     }
 
@@ -91,9 +88,7 @@ class Player(
         supportedCPE.removeIf { it.first == name && it.second == version }
     }
 
-    fun getCPE(): List<Pair<String, Int>> {
-        return supportedCPE.toList()
-    }
+    fun getCPE(): List<Pair<String, Int>> = supportedCPE.toList()
     //endregion
 
     //region message system
@@ -122,15 +117,16 @@ class Player(
      * @param messageTypeId An optional byte identifier for the type of message. Defaults to `0x00`.
      */
     fun sendMessage(message: String, messageTypeId: Byte = 0x00) {
-        if (messageTypeId == 0x00.toByte()) {
-        val messageChunks = splitMessageIntoChunks(message)
-        messageChunks.forEach { chunk ->
-            ServerMessage(messageTypeId, chunk).send(channel)
-        }
-        } else {
-            ServerMessage(messageTypeId, message).send(channel)
+        when (messageTypeId) {
+            0x00.toByte() -> {
+                splitMessageIntoChunks(message).forEach { chunk ->
+                    ServerMessage(messageTypeId, chunk).send(channel)
+                }
+            }
+            else -> ServerMessage(messageTypeId, message).send(channel)
         }
     }
+
     /**
      * Splits long messages into chunks while preserving color codes and word boundaries
      *
@@ -139,22 +135,25 @@ class Player(
      * @return A list of message chunk strings.
      */
     private fun splitMessageIntoChunks(message: String, maxLength: Int = MAX_MESSAGE_LENGTH): List<String> {
-        if (message.length <= maxLength) {
-            return listOf(message)
-        }
+        if (message.length <= maxLength) return listOf(message)
+
         val chunks = mutableListOf<String>()
         var remainingText = message
         var lastColorCode = ""
+
         while (remainingText.length > maxLength) {
             val splitIndex = findOptimalSplitIndex(remainingText, maxLength)
             val currentChunk = remainingText.substring(0, splitIndex)
+
             lastColorCode = extractLastColorCode(currentChunk)
             chunks.add(currentChunk)
             remainingText = prepareContinuationText(remainingText, splitIndex, lastColorCode)
         }
+
         if (remainingText.isNotEmpty()) {
             chunks.add(remainingText)
         }
+
         return chunks
     }
 
@@ -169,6 +168,7 @@ class Player(
         val lastSpaceIndex = text.substring(0, maxLength).lastIndexOf(' ')
         return if (lastSpaceIndex > 0) lastSpaceIndex else maxLength
     }
+
     /**
      * Extracts the last color code from a text chunk
      *
@@ -176,10 +176,11 @@ class Player(
      * @return The last color code string found, or an empty string if none.
      */
     private fun extractLastColorCode(text: String): String {
-        val colorCodeRegex = COLOR_CODE_REGEX.toRegex()
-        val colorMatches = colorCodeRegex.findAll(text)
-        return if (colorMatches.any()) colorMatches.last().value else ""
+        return COLOR_CODE_REGEX.toRegex()
+            .findAll(text)
+            .lastOrNull()?.value ?: ""
     }
+
     /**
      * Prepares the continuation text for the next chunk with proper color code handling
      *
@@ -191,17 +192,21 @@ class Player(
     private fun prepareContinuationText(text: String, splitIndex: Int, lastColorCode: String): String {
         val hasSpaceSplit = text.substring(0, splitIndex).contains(' ')
         val continuationStart = if (hasSpaceSplit) splitIndex + 1 else splitIndex
-        var continuation = if (continuationStart < text.length) {
+
+        val continuation = if (continuationStart < text.length) {
             text.substring(continuationStart)
         } else {
             ""
         }
-        if (lastColorCode.isNotEmpty() && continuation.isNotEmpty() && !continuation.startsWith("&")) {
-            continuation = lastColorCode + continuation
+
+        return when {
+            lastColorCode.isNotEmpty() && continuation.isNotEmpty() && !continuation.startsWith("&") ->
+                lastColorCode + continuation
+            else -> continuation
         }
-        return continuation
     }
     //endregion
+
     //region Player Management
     /**
      * Kicks the player from the server with a specified reason
@@ -223,6 +228,7 @@ class Player(
     }
     //endregion
     //region Position Management
+
     /**
      * Updates player position and sends the update to the player's client
      *
@@ -255,15 +261,15 @@ class Player(
         forceAbsolute: Boolean
     ) {
         val newPosition = Position(newX, newY, newZ, newYaw, newPitch)
-        if (this.position == newPosition) {
-            return
-        }
+
+        if (this.position == newPosition) return
+
         val moveEvent = PlayerMoveEvent(this, this.position, newPosition)
         EventDispatcher.dispatch(moveEvent)
-        if (moveEvent.isCancelled) {
-            rejectMovement(moveEvent.from)
-        } else {
-            super.updatePositionAndOrientation(newX, newY, newZ, newYaw, newPitch, forceAbsolute)
+
+        when {
+            moveEvent.isCancelled -> rejectMovement(moveEvent.from)
+            else -> super.updatePositionAndOrientation(newX, newY, newZ, newYaw, newPitch, forceAbsolute)
         }
     }
 
@@ -284,7 +290,9 @@ class Player(
         position.set(originalPosition.x, originalPosition.y, originalPosition.z, originalPosition.yaw, originalPosition.pitch)
     }
     //endregion
+
     //region Level Management
+
     /**
      * Transfers the player to a new level with full level data transmission
      *
@@ -294,23 +302,26 @@ class Player(
     @OptIn(DelicateCoroutinesApi::class)
     override fun joinLevel(level: Level, notifyJoin: Boolean) {
         initializeLevelTransfer()
+
         if (!level.tryAddEntity(this)) {
             sendMessage(MessageRegistry.Server.Level.getFull())
             return
         }
-        if(this.level != null) {
-            val event = PlayerChangeLevel(this, this.level!!, level)
+
+        this.level?.let { currentLevel ->
+            val event = PlayerChangeLevel(this, currentLevel, level)
             EventDispatcher.dispatch(event)
-            if(event.isCancelled){
-                return
-            }
+            if (event.isCancelled) return
         }
+
         this.level = level
-        if(notifyJoin) Players.notifyJoinedLevel(this, level)
+        if (notifyJoin) Players.notifyJoinedLevel(this, level)
+
         GlobalScope.launch {
             transmitLevelData(level)
         }
     }
+
     /**
      * Initializes the level transfer process
      */
@@ -365,11 +376,13 @@ class Player(
      * @param compressedData The compressed level data byte array to send.
      */
     private fun sendLevelDataInChunks(compressedData: ByteArray) {
-        for (chunkStart in compressedData.indices step LEVEL_DATA_CHUNK_SIZE) {
+        compressedData.indices.step(LEVEL_DATA_CHUNK_SIZE).forEach { chunkStart ->
             val remainingBytes = compressedData.size - chunkStart
             val chunkSize = remainingBytes.coerceAtMost(LEVEL_DATA_CHUNK_SIZE)
             val chunk = ByteArray(chunkSize)
+
             System.arraycopy(compressedData, chunkStart, chunk, 0, chunkSize)
+
             val progressPercent = calculateTransferProgress(chunkStart, chunkSize, compressedData.size)
             ServerLevelDataChunk(chunkSize.toShort(), chunk, progressPercent).send(channel)
         }
@@ -424,29 +437,31 @@ class Player(
     }
     //endregion
     //region Communication
+
     /**
      * Handles player chat messages and commands
      *
      * @param message The message string sent by the player.
      */
     override fun sendMessageAs(message: String) {
-
-        val message = message.replace("%", "&")
-        val event = PlayerSendMessageEvent(this, message)
+        val processedMessage = message.replace("%", "&")
+        val event = PlayerSendMessageEvent(this, processedMessage)
         EventDispatcher.dispatch(event)
-        if(event.isCancelled) return
 
-        val messageFormat = MessageRegistry.Server.Chat.getPlayerFormat(this, message)
-        val consoleFormat = MessageRegistry.Server.Chat.getConsoleFormat(this, message)
+        if (event.isCancelled) return
+
+        val messageFormat = MessageRegistry.Server.Chat.getPlayerFormat(this, processedMessage)
+        val consoleFormat = MessageRegistry.Server.Chat.getConsoleFormat(this, processedMessage)
 
         Console.log(consoleFormat)
-        if (message.startsWith("/")) {
-            sendCommand(message)
-            return
+
+        when {
+            processedMessage.startsWith("/") -> sendCommand(processedMessage)
+            else -> Levels.broadcast(messageFormat)
         }
-        Levels.broadcast(messageFormat)
     }
     //endregion
+
     //region Block Updates
     /**
      * Sends block update to this specific player
@@ -526,95 +541,58 @@ class Player(
 
     //region hack control
 
-
     /**
      * Indicates whether the player can fly.
      */
     var canFly: Boolean = true
-        /**
-         * Enables or disables flying for the player and updates the hack control state.
-         *
-         * @param canFly true to allow flying, false to disallow.
-         */
         set(value) {
             field = value
-            if(!supports("HackControl")) return
-            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+            updateHackControl()
         }
 
     /**
      * Indicates whether the player can use noclip.
      */
     var canNoClip: Boolean = true
-        /**
-         * Enables or disables noclip for the player and updates the hack control state.
-         *
-         * @param canNoClip true to allow noclip, false to disallow.
-         */
         set(value) {
             field = value
-            if(!supports("HackControl")) return
-            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+            updateHackControl()
         }
 
     /**
      * Indicates whether the player can use speed.
      */
     var canSpeed: Boolean = true
-        /**
-         * Enables or disables speed for the player and updates the hack control state.
-         *
-         * @param canSpeed true to allow speed, false to disallow.
-         */
         set(value) {
             field = value
-            if(!supports("HackControl")) return
-            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+            updateHackControl()
         }
 
     /**
      * Indicates whether the player can use spawn control.
      */
     var canSpawnControl: Boolean = true
-        /**
-         * Enables or disables spawn control for the player and updates the hack control state.
-         *
-         * @param canSpawnControl true to allow spawn control, false to disallow.
-         */
         set(value) {
             field = value
-            if(!supports("HackControl")) return
-            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+            updateHackControl()
         }
 
     /**
      * Indicates whether the player can use third person view.
      */
     var canThirdPerson: Boolean = true
-        /**
-         * Enables or disables third person view for the player and updates the hack control state.
-         *
-         * @param canThirdPerson true to allow third person, false to disallow.
-         */
         set(value) {
             field = value
-            if(!supports("HackControl")) return
-            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+            updateHackControl()
         }
 
     /**
      * The jump height value for the player.
      */
     var jumpHeight: Short = -1
-        /**
-         * Sets the jump height for the player and updates the hack control state.
-         *
-         * @param jumpHeight the new jump height value.
-         */
         set(value) {
             field = value
-            if(!supports("HackControl")) return
-            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+            updateHackControl()
         }
 
     /**
@@ -623,9 +601,16 @@ class Player(
     var clickDistance: Short = 160
         set(value) {
             field = value
-            if(!supports("ClickDistance")) return
-            ServerClickDistance(value).send(channel)
+            if (supports("ClickDistance")) {
+                ServerClickDistance(value).send(channel)
+            }
         }
+
+    private fun updateHackControl() {
+        if (supports("HackControl")) {
+            ServerHackControl(canFly, canNoClip, canSpeed, canSpawnControl, canThirdPerson, jumpHeight).send(channel)
+        }
+    }
 
     //endregion
 
@@ -662,19 +647,12 @@ class Player(
      * The message of the day (MOTD) for this player.
      * It is showed when the player joins a level
      */
-    var motd: String = ""
-        /**
-         * sets this players motd
-         *
-         * @param motd the mots to set
-         */
-        set(value){
+    var motd: String = ServerInfo.motd
+        set(value) {
             field = value
-            if(supports("InstantMOTD")){
-                ServerIdentification(serverMotd = value).send(channel)
-            } else {
-                if(level == null) return
-                joinLevel(level!!, false)
+            when {
+                supports("InstantMOTD") -> ServerIdentification(serverMotd = value).send(channel)
+                level != null -> joinLevel(level!!, false)
             }
         }
 

@@ -271,11 +271,12 @@ class Level(
      * @param type The weather type (0 = sunny, 1 = raining, 2 = snowing)
      */
     fun setWeatherType(type: Byte) {
-        if (type in 0..2) {
-            weatherType = type
-            ServerEnvWeatherType(type).send(getPlayers())
-        } else {
-            Console.warnLog("Invalid weather type $type, ignoring")
+        when {
+            type in 0..2 -> {
+                weatherType = type
+                ServerEnvWeatherType(type).send(getPlayers())
+            }
+            else -> Console.warnLog("Invalid weather type $type, ignoring")
         }
     }
 
@@ -293,7 +294,7 @@ class Level(
      */
     fun setSkyColor(color: Color?) {
         skyColor = color
-        val colorPacket = ServerEnvColors(
+        ServerEnvColors(
             0,
             color?.red ?: -1,
             color?.green ?: -1,
@@ -315,7 +316,7 @@ class Level(
      */
     fun setCloudColor(color: Color?) {
         cloudColor = color
-        val colorPacket = ServerEnvColors(
+        ServerEnvColors(
             1,
             color?.red ?: -1,
             color?.green ?: -1,
@@ -337,7 +338,7 @@ class Level(
      */
     fun setFogColor(color: Color?) {
         fogColor = color
-        val colorPacket = ServerEnvColors(
+        ServerEnvColors(
             2,
             color?.red ?: -1,
             color?.green ?: -1,
@@ -359,7 +360,7 @@ class Level(
      */
     fun setAmbientLightColor(color: Color?) {
         ambientLightColor = color
-        val colorPacket = ServerEnvColors(
+        ServerEnvColors(
             3,
             color?.red ?: -1,
             color?.green ?: -1,
@@ -381,7 +382,7 @@ class Level(
      */
     fun setDiffuseLightColor(color: Color?) {
         diffuseLightColor = color
-        val colorPacket = ServerEnvColors(
+        ServerEnvColors(
             4,
             color?.red ?: -1,
             color?.green ?: -1,
@@ -403,7 +404,7 @@ class Level(
      */
     fun setSkyboxColor(color: Color?) {
         skyboxColor = color
-        val colorPacket = ServerEnvColors(
+        ServerEnvColors(
             5,
             color?.red ?: -1,
             color?.green ?: -1,
@@ -424,44 +425,40 @@ class Level(
      *
      * @param player the [Player] that will receive the env update
      */
-    fun sendEnv(player: Player){
-        val weather = ServerEnvWeatherType(weatherType)
-        weather.send(player)
+    fun sendEnv(player: Player) {
+        ServerEnvWeatherType(weatherType).send(player)
 
         listOf(
-            Pair(0, skyColor),
-            Pair(1, cloudColor),
-            Pair(2, fogColor),
-            Pair(3, ambientLightColor),
-            Pair(4, diffuseLightColor),
-            Pair(5, skyboxColor)
+            0 to skyColor,
+            1 to cloudColor,
+            2 to fogColor,
+            3 to ambientLightColor,
+            4 to diffuseLightColor,
+            5 to skyboxColor
         ).forEach { (variable, color) ->
-            if (color != null) {
-                val colorPacket = ServerEnvColors(variable.toByte(), color.red, color.green, color.blue)
-                colorPacket.send(player)
+            color?.let {
+                ServerEnvColors(variable.toByte(), it.red, it.green, it.blue).send(player)
             }
         }
 
-        if(texturePackUrl.isNotEmpty()){
-            val texture = ServerSetMapEnvUrl(texturePackUrl)
-            texture.send(player)
+        if (texturePackUrl.isNotEmpty()) {
+            ServerSetMapEnvUrl(texturePackUrl).send(player)
         }
 
         val exponentialFogValue = if (exponentialFog) 1 else 0
         listOf(
-            Pair(0, sideBlock.toInt()),
-            Pair(1, edgeBlock.toInt()),
-            Pair(2, edgeHeight),
-            Pair(3, cloudsHeight),
-            Pair(4, maxFogDistance),
-            Pair(5, cloudsSpeed),
-            Pair(6, weatherSpeed),
-            Pair(7, weatherFade),
-            Pair(8, exponentialFogValue),
-            Pair(9, sidesOffset)
+            0 to sideBlock.toInt(),
+            1 to edgeBlock.toInt(),
+            2 to edgeHeight,
+            3 to cloudsHeight,
+            4 to maxFogDistance,
+            5 to cloudsSpeed,
+            6 to weatherSpeed,
+            7 to weatherFade,
+            8 to exponentialFogValue,
+            9 to sidesOffset
         ).forEach { (propertyType, value) ->
-            val propertyPacket = ServerSetMapEnvProperty(propertyType.toByte(), value)
-            propertyPacket.send(player.channel)
+            ServerSetMapEnvProperty(propertyType.toByte(), value).send(player.channel)
         }
     }
 
@@ -554,12 +551,15 @@ class Level(
      */
     fun tryAddEntity(entity: Entity): Boolean {
         entity.level?.removeEntity(entity)
+
         val entityId = getNextAvailableId() ?: return false
+
         entity.entityId = entityId
         entities[entityId] = entity
         entity.level = this
         return true
     }
+
     /**
      * Removes an entity from the level by entity reference
      *
@@ -572,24 +572,29 @@ class Level(
         }
         removeEntityById(entity.entityId)
     }
+
     /**
      * Removes an entity from the level by entity ID
      *
      * @param entityId The [Byte] ID of the entity to remove.
      */
     fun removeEntityById(entityId: Byte) {
-        val entity = entities[entityId] ?: run {
+        val entity = entities[entityId]
+        if (entity == null) {
             Console.warnLog("Attempted to remove entity with ID $entityId that doesn't exist in level '$id'")
             return
         }
+
         if (entity is Player) {
             broadcastEntityDespawn(entityId)
         }
+
         freeId(entityId)
         entities.remove(entityId)
         entity.entityId = -1
         entity.level = null
     }
+
     /**
      * Notifies all other players when a player despawns
      *
@@ -721,6 +726,7 @@ class Level(
             Console.warnLog("Attempted to set block at invalid position ($x, $y, $z) in level '$id'")
             return
         }
+
         val blockIndex = calculateBlockIndex(x, y, z)
         blocks[blockIndex] = blockType
         broadcastBlockChange(x.toShort(), y.toShort(), z.toShort(), blockType)
@@ -797,13 +803,16 @@ class Level(
         val maxY = maxOf(startY, endY)
         val minZ = minOf(startZ, endZ)
         val maxZ = maxOf(startZ, endZ)
+
         if (!isValidFillArea(minX, minY, minZ, maxX, maxY, maxZ)) {
             Console.warnLog("Attempted to fill blocks outside level bounds in level '$id'")
             return
         }
+
         performBlockFill(minX, minY, minZ, maxX, maxY, maxZ, blockType)
         notifyPlayersOfAreaChange(minX, minY, minZ, maxX, maxY, maxZ)
     }
+
     /**
      * Performs the actual block filling operation
      *
@@ -865,9 +874,8 @@ class Level(
      * @return The [Byte] block type ID at the specified position, or 0x00 if the position is invalid.
      */
     fun getBlock(x: Int, y: Int, z: Int): Byte {
-        if (!isValidBlockPosition(x, y, z)) {
-            return 0x00
-        }
+        if (!isValidBlockPosition(x, y, z)) return 0x00
+
         val blockIndex = calculateBlockIndex(x, y, z)
         return blocks[blockIndex]
     }
@@ -917,20 +925,18 @@ class Level(
     fun spawnPlayerInLevel(player: Player) {
         getAllEntities()
             .filter { it.entityId != player.entityId }
-            .forEach { entity ->
-                player.mutualSpawn(entity)
-            }
+            .forEach { entity -> player.mutualSpawn(entity) }
     }
+
     /**
      * Spawns an entity in the level and shows it to all players
      *
      * @param entity The [Entity] to spawn in the level.
      */
     fun spawnEntityInLevel(entity: Entity) {
-        getPlayers().forEach { player ->
-            entity.spawnFor(player)
-        }
+        getPlayers().forEach { player -> entity.spawnFor(player) }
     }
+
     /**
      * Saves the level using the specified serializer and file
      *
@@ -940,6 +946,7 @@ class Level(
     fun save(serializer: LevelSerializer, file: File) {
         serializer.serialize(this, file)
     }
+
     /**
      * Saves the level using the specified serializer and file path
      *
@@ -947,18 +954,18 @@ class Level(
      * @param path The file path string to save the level to.
      */
     fun save(serializer: LevelSerializer, path: String) {
-        val file = File(path)
-        serializer.serialize(this, file)
+        serializer.serialize(this, File(path))
     }
+
     /**
      * Saves the level using the specified serializer to the default location
      *
      * @param serializer The [LevelSerializer] to use for saving.
      */
     fun save(serializer: LevelSerializer) {
-        val file = File("levels/$id.dlvl")
-        serializer.serialize(this, file)
+        save(serializer, File("levels/$id.dlvl"))
     }
+
     /**
      * Saves the level using the default serializer and specified file
      *
@@ -967,6 +974,7 @@ class Level(
     fun save(file: File) {
         save(DandelionLevelSerializer(), file)
     }
+
     /**
      * Saves the level using the default serializer and specified path
      *
@@ -975,12 +983,14 @@ class Level(
     fun save(path: String) {
         save(DandelionLevelSerializer(), path)
     }
+
     /**
      * Saves the level using the default serializer to the default location
      */
     fun save() {
         save(DandelionLevelSerializer())
     }
+
     /**
      * Validates if the given coordinates are within level bounds
      *
@@ -1051,6 +1061,7 @@ class Level(
             }
         }
     }
+
     companion object {
         /**
          * Loads a level using the specified deserializer and file
@@ -1059,9 +1070,8 @@ class Level(
          * @param file The [File] to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(deserializer: LevelDeserializer, file: File): Level? {
-            return deserializer.deserialize(file)
-        }
+        fun load(deserializer: LevelDeserializer, file: File): Level? = deserializer.deserialize(file)
+
         /**
          * Loads a level using the specified deserializer and file path
          *
@@ -1069,28 +1079,22 @@ class Level(
          * @param path The file path string to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(deserializer: LevelDeserializer, path: String): Level? {
-            val file = File(path)
-            return deserializer.deserialize(file)
-        }
+        fun load(deserializer: LevelDeserializer, path: String): Level? = deserializer.deserialize(File(path))
+
         /**
          * Loads a level using the default deserializer ([DandelionLevelDeserializer]) and specified file
          *
          * @param file The [File] to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(file: File): Level? {
-            return DandelionLevelDeserializer().deserialize(file)
-        }
+        fun load(file: File): Level? = DandelionLevelDeserializer().deserialize(file)
+
         /**
          * Loads a level using the default deserializer ([DandelionLevelDeserializer]) and specified path
          *
          * @param path The file path string to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(path: String): Level? {
-            val file = File(path)
-            return DandelionLevelDeserializer().deserialize(file)
-        }
+        fun load(path: String): Level? = load(File(path))
     }
 }

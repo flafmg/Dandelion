@@ -149,20 +149,20 @@ class PlayerInfo(
      *
      * @return A formatted string containing the player's summary information.
      */
-    fun getSummary(): String {
-        return buildString {
-            appendLine("Player: $name")
-            appendLine("First joined: $firstJoin")
-            appendLine("Last seen: $lastSeen")
-            appendLine("Join count: $joinCount")
-            appendLine("Total playtime: ${getPlaytime()}")
-            appendLine("Operator: ${if (isOperator) "Yes" else "No"}")
-            if (isBanned) {
+    fun getSummary(): String = buildString {
+        appendLine("Player: $name")
+        appendLine("First joined: $firstJoin")
+        appendLine("Last seen: $lastSeen")
+        appendLine("Join count: $joinCount")
+        appendLine("Total playtime: ${getPlaytime()}")
+        appendLine("Operator: ${if (isOperator) "Yes" else "No"}")
+
+        when {
+            isBanned -> {
                 appendLine("Status: BANNED")
                 appendLine("Ban reason: $banReason")
-            } else {
-                appendLine("Status: ${if (isOnline()) "Online" else "Offline"}")
             }
+            else -> appendLine("Status: ${if (isOnline()) "Online" else "Offline"}")
         }
     }
 
@@ -201,9 +201,7 @@ class PlayerInfo(
              * @param playerInfo The [PlayerInfo] instance to save.
              */
             fun save(playerInfo: PlayerInfo) {
-                val playerSection = playerDataConfig.getOrCreateSection(playerInfo.name)
-
-                with(playerSection) {
+                playerDataConfig.getOrCreateSection(playerInfo.name).apply {
                     set("firstJoin", playerInfo.firstJoin.time)
                     set("lastJoin", playerInfo.lastJoin.time)
                     set("isOp", playerInfo.isOperator)
