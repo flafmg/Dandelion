@@ -54,6 +54,7 @@ object PacketRegistry {
         addCPE("SetSpawnPoint")
         addCPE("MessageTypes")
         addCPE("InstantMOTD")
+        addCPE("LongerMessages")
     }
 
     fun registerPacket(id: Byte, factory : () -> Packet){

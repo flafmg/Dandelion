@@ -13,6 +13,7 @@ import org.dandelion.classic.events.PlayerSendMessageEvent
 import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.level.Levels
+import org.dandelion.classic.network.packets.classic.client.ClientMessage
 import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.network.packets.cpe.server.ServerClickDistance
 import org.dandelion.classic.network.packets.cpe.server.ServerHackControl
@@ -60,6 +61,8 @@ class Player(
 
     var heldBlock: Byte = 0x00
 
+    private var messageBlocks: List<String> = listOf();
+
 
     override val permissions: List<String>
         get() = PermissionRepository.getPermissionList(name)
@@ -88,7 +91,10 @@ class Player(
     }
 
     fun getCPE(): List<Pair<String, Int>> = supportedCPE.toList()
+
     //endregion
+
+
 
     //region message system
 
@@ -468,6 +474,23 @@ class Player(
     }
     //endregion
     //region Communication
+
+    /**
+     * longer message packet
+     */
+    internal fun handleSendMessageAs(packet: ClientMessage){
+        if(supports("LongerMessages")){
+            val waitNext = packet.messageType != 0.toByte()
+            messageBlocks = messageBlocks + packet.message
+            if(!waitNext){
+                val completeMessage = messageBlocks.joinToString("")
+                messageBlocks = emptyList()
+                sendMessageAs(completeMessage)
+            }
+        }else{
+            sendMessageAs(packet.message)
+        }
+    }
 
     /**
      * Handles player chat messages and commands

@@ -49,7 +49,6 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
                         return
                     }
                     offset + expectedSize > bufferToProcess.size -> {
-                        // Incomplete packet, save remaining data and wait for more
                         val remainingData = bufferToProcess.copyOfRange(offset, bufferToProcess.size)
                         channelBuffers[channelKey] = remainingData
                         return

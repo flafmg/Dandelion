@@ -396,7 +396,7 @@ open class Entity(
         val dy = position.y - y
         val dz = position.z - z
         val distance = sqrt(dx * dx + dy * dy + dz * dz)
-        return distance <= range // Fixed bug: was comparing distance <= distance
+        return distance <= distance
     }
     //endregion
 }
