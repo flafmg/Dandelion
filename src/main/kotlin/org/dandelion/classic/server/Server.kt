@@ -15,7 +15,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 object ServerInfo {
-    const val dandelionVersion = "0.1a"
+    const val dandelionVersion = "0.1.1-Experimental"
     const val serverSoftware = "Dandelion $dandelionVersion"
 
     var isPublic = true

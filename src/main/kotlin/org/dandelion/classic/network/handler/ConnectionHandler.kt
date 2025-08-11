@@ -84,17 +84,12 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
             channelBuffers.remove(channelKey)
             Players.forceDisconnect(ctx.channel())
 
-            Console.log("Closing connection for channel $channelKey due to: $reason")
             if (ctx.channel().isActive) {
                 ctx.close()
             }
         } catch (e: Exception) {
             Console.errLog("Error during channel cleanup for $channelKey: ${e.message}")
-            try {
-                ctx.close()
-            } catch (closeException: Exception) {
-                Console.errLog("Failed to close channel $channelKey: ${closeException.message}")
-            }
+            ctx.close()
         }
     }
 
