@@ -3,6 +3,7 @@ import io.netty.channel.Channel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dandelion.classic.blocks.manager.BlockRegistry
 import org.dandelion.classic.blocks.model.Block
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.entity.Entity
@@ -341,6 +342,7 @@ class Player(
     private suspend fun transmitLevelData(level: Level) {
         val blocskWithFallback = substituteBlocksForFallback(level.blocks)
         val compressedLevelData = compressLevelData(level, blocskWithFallback)
+        BlockRegistry.sendBlockDefinitions(this)
         sendLevelDataInChunks(compressedLevelData)
         finalizeLevelTransfer(level)
     }
@@ -448,7 +450,7 @@ class Player(
         teleportTo(level.spawn)
         level.spawnPlayerInLevel(this)
         ServerLevelFinalize(level.size.x, level.size.y, level.size.z).send(channel)
-        level.sendEnv(this)
+        level.sendAllCustomData(this)
     }
 
     //endregion
@@ -538,20 +540,19 @@ class Player(
             return
         }
 
-        if (this is Player) {
-            val event = PlayerBlockInteractionEvent(
-                this,
-                blockAtPos!!,
-                Block.get( finalBlockType)!!,
-                Position(x.toFloat(), y.toFloat(), z.toFloat()),
-                level!!
-            )
-            EventDispatcher.dispatch(event)
-            if(event.isCancelled){
-                ServerSetBlock(x, y, z, blockAtPos.id).send(this)
-                return
-            }
+        val event = PlayerBlockInteractionEvent(
+            this,
+            blockAtPos!!,
+            Block.get( finalBlockType)!!,
+            Position(x.toFloat(), y.toFloat(), z.toFloat()),
+            level!!
+        )
+        EventDispatcher.dispatch(event)
+        if(event.isCancelled){
+            ServerSetBlock(x, y, z, blockAtPos.id).send(this)
+            return
         }
+
 
         currentLevel.setBlock(x, y, z, finalBlockType)
         broadcastBlockUpdate(x, y, z, finalBlockType)

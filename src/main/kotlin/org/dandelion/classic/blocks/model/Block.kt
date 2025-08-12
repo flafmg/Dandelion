@@ -11,6 +11,8 @@ abstract class Block {
     open val fallback: Byte = 0
     abstract val name: String
 
+    internal open val isDefault: Boolean = false
+
     open val solidity: BlockSolidity = BlockSolidity.SOLID
 
     open val movementSpeed: Byte = 128.toByte()
@@ -32,21 +34,19 @@ abstract class Block {
     open val fogG: Byte = 255.toByte()
     open val fogB: Byte = 255.toByte()
 
-    //extended block definition:
-
-    open val extendedBlock: Boolean = false //defines if should use BlockDefinitionExt
+    open val extendedBlock: Boolean = false
 
     open val leftTextureId: Byte = 0
     open val rightTextureId: Byte = 0
     open val frontTextureId: Byte = 0
     open val backTextureId: Byte = 0
 
-    open val minX: Byte = 0
-    open val minY: Byte = 0
-    open val minZ: Byte = 0
-    open val maxX: Byte = 16
-    open val maxY: Byte = 16
-    open val maxZ: Byte = 16
+    open val minWidth: Byte = 0
+    open val minHeight: Byte = 0
+    open val minDepth: Byte = 0
+    open val maxWidth: Byte = 16
+    open val maxHeight: Byte = 16
+    open val maxDepth: Byte = 16
 
 
 
@@ -87,7 +87,7 @@ abstract class Block {
         sb.append("walkSound=$walkSound, ")
         sb.append("fullBright=$fullBright, ")
         if (extendedBlock) {
-            sb.append("bounds=[min=($minX,$minY,$minZ), max=($maxX,$maxY,$maxZ)], ")
+            sb.append("bounds=[min=($minWidth,$minHeight,$minDepth), max=($maxWidth,$maxHeight,$maxDepth)], ")
         } else {
             sb.append("shape=$shape, ")
         }

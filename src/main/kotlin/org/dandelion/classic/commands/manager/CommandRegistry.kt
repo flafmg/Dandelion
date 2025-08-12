@@ -1,6 +1,7 @@
 package org.dandelion.classic.commands.manager
 
 import org.dandelion.classic.commands.BanCommand
+import org.dandelion.classic.commands.BlockCommand
 import org.dandelion.classic.commands.ClientsCommand
 import org.dandelion.classic.commands.HelpCommand
 import org.dandelion.classic.commands.KickCommand
@@ -44,6 +45,7 @@ object CommandRegistry {
         register(OnlineCommand())
         register(ClientsCommand())
         register(PluginCommand())
+        register(BlockCommand())
     }
 
     /**

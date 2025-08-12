@@ -1,5 +1,6 @@
 package org.dandelion.classic.level
 import org.dandelion.classic.blocks.model.Block
+import org.dandelion.classic.blocks.manager.BlockRegistry
 import org.dandelion.classic.level.generator.LevelGenerator
 import org.dandelion.classic.level.io.DandelionLevelSerializer
 import org.dandelion.classic.level.io.DandelionLevelDeserializer
@@ -347,11 +348,40 @@ class Level(
     //endregion
 
     /**
-     * Sends all env packets to the player
+     * Registers a custom block definition for this level.
+     *
+     * @param block The block instance to register for this level
+     */
+    fun registerBlockDef(block: Block) {
+        BlockRegistry.register(this, block)
+    }
+
+    /**
+     * Unregisters a custom block definition from this level.
+     *
+     * @param blockId The ID of the block to unregister from this level
+     * @return true if the block was removed, false otherwise
+     */
+    fun unregisterBlockDef(blockId: Byte): Boolean {
+        return BlockRegistry.unregister(this, blockId)
+    }
+
+    /**
+     * Gets a block definition for this level, with level blocks taking priority over global blocks.
+     *
+     * @param blockId The ID of the block to retrieve
+     * @return The block instance, or null if not found
+     */
+    fun getBlockDef(blockId: Byte): Block? {
+        return BlockRegistry.get(this, blockId)
+    }
+
+    /**
+     * Sends all env packets and other packets to the player
      *
      * @param player the [Player] that will receive the env update
      */
-    fun sendEnv(player: Player) {
+    fun sendAllCustomData(player: Player) {
         if(player.supports("EnvWeatherType")) {
             ServerEnvWeatherType(weatherType).send(player)
         }
@@ -1029,3 +1059,4 @@ class Level(
         fun load(path: String): Level? = load(File(path))
     }
 }
+

@@ -392,3 +392,61 @@ commands:
       usage: "&cUsage: /plugin reload <name|all>"
     subcommands:
       available: "&eAvailable SubCommands: &7list, info, load, unload, reload"
+
+  # Block Management
+  block:
+    global_or_level_required: "&cUsage: /block <global|levelId> <subcommand>"
+    air_not_editable: "&cCannot modify block ID 0 (AIR) - it is reserved."
+    level_not_found: "&cLevel '&7{level}&c' not found."
+    block_not_found: "&cBlock with ID &7{id} &cnot found."
+    invalid_property: "&cInvalid property '&7{property}&c'."
+    invalid_id: "&cInvalid block ID. Must be between 1 and 255."
+    id_already_exists: "&cBlock ID &7{id} &calready exists."
+
+    info:
+      header: "&eBlock Information (ID: &7{id}&e):"
+      name: "&eName: &f{name}"
+      fallback: "&eFallback: &f{fallback}"
+      solidity: "&eSolidity: &f{solidity}"
+      movement_speed: "&eMovement Speed: &f{speed}"
+      textures: "&eTextures: &fTop={top}, Side={side}, Bottom={bottom}"
+      extended_textures: "&eTextures: &fTop={top}, Left={left}, Right={right}, Front={front}, Back={back}, Bottom={bottom}"
+      transmits_light: "&eTransmits Light: &f{transmits}"
+      walk_sound: "&eWalk Sound: &f{sound}"
+      full_bright: "&eFull Bright: &f{bright}"
+      shape: "&eShape: &f{shape}"
+      block_draw: "&eBlock Draw: &f{draw}"
+      fog: "&eFog: &fDensity={density}, RGB=({r},{g},{b})"
+      bounds: "&eBounds: &fMin=({minX},{minY},{minZ}), Max=({maxX},{maxY},{maxZ})"
+      extended: "&eExtended Block: &f{extended}"
+      usage: "&cUsage: /block <global|levelId> info <id>"
+
+    edit:
+      success: "&aBlock &7{id} &a'{name}' property &7{property} &aset to &7{value}&a."
+      success_id_changed: "&aBlock &7{oldId} &a'{name}' moved to ID &7{newId} &awith property &7{property} &aset to &7{value}&a."
+      properties: "&eEditable properties: &7id, name, fallback, solidity, speed, topTex, sideTex, bottomTex, leftTex, rightTex, frontTex, backTex, transmitsLight, walkSound, fullBright, shape, blockDraw, fogDensity, fogR, fogG, fogB, minX, minY, minZ, maxX, maxY, maxZ"
+      usage: "&cUsage: /block <global|levelId> edit <id> <property> <value>"
+
+    add:
+      success: "&aBlock &7{id} &a'{name}' created successfully."
+      usage: "&cUsage: /block <global|levelId> add <id> [name] [textureId]"
+
+    delete:
+      success: "&aBlock &7{id} &a'{name}' deleted successfully."
+      usage: "&cUsage: /block <global|levelId> delete <id>"
+
+    list:
+      header_global: "&eGlobal Blocks:"
+      header_level: "&eBlocks for level '&7{level}&e':"
+      header_all: "&eAll Available Blocks:"
+      format: "&f- &7{id}: &f{name}"
+      no_blocks: "&cNo blocks found."
+      usage: "&cUsage: /block <global|levelId|all> list"
+
+    reload:
+      success: "&aAll block definitions reloaded successfully."
+      failed: "&cFailed to reload block definitions: {error}"
+      usage: "&cUsage: /block reload"
+
+    subcommands:
+      available: "&eAvailable SubCommands: &7info, edit, add, delete, list, reload"

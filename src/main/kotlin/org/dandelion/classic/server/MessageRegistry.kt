@@ -209,7 +209,7 @@ internal object MessageRegistry {
             fun sendClientList(executor: CommandExecutor, client: String, players: String) {
                 sendMessage(executor, "commands.clients.format", "client" to client, "players" to players)
             }
-            fun formatPlayer(name: String): String = getMessage("clients.format_player", "name" to name)
+            fun formatPlayer(name: String): String = getMessage("commands.clients.format_player", "name" to name)
         }
         object Help {
             fun sendHeader(executor: CommandExecutor, page: Int, total: Int) {
@@ -1060,6 +1060,155 @@ internal object MessageRegistry {
                 }
                 fun sendUsage(executor: CommandExecutor) {
                     sendMessage(executor, "commands.plugin.reload.usage")
+                }
+            }
+        }
+        object Block {
+            fun sendGlobalOrLevelRequired(executor: CommandExecutor) {
+                sendMessage(executor, "commands.block.global_or_level_required")
+            }
+            fun sendAirNotEditable(executor: CommandExecutor) {
+                sendMessage(executor, "commands.block.air_not_editable")
+            }
+            fun sendLevelNotFound(executor: CommandExecutor, level: String) {
+                sendMessage(executor, "commands.block.level_not_found", "level" to level)
+            }
+            fun sendBlockNotFound(executor: CommandExecutor, id: Byte) {
+                sendMessage(executor, "commands.block.block_not_found", "id" to id)
+            }
+            fun sendInvalidProperty(executor: CommandExecutor, property: String) {
+                sendMessage(executor, "commands.block.invalid_property", "property" to property)
+            }
+            fun sendInvalidId(executor: CommandExecutor) {
+                sendMessage(executor, "commands.block.invalid_id")
+            }
+            fun sendIdAlreadyExists(executor: CommandExecutor, id: Byte) {
+                sendMessage(executor, "commands.block.id_already_exists", "id" to id)
+            }
+
+            object Info {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.info.usage")
+                }
+                fun sendHeader(executor: CommandExecutor, id: Byte) {
+                    sendMessage(executor, "commands.block.info.header", "id" to id)
+                }
+                fun sendName(executor: CommandExecutor, name: String) {
+                    sendMessage(executor, "commands.block.info.name", "name" to name)
+                }
+                fun sendFallback(executor: CommandExecutor, fallback: Byte) {
+                    sendMessage(executor, "commands.block.info.fallback", "fallback" to fallback)
+                }
+                fun sendSolidity(executor: CommandExecutor, solidity: String) {
+                    sendMessage(executor, "commands.block.info.solidity", "solidity" to solidity)
+                }
+                fun sendMovementSpeed(executor: CommandExecutor, speed: Byte) {
+                    sendMessage(executor, "commands.block.info.movement_speed", "speed" to speed)
+                }
+                fun sendTextures(executor: CommandExecutor, top: Byte, side: Byte, bottom: Byte) {
+                    sendMessage(executor, "commands.block.info.textures", "top" to top, "side" to side, "bottom" to bottom)
+                }
+                fun sendExtendedTextures(executor: CommandExecutor, top: Byte, left: Byte, right: Byte, front: Byte, back: Byte, bottom: Byte) {
+                    sendMessage(executor, "commands.block.info.extended_textures",
+                        "top" to top, "left" to left, "right" to right, "front" to front, "back" to back, "bottom" to bottom)
+                }
+                fun sendTransmitsLight(executor: CommandExecutor, transmits: Boolean) {
+                    sendMessage(executor, "commands.block.info.transmits_light", "transmits" to transmits)
+                }
+                fun sendWalkSound(executor: CommandExecutor, sound: String) {
+                    sendMessage(executor, "commands.block.info.walk_sound", "sound" to sound)
+                }
+                fun sendFullBright(executor: CommandExecutor, bright: Boolean) {
+                    sendMessage(executor, "commands.block.info.full_bright", "bright" to bright)
+                }
+                fun sendShape(executor: CommandExecutor, shape: Byte) {
+                    sendMessage(executor, "commands.block.info.shape", "shape" to shape)
+                }
+                fun sendBlockDraw(executor: CommandExecutor, draw: String) {
+                    sendMessage(executor, "commands.block.info.block_draw", "draw" to draw)
+                }
+                fun sendFog(executor: CommandExecutor, density: Byte, r: Byte, g: Byte, b: Byte) {
+                    sendMessage(executor, "commands.block.info.fog", "density" to density, "r" to r, "g" to g, "b" to b)
+                }
+                fun sendBounds(executor: CommandExecutor, minX: Byte, minY: Byte, minZ: Byte, maxX: Byte, maxY: Byte, maxZ: Byte) {
+                    sendMessage(executor, "commands.block.info.bounds",
+                        "minX" to minX, "minY" to minY, "minZ" to minZ, "maxX" to maxX, "maxY" to maxY, "maxZ" to maxZ)
+                }
+                fun sendExtended(executor: CommandExecutor, extended: Boolean) {
+                    sendMessage(executor, "commands.block.info.extended", "extended" to extended)
+                }
+            }
+
+            object Edit {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.edit.usage")
+                }
+                fun sendProperties(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.edit.properties")
+                }
+                fun sendSuccess(executor: CommandExecutor, id: Byte, name: String, property: String, value: String) {
+                    sendMessage(executor, "commands.block.edit.success", "id" to id, "name" to name, "property" to property, "value" to value)
+                }
+                fun sendSuccessIdChanged(executor: CommandExecutor, oldId: Byte, newId: Byte, name: String, property: String, value: String) {
+                    sendMessage(executor, "commands.block.edit.success_id_changed",
+                        "oldId" to oldId, "newId" to newId, "name" to name, "property" to property, "value" to value)
+                }
+            }
+
+            object Add {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.add.usage")
+                }
+                fun sendSuccess(executor: CommandExecutor, id: Byte, name: String) {
+                    sendMessage(executor, "commands.block.add.success", "id" to id, "name" to name)
+                }
+            }
+
+            object Delete {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.delete.usage")
+                }
+                fun sendSuccess(executor: CommandExecutor, id: Byte, name: String) {
+                    sendMessage(executor, "commands.block.delete.success", "id" to id, "name" to name)
+                }
+            }
+
+            object List {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.list.usage")
+                }
+                fun sendHeaderGlobal(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.list.header_global")
+                }
+                fun sendHeaderLevel(executor: CommandExecutor, level: String) {
+                    sendMessage(executor, "commands.block.list.header_level", "level" to level)
+                }
+                fun sendHeaderAll(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.list.header_all")
+                }
+                fun sendFormat(executor: CommandExecutor, id: Byte, name: String) {
+                    sendMessage(executor, "commands.block.list.format", "id" to id, "name" to name)
+                }
+                fun sendNoBlocks(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.list.no_blocks")
+                }
+            }
+
+            object Reload {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.reload.usage")
+                }
+                fun sendSuccess(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.reload.success")
+                }
+                fun sendFailed(executor: CommandExecutor, error: String) {
+                    sendMessage(executor, "commands.block.reload.failed", "error" to error)
+                }
+            }
+
+            object Subcommands {
+                fun sendAvailable(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.block.subcommands.available")
                 }
             }
         }
