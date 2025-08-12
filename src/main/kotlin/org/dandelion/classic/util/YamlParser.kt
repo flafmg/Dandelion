@@ -6,7 +6,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 
-class YamlConfig {
+class YamlParser {
     var root: MutableMap<String, Any> = mutableMapOf()
     private var originFile: File? = null
 
@@ -99,17 +99,17 @@ class YamlConfig {
         return getStringList(path) ?: default
     }
 
-    fun getSection(path: String): YamlConfig? {
+    fun getSection(path: String): YamlParser? {
         val map = getMap(path)
         val key = if (path.isNotEmpty()) path.split('.').last() else ""
         val sectionMap = map?.get(key) as? Map<String, Any> ?: return null
-        val config = YamlConfig()
+        val config = YamlParser()
         config.root = sectionMap.toMutableMap()
         return config
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getOrCreateSection(path: String): YamlConfig {
+    fun getOrCreateSection(path: String): YamlParser {
         val keys = if (path.isNotEmpty()) path.split('.') else listOf("")
         var currentMap: MutableMap<String, Any> = root
         for (i in keys.indices) {
@@ -129,7 +129,7 @@ class YamlConfig {
                 currentMap = currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
             }
         }
-        val config = YamlConfig()
+        val config = YamlParser()
         config.root = currentMap
         return config
     }
@@ -172,10 +172,10 @@ class YamlConfig {
     }
 
     companion object {
-        fun load(path: String): YamlConfig {
+        fun load(path: String): YamlParser {
             return load(File(path))
         }
-        fun load(file: File): YamlConfig {
+        fun load(file: File): YamlParser {
             if(!file.exists()){
                 file.parentFile?.mkdirs()
                 file.createNewFile()
@@ -185,9 +185,9 @@ class YamlConfig {
             }
         }
 
-        fun load(inputStream: InputStream): YamlConfig {
+        fun load(inputStream: InputStream): YamlParser {
             val yaml = Yaml()
-            val config = YamlConfig()
+            val config = YamlParser()
             inputStream.use {
                 try {
                     val loadedData: Any? = yaml.load(it)

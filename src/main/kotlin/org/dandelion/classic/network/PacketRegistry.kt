@@ -57,7 +57,6 @@ object PacketRegistry {
         addCPE("LongerMessages")
         addCPE("BlockDefinitions")
         addCPE("BlockDefinitionsExt", 2)
-        addCPE("FatMap")
     }
 
     fun registerPacket(id: Byte, factory : () -> Packet){

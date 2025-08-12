@@ -7,7 +7,7 @@ import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.cpe.server.ServerDefineBlock
 import org.dandelion.classic.network.packets.cpe.server.ServerDefineBlockExt
 import org.dandelion.classic.server.Console
-import org.dandelion.classic.util.JsonConfig
+import org.dandelion.classic.util.JsonParser
 import java.io.File
 import kotlin.math.pow
 
@@ -411,7 +411,7 @@ object BlockRegistry {
                 return
             }
 
-            val config = JsonConfig()
+            val config = JsonParser()
             blocks.forEachIndexed { index, block ->
                 val blockPath = "blocks.$index"
                 config.setInt("$blockPath.BlockID", block.id.toInt())
