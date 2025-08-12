@@ -5,7 +5,7 @@ import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 
-class JsonParser {
+class JsonConfig {
     var root: JsonObject = JsonObject()
     private var originFile: File? = null
     private val gson = GsonBuilder().setPrettyPrinting().create()
@@ -160,18 +160,18 @@ class JsonParser {
         }
     }
 
-    fun getSection(path: String): JsonParser? {
+    fun getSection(path: String): JsonConfig? {
         val element = getElement(path)
         return if (element?.isJsonObject == true) {
-            val config = JsonParser()
+            val config = JsonConfig()
             config.root = element.asJsonObject
             config
         } else null
     }
 
-    fun getOrCreateSection(path: String): JsonParser {
+    fun getOrCreateSection(path: String): JsonConfig {
         val obj = getOrCreateObject(path)
-        val config = JsonParser()
+        val config = JsonConfig()
         config.root = obj
         return config
     }
@@ -233,18 +233,18 @@ class JsonParser {
     }
 
     companion object {
-        fun load(path: String): JsonParser {
+        fun load(path: String): JsonConfig {
             return load(File(path))
         }
 
-        fun load(file: File): JsonParser {
+        fun load(file: File): JsonConfig {
             if (!file.exists()) {
                 file.parentFile?.mkdirs()
                 file.createNewFile()
                 file.writeText("{}") //create empty JSON object
             }
 
-            val config = JsonParser()
+            val config = JsonConfig()
             config.originFile = file
 
             try {
@@ -258,11 +258,11 @@ class JsonParser {
             return config
         }
 
-        fun loadArray(path: String): List<JsonParser> {
+        fun loadArray(path: String): List<JsonConfig> {
             return loadArray(File(path))
         }
 
-        fun loadArray(file: File): List<JsonParser> {
+        fun loadArray(file: File): List<JsonConfig> {
             if (!file.exists()) {
                 return emptyList()
             }
@@ -273,7 +273,7 @@ class JsonParser {
                     if (element.isJsonArray) {
                         element.asJsonArray.mapNotNull { arrayElement ->
                             if (arrayElement.isJsonObject) {
-                                val config = JsonParser()
+                                val config = JsonConfig()
                                 config.root = arrayElement.asJsonObject
                                 config
                             } else null

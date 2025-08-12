@@ -3,7 +3,7 @@ package org.dandelion.classic.plugins.manager
 import org.dandelion.classic.plugins.model.Plugin
 import org.dandelion.classic.plugins.model.PluginInfo
 import org.dandelion.classic.server.Console
-import org.dandelion.classic.util.YamlParser
+import org.dandelion.classic.util.YamlConfig
 import java.io.File
 import java.util.jar.JarFile
 
@@ -90,7 +90,7 @@ internal object PluginRegistry {
         JarFile(jarFile).use { jar ->
             val entry = jar.getJarEntry(INFO_PATH)
                 ?: throw IllegalArgumentException("plugin.yml not found for ${jarFile.name}")
-            val config = YamlParser.load(jar.getInputStream(entry))
+            val config = YamlConfig.load(jar.getInputStream(entry))
             val name = config.getString("name")
                 ?: throw java.lang.IllegalArgumentException("Field 'name' not found for ${jarFile.name}")
             val version = config.getString("version", "1.0.0")
@@ -105,7 +105,7 @@ internal object PluginRegistry {
         }
     }
 
-    private fun parseDependencies(config: YamlParser): List<Pair<String, String?>> {
+    private fun parseDependencies(config: YamlConfig): List<Pair<String, String?>> {
         val deps = mutableListOf<Pair<String, String?>>()
         var index = 0
         while (true) {
@@ -259,7 +259,7 @@ internal object PluginRegistry {
         JarFile(jarFile).use { jar ->
             val entry = jar.getJarEntry(INFO_PATH)
                 ?: throw IllegalArgumentException("plugin.yml not found")
-            val config = YamlParser.load(jar.getInputStream(entry))
+            val config = YamlConfig.load(jar.getInputStream(entry))
             return config.getString("main-class")
                 ?: throw IllegalArgumentException(" 'main-class' not found")
         }

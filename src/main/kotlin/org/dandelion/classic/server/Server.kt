@@ -9,7 +9,7 @@ import org.dandelion.classic.network.PacketRegistry
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.plugins.manager.PluginRegistry
 import org.dandelion.classic.util.Utils
-import org.dandelion.classic.util.YamlParser
+import org.dandelion.classic.util.YamlConfig
 import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -53,7 +53,7 @@ object ServerInfo {
 
 object Server {
     private var running = false;
-    private lateinit var config: YamlParser
+    private lateinit var config: YamlConfig
     var startTime: Long = 0
         private set
 
@@ -96,7 +96,7 @@ object Server {
         if (!configFile.exists()) {
             Utils.copyResourceTo("config.yml", "config.yml")
         }
-        config = YamlParser.load(configFile)
+        config = YamlConfig.load(configFile)
 
         ServerInfo.name = config.getString("server.name", ServerInfo.name)
         ServerInfo.motd = config.getString("server.motd", ServerInfo.motd)

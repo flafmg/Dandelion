@@ -1,6 +1,6 @@
 package org.dandelion.classic.entity.player
 
-import org.dandelion.classic.util.YamlParser
+import org.dandelion.classic.util.YamlConfig
 import java.util.Date
 
 /**
@@ -171,7 +171,7 @@ class PlayerInfo(
          * Repository for loading and saving player information
          */
         private object PlayerInfoRepository {
-            private val playerDataConfig: YamlParser = YamlParser.load("player-info.yml")
+            private val playerDataConfig: YamlConfig = YamlConfig.load("player-info.yml")
 
             /**
              * Loads player information from persistent storage

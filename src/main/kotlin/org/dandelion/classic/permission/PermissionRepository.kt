@@ -1,6 +1,6 @@
 package org.dandelion.classic.permission
 
-import org.dandelion.classic.util.YamlParser
+import org.dandelion.classic.util.YamlConfig
 import java.io.File
 
 /**
@@ -12,8 +12,8 @@ object PermissionRepository {
     private val groupsCache: MutableMap<String, Group> = mutableMapOf()
     private val playersCache: MutableMap<String, PlayerPermission> = mutableMapOf()
 
-    private lateinit var groupsConfig: YamlParser
-    private lateinit var playersConfig: YamlParser
+    private lateinit var groupsConfig: YamlConfig
+    private lateinit var playersConfig: YamlConfig
     private val permissionsDir = File("permissions")
     private lateinit var groupsFile: File
     private lateinit var playersFile: File
@@ -35,8 +35,8 @@ object PermissionRepository {
         if (!groupsFile.exists()) groupsFile.createNewFile()
         if (!playersFile.exists()) playersFile.createNewFile()
 
-        groupsConfig = YamlParser.load(groupsFile)
-        playersConfig = YamlParser.load(playersFile)
+        groupsConfig = YamlConfig.load(groupsFile)
+        playersConfig = YamlConfig.load(playersFile)
     }
 
     private fun ensureDefaultGroupExists() {

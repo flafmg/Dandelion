@@ -2,7 +2,7 @@ package org.dandelion.classic.blocks.manager
 
 import org.dandelion.classic.blocks.model.JsonBlock
 import org.dandelion.classic.server.Console
-import org.dandelion.classic.util.JsonParser
+import org.dandelion.classic.util.JsonConfig
 import java.io.File
 import kotlin.collections.set
 
@@ -62,7 +62,7 @@ internal object JsonBlockLoader {
 
     private fun loadBlocksFromFile(file: File, levelId: String?): Int {
         return try {
-            val blockConfigs = JsonParser.loadArray(file)
+            val blockConfigs = JsonConfig.loadArray(file)
             var loadedCount = 0
 
             blockConfigs.forEach { config ->
@@ -94,7 +94,7 @@ internal object JsonBlockLoader {
         }
     }
 
-    private fun extractBlockData(config: JsonParser, blockData: MutableMap<String, Any?>) {
+    private fun extractBlockData(config: JsonConfig, blockData: MutableMap<String, Any?>) {
         config.getInt("BlockID")?.let { id -> blockData["BlockID"] = id }
         config.getString("Name")?.let { blockData["Name"] = it }
 

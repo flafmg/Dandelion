@@ -1,15 +1,17 @@
 package org.dandelion.classic.server
 
 import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.permission.PermissionRepository
-import org.dandelion.classic.util.YamlParser
+import org.dandelion.classic.util.YamlConfig
 import java.io.File
 
 /**
  * a completely shit system i know, but i think its more organized like this than using sendMessage and potencially getting names wrong
  */
 internal object MessageRegistry {
-    private lateinit var config: YamlParser
+    private lateinit var config: YamlConfig
 
     fun init() {
         val messagesFile = File("messages.yml")
@@ -20,7 +22,7 @@ internal object MessageRegistry {
                 resourceStream.close()
             }
         }
-        config = YamlParser.Companion.load(messagesFile)
+        config = YamlConfig.Companion.load(messagesFile)
     }
 
     fun getMessage(path: String): String {
