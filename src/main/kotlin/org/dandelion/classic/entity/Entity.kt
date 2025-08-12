@@ -30,7 +30,6 @@ open class Entity(
     companion object {
         private const val MAX_RELATIVE_MOVEMENT = 3.96875f
         private const val MIN_RELATIVE_MOVEMENT = -4.0f
-        private const val MAX_BLOCK_INTERACTION_DISTANCE = 6.0
     }
 
     //region Position Management
@@ -209,7 +208,7 @@ open class Entity(
      * @param target The [Entity] for which this entity should be spawned.
      */
     open fun spawnFor(target: Entity) {
-        if (target is Player) {
+        (target as? Player)?.let { player ->
             ServerSpawnPlayer(
                 entityId,
                 name,
@@ -218,7 +217,7 @@ open class Entity(
                 position.z,
                 position.yaw.toInt().toByte(),
                 position.pitch.toInt().toByte()
-            ).send(target.channel)
+            ).send(player.channel)
         }
     }
 
@@ -226,11 +225,9 @@ open class Entity(
      * Spawns this entity for all players in the current level
      */
     open fun globalSpawn() {
-        level?.getPlayers()?.forEach { player ->
-            if (player.entityId != entityId) {
-                spawnFor(player)
-            }
-        }
+        level?.getPlayers()
+            ?.filter { it.entityId != entityId }
+            ?.forEach(::spawnFor)
     }
 
     /**
@@ -249,8 +246,8 @@ open class Entity(
      * @param target The [Entity] for which this entity should be despawned.
      */
     open fun despawnFor(target: Entity) {
-        if (target is Player) {
-            ServerDespawnPlayer(entityId).send(target.channel)
+        (target as? Player)?.let { player ->
+            ServerDespawnPlayer(entityId).send(player.channel)
         }
     }
 
@@ -258,11 +255,9 @@ open class Entity(
      * Despawns this entity for all players in the current level
      */
     open fun globalDespawn() {
-        level?.getPlayers()?.forEach { player ->
-            if (player.entityId != entityId) {
-                despawnFor(player)
-            }
-        }
+        level?.getPlayers()
+            ?.filter { it.entityId != entityId }
+            ?.forEach(::despawnFor)
     }
 
     /**
@@ -286,9 +281,8 @@ open class Entity(
      * @param notifyJoin Whether to notify the join (implementation-dependent). Defaults to `false`.
      */
     open fun joinLevel(level: Level, notifyJoin: Boolean = false) {
-        if (!level.tryAddEntity(this)) {
-            return
-        }
+        if (!level.tryAddEntity(this)) return
+
         this.level = level
         teleportTo(level.spawn)
         level.spawnEntityInLevel(this)
@@ -322,27 +316,25 @@ open class Entity(
      */
     open fun interactWithBlock(x: Short, y: Short, z: Short, blockType: Byte, isDestroying: Boolean) {
         val currentLevel = level ?: return
-        if (!isWithinInteractionRange(x.toFloat(), y.toFloat(), z.toFloat())) {
-            return
-        }
+
+        if (!isWithinInteractionRange(x.toFloat(), y.toFloat(), z.toFloat())) return
 
         val finalBlockType = if (isDestroying) Block.get(0)?.id ?: 0 else blockType
-        val blockAtPos = Block.get(currentLevel.getBlock(x, y, z))
+        val blockAtPos = Block.get(currentLevel.getBlock(x, y, z)) ?: return
 
-        if(Block.get(finalBlockType) == null){
-            return
-        }
+        if (Block.get(finalBlockType) == null) return
 
         if (this is Player) {
             val event = PlayerBlockInteractionEvent(
                 this,
-                blockAtPos!!,
-                Block.get( finalBlockType)!!,
+                blockAtPos,
+                Block.get(finalBlockType)!!,
                 Position(x.toFloat(), y.toFloat(), z.toFloat()),
-                level!!
+                currentLevel
             )
             EventDispatcher.dispatch(event)
-            if(event.isCancelled){
+
+            if (event.isCancelled) {
                 ServerSetBlock(x, y, z, blockAtPos.id).send(this)
                 return
             }
@@ -399,12 +391,12 @@ open class Entity(
      * @param z The Z coordinate (Float) to check.
      * @return `true` if the coordinates are within interaction range, `false` otherwise.
      */
-    protected fun isWithinInteractionRange(x: Float, y: Float, z: Float): Boolean {
+    protected fun isWithinInteractionRange(x: Float, y: Float, z: Float, range: Float = 6.0f): Boolean {
         val dx = position.x - x
         val dy = position.y - y
         val dz = position.z - z
         val distance = sqrt(dx * dx + dy * dy + dz * dz)
-        return distance <= MAX_BLOCK_INTERACTION_DISTANCE
+        return distance <= distance
     }
     //endregion
 }

@@ -1,7 +1,6 @@
 package org.dandelion.classic.entity.player
 
 import io.netty.channel.Channel
-import jdk.internal.net.http.common.Log.channel
 import org.dandelion.classic.events.PlayerConnectEvent
 import org.dandelion.classic.events.PlayerPreConnectEvent
 import org.dandelion.classic.events.manager.EventDispatcher
@@ -15,6 +14,7 @@ import org.dandelion.classic.permission.Group
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.MessageRegistry
 import java.security.MessageDigest
 
 /**
@@ -48,18 +48,12 @@ object Players {
      * @param channel The Netty [Channel] for the connecting client.
      */
     internal fun handlePreConnection(clientInfo: ClientIdentification, channel: Channel) {
-        if(clientInfo.unused == 0x00.toByte()){
-            disconnectWithNoCPESupport(channel)
-        }
-
         if (!isValidProtocol(clientInfo.protocolVersion)) {
             disconnectWithInvalidProtocol(clientInfo.protocolVersion, channel)
             return
         }
 
-        if (!authenticateUser(clientInfo, channel)) {
-            return
-        }
+        if (!authenticateUser(clientInfo, channel)) return
 
         val event = PlayerPreConnectEvent(
             clientInfo.protocolVersion,
@@ -68,12 +62,17 @@ object Players {
             clientInfo.unused,
         )
         EventDispatcher.dispatch(event)
-        if(event.isCancelled){
+
+        if (event.isCancelled) {
             ServerDisconnectPlayer("Disconnected").send(channel)
-            return;
+            return
         }
-        val player = createPlayerFromClientInfo(clientInfo, channel)
-        player.levelId = Levels.getDefaultLevelId()
+
+        val player = createPlayerFromClientInfo(clientInfo, channel).apply {
+            levelId = Levels.getDefaultLevelId()
+            supportsCpe = clientInfo.unused == 0x42.toByte()
+        }
+
         attemptConnection(player)
     }
 
@@ -86,13 +85,12 @@ object Players {
         when (val connectionResult = validateConnection(player)) {
             is ConnectionResult.Success -> {
                 CPEHandshake(player)
+                EventDispatcher.dispatch(PlayerConnectEvent(player))
             }
             is ConnectionResult.Failure -> {
                 disconnectPlayerWithReason(player.channel, connectionResult.reason)
             }
         }
-        val event = PlayerConnectEvent(player)
-        EventDispatcher.dispatch(event)
     }
 
     /**
@@ -100,8 +98,14 @@ object Players {
      *
      * @param player The [Player] to send the handshake for.
      */
-    private fun CPEHandshake(player: Player){
+    private fun CPEHandshake(player: Player) {
         addConnecting(player)
+
+        if (!player.supportsCpe) {
+            finalizeHandshake(player)
+            return
+        }
+
         PacketRegistry.sendCPEHandshake(player)
         PacketRegistry.sendCPEEntries(player)
     }
@@ -113,14 +117,14 @@ object Players {
      */
     internal fun finalizeHandshake(player: Player) {
         removeConnecting(player)
-        if(!player.channel.isOpen){
-            return
-        }
+
+        if (!player.channel.isOpen) return
+
         ServerIdentification().send(player.channel)
 
         val joinLevel = Levels.getDefaultLevel()
         if (joinLevel == null) {
-            disconnectPlayerWithReason(player.channel, "Default level not available")
+            disconnectPlayerWithReason(player.channel, MessageRegistry.Server.Level.getNotAvailable())
             return
         }
 
@@ -135,13 +139,135 @@ object Players {
      * @param channel The Netty [Channel] of the disconnecting player.
      */
     internal fun handleDisconnection(channel: Channel) {
-        val player = find(channel) ?: return
-        val level = player.level
+        try {
+            val player = find(channel)
 
-        removeConnecting(player)
-        level?.removeEntity(player)
-        player.info.recordDisconnect()
-        notifyLeft(player)
+            if (player != null) {
+                handlePlayerDisconnection(player)
+                return
+            }
+
+            val connectingPlayer = connectingPlayers[channel]
+            if (connectingPlayer != null) {
+                handleConnectingPlayerDisconnection(connectingPlayer)
+                return
+            }
+
+            Console.debugLog("Disconnection handled for unregistered channel: ${channel.id().asShortText()}")
+        } catch (e: Exception) {
+            Console.errLog("Error during player disconnection handling: ${e.message}")
+            e.printStackTrace()
+
+            forceDisconnectionCleanup(channel)
+        }
+    }
+
+    /**
+     * Handles disconnection for fully connected players
+     */
+    private fun handlePlayerDisconnection(player: Player) {
+        try {
+            Console.debugLog("Handling disconnection for player: ${player.name}")
+
+            removeConnecting(player)
+
+            player.level?.let { level ->
+                try {
+                    level.removeEntity(player)
+                    Console.debugLog("Removed player '${player.name}' from level '${level.id}'")
+                } catch (e: Exception) {
+                    Console.errLog("Error removing player '${player.name}' from level: ${e.message}")
+                }
+            }
+
+            player.info.recordDisconnect()
+            notifyLeft(player)
+
+        } catch (e: Exception) {
+            Console.errLog("Critical error in handlePlayerDisconnection for '${player.name}': ${e.message}")
+            throw e
+        }
+    }
+
+    /**
+     * Handles disconnection for players who were still connecting
+     */
+    private fun handleConnectingPlayerDisconnection(connectingPlayer: Player) {
+        try {
+            Console.debugLog("Handling disconnection for connecting player: ${connectingPlayer.name}")
+
+            // Remove from connecting players
+            removeConnecting(connectingPlayer)
+
+            // Remove from level if they were added
+            connectingPlayer.level?.let { level ->
+                try {
+                    level.removeEntity(connectingPlayer)
+                    Console.debugLog("Removed connecting player '${connectingPlayer.name}' from level '${level.id}'")
+                } catch (e: Exception) {
+                    Console.errLog("Error removing connecting player from level: ${e.message}")
+                }
+            }
+
+            Console.debugLog("Successfully cleaned up connecting player: ${connectingPlayer.name}")
+
+        } catch (e: Exception) {
+            Console.errLog("Error in handleConnectingPlayerDisconnection: ${e.message}")
+            throw e
+        }
+    }
+
+    /**
+     * Forces cleanup when normal disconnection handling fails
+     */
+    private fun forceDisconnectionCleanup(channel: Channel) {
+        try {
+            Console.warnLog("Performing force cleanup for channel: ${channel.id().asShortText()}")
+
+            // Force remove from connecting players by channel
+            val connectingToRemove = connectingPlayers.entries.find { it.key == channel }
+            connectingToRemove?.let {
+                connectingPlayers.remove(it.key)
+                Console.debugLog("Force removed connecting player: ${it.value.name}")
+            }
+
+            // Try to find and force remove from levels
+            getAllPlayers().find { it.channel == channel }?.let { player ->
+                try {
+                    player.level?.removeEntity(player)
+                    Console.debugLog("Force removed player '${player.name}' from level")
+                } catch (e: Exception) {
+                    Console.errLog("Error in force removal from level: ${e.message}")
+                }
+            }
+
+            Console.debugLog("Force cleanup completed for channel: ${channel.id().asShortText()}")
+
+        } catch (e: Exception) {
+            Console.errLog("Critical error in force disconnection cleanup: ${e.message}")
+            // At this point, we've exhausted all cleanup options
+        }
+    }
+
+    /**
+     * Forces player disconnection without sending any packets to the client.
+     * This method should be used when there are connection errors and the channel may be corrupted.
+     * Only removes the player instance and notifies server-side that the player left.
+     *
+     * @param channel The Netty [Channel] of the player to force disconnect.
+     */
+    internal fun forceDisconnect(channel: Channel) {
+        connectingPlayers[channel]?.let { connectingPlayer ->
+            removeConnecting(connectingPlayer)
+            connectingPlayer.level?.removeEntity(connectingPlayer)
+            return
+        }
+
+        getAllPlayers().find { it.channel == channel }?.let { connectedPlayer ->
+            connectedPlayer.level?.removeEntity(connectedPlayer)
+            connectedPlayer.info.recordDisconnect()
+            notifyLeft(connectedPlayer)
+        }
     }
 
     //endregion
@@ -170,7 +296,7 @@ object Players {
 
         val expectedHash = generateHash(clientInfo.userName)
         if (clientInfo.verificationKey != expectedHash) {
-            disconnectPlayerWithReason(channel, "Authentication failed - please log in properly")
+            disconnectPlayerWithReason(channel, MessageRegistry.Server.Connection.getAuthenticationFailed())
             return false
         }
 
@@ -197,15 +323,9 @@ object Players {
      */
     private fun validateConnection(player: Player): ConnectionResult {
         return when {
-            player.info.isBanned -> {
-                ConnectionResult.Failure("You are banned: ${player.info.banReason}")
-            }
-            isConnected(player) -> {
-                ConnectionResult.Failure("You are already connected to this server")
-            }
-            isServerFull() -> {
-                ConnectionResult.Failure("The server is full")
-            }
+            player.info.isBanned -> ConnectionResult.Failure("You are banned: ${player.info.banReason}")
+            isConnected(player) -> ConnectionResult.Failure(MessageRegistry.Server.Connection.getAlreadyConnected())
+            isServerFull() -> ConnectionResult.Failure(MessageRegistry.Server.Connection.getServerFull())
             else -> ConnectionResult.Success
         }
     }
@@ -226,9 +346,7 @@ object Players {
      *
      * @return `true` if the server is full, `false` otherwise.
      */
-    private fun isServerFull(): Boolean {
-        return count() >= ServerInfo.maxPlayers
-    }
+    private fun isServerFull(): Boolean = count() >= ServerInfo.maxPlayers
 
     /**
      * Creates a Player instance from client identification data
@@ -252,7 +370,7 @@ object Players {
      * @param player The [Player] who joined.
      */
     internal fun notifyJoined(player: Player) {
-        val message = "&a+ &7${player.name} &ajoined the server"
+        val message = MessageRegistry.Server.Player.getJoined(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
@@ -263,7 +381,7 @@ object Players {
      * @param player The [Player] who left.
      */
     internal fun notifyLeft(player: Player) {
-        val message = "&c- &7${player.name} &cleft the server"
+        val message = MessageRegistry.Server.Player.getLeft(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
@@ -275,7 +393,7 @@ object Players {
      * @param level The [Level] the player joined.
      */
     internal fun notifyJoinedLevel(player: Player, level: Level) {
-        val message = "&e* &7${player.name} &ejoined level &7${level.id}"
+        val message = MessageRegistry.Server.Player.getJoinedLevel(player.name, level.id)
         Console.log(message)
         broadcastMessage(message)
     }
@@ -290,9 +408,7 @@ object Players {
      * @param channel The Netty [Channel] to search for.
      * @return The [Player] associated with the channel, or `null` if not found.
      */
-    fun find(channel: Channel): Player? {
-        return Levels.getAllPlayers().find { it.channel == channel }
-    }
+    fun find(channel: Channel): Player? = Levels.getAllPlayers().find { it.channel == channel }
 
     /**
      * Finds a player by their username (case-insensitive)
@@ -300,27 +416,21 @@ object Players {
      * @param name The username string to search for.
      * @return The [Player] with the matching name, or `null` if not found.
      */
-    fun find(name: String): Player? {
-        return Levels.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
-    }
+    fun find(name: String): Player? = Levels.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
 
     /**
      * Gets all currently connected players
      *
      * @return A list of all connected [Player] instances.
      */
-    fun getAllPlayers(): List<Player> {
-        return Levels.getAllPlayers()
-    }
+    fun getAllPlayers(): List<Player> = Levels.getAllPlayers()
 
     /**
      * Gets the current number of connected players
      *
      * @return The total count of connected players.
      */
-    fun count(): Int {
-        return Levels.getTotalPlayerCount()
-    }
+    fun count(): Int = Levels.getTotalPlayerCount()
 
     //endregion
 
@@ -333,9 +443,7 @@ object Players {
      * @param messageTypeId An optional byte identifier for the type of message. Defaults to `0x00`.
      */
     fun broadcastMessage(message: String, messageTypeId: Byte = 0x00) {
-        getAllPlayers().forEach { player ->
-            player.sendMessage(message, messageTypeId)
-        }
+        getAllPlayers().forEach { it.sendMessage(message, messageTypeId) }
     }
 
     /**
@@ -344,9 +452,7 @@ object Players {
      * @param reason The reason for kicking all players. Defaults to "Server maintenance".
      */
     fun kickAll(reason: String = "Server maintenance") {
-        getAllPlayers().forEach { player ->
-            player.kick(reason)
-        }
+        getAllPlayers().forEach { it.kick(reason) }
     }
 
     /**
@@ -425,12 +531,12 @@ object Players {
      * @param channel The Netty [Channel] to disconnect.
      */
     private fun disconnectWithInvalidProtocol(version: Byte, channel: Channel) {
-        val message = "Invalid protocol version ($version, expected $EXPECTED_PROTOCOL_VERSION)"
+        val message = MessageRegistry.Server.Connection.getInvalidProtocol(version.toInt(), EXPECTED_PROTOCOL_VERSION.toInt())
         ServerDisconnectPlayer(message).send(channel)
     }
 
     private fun disconnectWithNoCPESupport(channel: Channel){
-        val message = "Your client does not support CPE (disable classic mode)"
+        val message = MessageRegistry.Server.Connection.getNoCpeSupport()
         ServerDisconnectPlayer(message).send(channel)
     }
     /**
@@ -451,5 +557,40 @@ object Players {
     private sealed class ConnectionResult {
         object Success : ConnectionResult()
         data class Failure(val reason: String) : ConnectionResult()
+    }
+
+    /**
+     * Emergency shutdown method to disconnect all players safely
+     */
+    fun emergencyDisconnectAll(reason: String = "Server emergency shutdown") {
+        Console.warnLog("Emergency disconnect all players initiated: $reason")
+
+        try {
+            // Disconnect all fully connected players
+            getAllPlayers().forEach { player ->
+                try {
+                    player.kick(reason)
+                } catch (e: Exception) {
+                    Console.errLog("Error disconnecting player '${player.name}': ${e.message}")
+                }
+            }
+
+            // Clean up all connecting players
+            connectingPlayers.values.toList().forEach { connectingPlayer ->
+                try {
+                    handleConnectingPlayerDisconnection(connectingPlayer)
+                } catch (e: Exception) {
+                    Console.errLog("Error cleaning up connecting player '${connectingPlayer.name}': ${e.message}")
+                }
+            }
+
+            // Clear all connecting players as final cleanup
+            connectingPlayers.clear()
+
+            Console.log("Emergency disconnect completed")
+
+        } catch (e: Exception) {
+            Console.errLog("Critical error during emergency disconnect: ${e.message}")
+        }
     }
 }

@@ -1,29 +1,29 @@
-## Dandelion Version 0.1.0-dev
+# Dandelion 0.1.1-dev – Changelog
 
-this version is the first public release of dandelion server software
+## New Features
+- **Editable Message System** – All server messages are now fully configurable via external files.
+- **Custom Blocks Support** – Now supports custom blocks using the same as *MCGalaxy* JSON definition files.
+- **`/blocks` Command** – Manage and list custom blocks directly in-game.
+- **JsonParser** – Added for improved JSON parsing capabilities.
+- **Improved Disconnection Handling** – Better handling of unexpected exceptions during player connections.
+- **Better CPE Compatibility** – Improved fallback behavior when clients do not support certain CPE extensions.
 
-# Classic protocol support
-- full
-
-
-# CPE support
+## CPE Extensions
+### Previously Supported
 - EnvColors
 - EnvWeatherType
 - EnvMapAspect
 - CustomBlocks
 
-# Commands
-- ban
-- clients
-- help
-- kick
-- level
-- online
-- permission
-- playerInfo
-- plugin
-- say
-- sayRaw
-- serverInfo
-- stop
-- unban
+### Newly Added in 0.1.1-dev
+- ClickDistance
+- BlockPermissions
+- HackControl
+- HeldBlock
+- SetHotbar
+- SetSpawnPoint
+- MessageTypes
+- InstantMOTD
+- LongerMessages
+- BlockDefinitions
+- BlockDefinitionsExt (version 2)

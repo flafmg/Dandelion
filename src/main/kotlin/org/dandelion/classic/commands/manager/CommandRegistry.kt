@@ -1,6 +1,7 @@
 package org.dandelion.classic.commands.manager
 
 import org.dandelion.classic.commands.BanCommand
+import org.dandelion.classic.commands.BlockCommand
 import org.dandelion.classic.commands.ClientsCommand
 import org.dandelion.classic.commands.HelpCommand
 import org.dandelion.classic.commands.KickCommand
@@ -16,6 +17,7 @@ import org.dandelion.classic.commands.StopCommand
 import org.dandelion.classic.commands.UnbanCommand
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.Console
 
 /**
@@ -26,6 +28,9 @@ object CommandRegistry {
 
 
     internal fun init(){
+        // Initialize the message system first
+        MessageRegistry.init()
+
         register(KickCommand())
         register(BanCommand())
         register(UnbanCommand())
@@ -40,6 +45,7 @@ object CommandRegistry {
         register(OnlineCommand())
         register(ClientsCommand())
         register(PluginCommand())
+        register(BlockCommand())
     }
 
     /**

@@ -51,6 +51,7 @@ object Console: CommandExecutor{
             val reader = LineReaderBuilder.builder().terminal(terminal).build()
             lineReader = reader
 
+
             while (Server.isRunning() && isActive) {
                 try {
                     val input = reader.readLine("> ")
@@ -58,11 +59,16 @@ object Console: CommandExecutor{
                     sendCommand(input)
                 } catch (e: org.jline.reader.UserInterruptException) {
                     Server.shutdown()
+                } catch (e: Exception) {
+                    if (isActive) {
+                        errLog("Console input error: ${e.message}")
+                    }
                 }
             }
             lineReader = null
         }
     }
+
     private fun timestamp(): String = if (showTimestamp) {
         "[${LocalDateTime.now().format(TIMESTAMP_FORMAT)}] "
     } else ""

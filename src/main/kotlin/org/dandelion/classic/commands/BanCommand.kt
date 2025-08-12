@@ -6,6 +6,7 @@ import org.dandelion.classic.commands.annotations.CommandDef
 import org.dandelion.classic.commands.annotations.OnExecute
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.entity.player.PlayerInfo
 
@@ -16,19 +17,19 @@ class BanCommand: Command {
     @ArgRange(min = 1)
     fun execute(executor: CommandExecutor, args: Array<String>){
         val playerName = args[0]
-        val reason = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else "You have been banned"
+        val reason = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else MessageRegistry.Commands.Server.Ban.getDefaultReason()
         val player = Players.find(playerName)
         if(player == null){
             val info = PlayerInfo.load(playerName)
             if(info == null){
-                executor.sendMessage("&cPlayer '&f$playerName&c' not found.")
+                MessageRegistry.Commands.sendPlayerNotFound(executor, playerName)
                 return
             }
             info.setBanned(reason)
-            executor.sendMessage("&aPlayer '&f$playerName&a' has been banned for '&f$reason&a'.")
+            MessageRegistry.Commands.Server.Ban.sendSuccess(executor, playerName, reason)
             return
         }
         player.ban(reason)
-        executor.sendMessage("&aPlayer '&f${player.name}&a' has been banned for '&f$reason&a'.")
+        MessageRegistry.Commands.Server.Ban.sendSuccess(executor, player.name, reason)
     }
 }

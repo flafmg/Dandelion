@@ -1,0 +1,452 @@
+# dandelion server messages configuration
+server:
+  connection:
+    invalid_protocol: "&cInvalid protocol version ({version}, expected {expected})"
+    no_cpe_support: "&cYour client does not support CPE (disable classic mode)"
+    authentication_failed: "&cAuthentication failed - please log in properly"
+    already_connected: "&cYou are already connected to this server"
+    server_full: "&cThe server is full"
+
+  player:
+    joined: "&a+ &7{player} &ajoined the server"
+    left: "&c- &7{player} &cleft the server"
+    joined_level: "&e* &7{player} &ejoined level &7{level}"
+
+  level:
+    full: "&cLevel is full"
+    not_available: "&cDefault level not available"
+    being_reloaded: "&eLevel is being reloaded"
+    being_unloaded: "&eLevel is being unloaded"
+
+  chat_format:
+    player: "{player}: &7{message}"
+    console: "[{level}] {player}: {message}"
+    say: "[{sender}] {message}"
+
+commands:
+  general:
+    no_permission: "&cYou do not have permission to use this command."
+    player_not_found: "&cPlayer '&f{player}&c' not found."
+    player_not_online: "&cPlayer '&f{player}&c' is not online."
+    invalid_usage: "&cInvalid usage. Use: &f{usage}"
+    command_error: "&cAn error occurred while executing this command."
+    unknown_command: "&cUnknown command. Type &f/help &cfor available commands."
+
+  server:
+    ban:
+      success: "&aPlayer '&f{player}&a' has been banned for '&f{reason}&a'."
+      already_banned: "&cPlayer '&f{player}&c' is already banned."
+      default_reason: "You have been banned"
+    unban:
+      success: "&aPlayer '&f{player}&a' has been unbanned."
+      not_banned: "&cPlayer '&f{player}&c' is not banned."
+    kick:
+      success: "&aPlayer '&f{player}&a' has been kicked."
+      default_reason: "You have been kicked"
+    stop:
+      shutting_down: "&eShutting down server..."
+      kick_message: "Server is shutting down"
+    info:
+      header: "&e--- Server Info ---"
+      software: "&eSoftware: &f{software}"
+      uptime: "&eUptime: &f{uptime}"
+      public: "&ePublic: &f{status}"
+      public_yes: "&aYes"
+      public_no: "&cNo"
+
+  chat:
+    say:
+      format: "[{sender}] {message}"
+    no_players_online: "&cNo players online."
+
+  player:
+    info:
+      header: "&e--- Player Info: &f{player} &e---"
+      client: "&eClient: &f{client}"
+      banned: "&eBanned: &f{status}"
+      banned_yes: "&cYes (&f{reason}&c)"
+      banned_no: "&aNo"
+      first_join: "&eFirst Join: &f{date}"
+      last_join: "&eLast Join: &f{date}"
+      last_seen: "&eLast Seen: &f{time}"
+      last_seen_now: "now"
+      playtime: "&ePlaytime: &f{time}"
+      join_count: "&eJoin Count: &f{count}"
+      unknown_client: "Unknown"
+
+  online:
+    list: "&eOnline players (&f{count}&e): {players}"
+    format_player: "&7{name}"
+
+  clients:
+    header: "&eClients:"
+    format: "&e{client}&f: {players}"
+    format_player: "&7{name}"
+
+  help:
+    header: "&e--- Showing help page ({page}/{total}) ---"
+    footer: "&e--- Page {page} of {total} ---"
+    command_not_found: "&cCommand '&f{command}&c' not found."
+    subcommand_not_found: "&cSubcommand '&f{subcommand}&c' not found for command '&f{command}&c'."
+    invalid_page: "&cInvalid page number."
+    command_info_header: "&e--- Command Info: &f{command} &e---"
+    subcommand_info_header: "&e--- Subcommand Info: &f{path} &e---"
+    subcommand_list_header: "&e--- Command Info: &f{command} &e({page}/{total}) ---"
+    separator: "&8---"
+    fields:
+      command: "&eCommand: &f{name}"
+      aliases: "&eAliases: &f{aliases}"
+      description: "&eDescription: &f{description}"
+      usage: "&eUsage: &f{usage}"
+      permission: "&ePermission: &f{permission}"
+      subcommand: "&eSubcommand: &f{name}"
+      subcommands: "&eSubcommands:"
+
+  level:
+    create:
+      success: "&aLevel '&7{id}&a' created successfully."
+      failed: "&cFailed to create level '&7{id}&c'. Check if the ID already exists."
+      invalid_dimensions: "&cInvalid dimensions. Please provide valid numbers."
+      invalid_generator: "&cGenerator '{generator}' not found."
+      available_generators: "&7Available generators: {generators}"
+      usage: "&cUsage: /level create <id> <sizeX> <sizeY> <sizeZ> <generator> [params]"
+    load:
+      success: "&aLevel '&7{id}&a' loaded successfully."
+      failed: "&cFailed to load level '&7{id}&c'. Check if the file exists or if the level is already loaded."
+      usage: "&cUsage: /level load <levelId>"
+    unload:
+      success: "&aLevel '&7{id}&a' unloaded successfully."
+      failed: "&cFailed to unload level '&7{id}&c'. Check if the level exists."
+      usage: "&cUsage: /level unload <levelId>"
+    delete:
+      confirm_message: "&c/!\\ This action will permanently remove level '&7{id}&c' and its file."
+      confirm_instruction: "&cExecute &7'/level delete {id} confirm' &cto confirm."
+      success: "&aLevel '&7{id}&a' deleted successfully."
+      failed: "&cFailed to delete level '&7{id}&c'."
+      file_delete_failed: "&cLevel unloaded but failed to delete file."
+      cannot_delete_default: "&cCannot delete the default group."
+      invalid_confirmation: "&cInvalid confirmation. Use 'confirm' to proceed."
+      usage: "&cUsage: /level delete <levelId> [confirm]"
+    list:
+      no_levels: "&cNo levels are currently loaded."
+      header: "&eLoaded Levels (Page {page}/{total}):"
+      format: "&f- &7{id} &f({players} players, {size}&f)"
+      invalid_page: "&cInvalid page number. Valid range: 1-{total}"
+    info:
+      not_found: "&cLevel '&7{id}&c' not found."
+      header: "&eLevel Information: &7{id}"
+      author: "&7Author: &b{author}"
+      description: "&7Description: &b{description}"
+      size: "&7Size: &b{size}"
+      spawn: "&7Spawn: &b{spawn}"
+      players: "&7Players: &b{players}/{max}"
+      entities: "&7Entities: &b{entities}"
+      auto_save: "&7Auto-save: &b{status}"
+      weather: "&7Weather: &b{weather}"
+      texture_pack: "&7Texture Pack: &b{url}"
+      usage: "&cUsage: /level info <levelId>"
+    stats:
+      header: "&eLevels Statistics:"
+      total_levels: "&7Total Levels: &b{count}"
+      total_players: "&7Total Players: &b{count}"
+      total_entities: "&7Total Entities: &b{count}"
+      default_level: "&7Default Level: &b{level}"
+      auto_save_interval: "&7Auto-save Interval: &b{interval}"
+    teleport:
+      success_self: "&aTeleported to level '&7{id}&a'."
+      success_other: "&aPlayer '&7{player}&a' teleported to level '&7{id}&a'."
+      specify_player: "&cSpecify a player name."
+      usage: "&cUsage: /level tp <levelId> [player]"
+    kick:
+      success: "&aKicked &7{count} &aplayers from level '&7{id}&a'."
+      default_reason: "You have been kicked from the level"
+      usage: "&cUsage: /level kick <levelId> [reason]"
+    redirect:
+      success: "&aRedirected all players from '&7{from}&a' to '&7{to}&a'."
+      failed: "&cFailed to redirect players. Check if both levels exist."
+      usage: "&cUsage: /level redirect <fromLevel> <toLevel>"
+    set:
+      usage: "&cUsage: /level set <property> <levelId> <value>"
+      properties: "&eProperties: &7spawn, autosave, default, description"
+      unknown_property: "&cUnknown property '&7{property}&c'."
+      spawn:
+        success_current: "&aSpawn set to your current position for level '&7{id}&a'."
+        success_coords: "&aSpawn set to &7{coords} &afor level '&7{id}&a'."
+        console_coords: "&cConsole must specify coordinates: /level set spawn <levelId> <x> <y> <z>"
+        usage: "&cUsage: /level set spawn <levelId> [x] [y] [z]"
+        invalid_coords: "&cInvalid coordinates."
+      autosave:
+        enabled: "&aAuto-save enabled for level '&7{id}&a'."
+        disabled: "&aAuto-save disabled for level '&7{id}&a'."
+        invalid_value: "&cInvalid value. Use true or false."
+        usage: "&cUsage: /level set autosave <levelId> <true|false>"
+      default:
+        success: "&aDefault level set to '&7{id}&a'."
+        usage: "&cUsage: /level set default <levelId>"
+      description:
+        success: "&aDescription set to '&7{description}&a' for level '&7{id}&a'."
+        usage: "&cUsage: /level set description <levelId> <description>"
+    env:
+      usage: "&cUsage: /level env <property> <levelId> <value>"
+      properties: "&eProperties: &7texture, weather, blocks, height, fog, speed, fade, offset, colors"
+      unknown_property: "&cUnknown environment property '&7{property}&c'."
+      texture:
+        success: "&aTexture pack URL set for level '&7{id}&a'."
+        reset: "&aTexture pack URL reset for level '&7{id}&a'."
+        usage: "&cUsage: /level env texture <levelId> <url|reset>"
+      weather:
+        success: "&aWeather set to '&7{weather}&a' for level '&7{id}&a'."
+        invalid: "&cInvalid weather type. Use: sunny, rain, snow"
+        usage: "&cUsage: /level env weather <levelId> <sunny|rain|snow>"
+    save:
+      success_all: "&aAll levels saved successfully."
+      success_single: "&aLevel '&7{id}&a' saved successfully."
+      failed: "&cFailed to save level '&7{id}&c': {error}"
+      usage: "&cUsage: /level save <levelId|all>"
+    reload:
+      confirm_message: "&cThis action will reload level '&7{id}&c' from disk, losing unsaved changes."
+      confirm_instruction: "&cExecute &7'/level reload {id} confirm' &cto confirm."
+      success: "&aLevel '&7{id}&a' reloaded successfully."
+      failed: "&cFailed to reload level '&7{id}&c'."
+      kick_message: "Level is being reloaded"
+      usage: "&cUsage: /level reload <levelId> [confirm]"
+    subcommands:
+      available: "&eAvailable SubCommands: &7{commands}"
+      none_available: "&cNo subcommands available."
+
+  # Permission Management
+  permission:
+    group:
+      create:
+        success: "&aGroup '&7{name}&a' created with display name '&7{display}&a' and priority &7{priority}&a."
+        already_exists: "&cGroup '&7{name}&c' already exists."
+        invalid_priority: "&cInvalid priority. Must be a number."
+        usage: "&cUsage: /perm group create <name> <displayName> <priority>"
+      delete:
+        confirm_message: "This will permanently delete group '&7{name}&c' and remove it from all players."
+        confirm_instruction: "Execute &7'/perm group delete {name} confirm' &cto confirm."
+        success: "&aGroup '&7{name}&a' deleted successfully."
+        failed: "&cFailed to delete group '&7{name}&c'."
+        cannot_delete_default: "&cCannot delete the default group."
+        not_found: "&cGroup '&7{name}&c' not found."
+        invalid_confirmation: "&cInvalid confirmation. Use 'confirm' to proceed."
+        usage: "&cUsage: /perm group delete <name> [confirm]"
+      list:
+        no_groups: "&cNo groups found."
+        header: "&ePermission Groups (Page {page}/{total}):"
+        format: "&f- &7{name} &f({display}&f) &7- Priority: &b{priority}&7, Players: &b{count}"
+        invalid_page: "&cInvalid page number. Valid range: 1-{total}"
+      info:
+        header: "&eGroup Information: &7{name}"
+        display_name: "&7Display Name: &b{display}"
+        priority: "&7Priority: &b{priority}"
+        players: "&7Players: &b{count}"
+        permissions: "&7Permissions: &b{count}"
+        permission_list: "&7Permission List:"
+        permission_entry: "  &7- {permission}: {status}"
+        granted: "&aGRANTED"
+        revoked: "&cREVOKED"
+        usage: "&cUsage: /perm group info <name>"
+      permissions:
+        grant_success: "&aPermission '&7{permission}&a' granted to group '&7{name}&a'."
+        revoke_success: "&aPermission '&7{permission}&a' revoked from group '&7{name}&a'."
+        remove_success: "&aPermission '&7{permission}&a' entry removed from group '&7{name}&a'."
+        group_not_found: "&cGroup '&7{name}&c' not found."
+        remove_failed: "&cGroup '&7{name}&c' not found or permission entry doesn't exist."
+        grant_usage: "&cUsage: /perm group grant <name> <permission>"
+        revoke_usage: "&cUsage: /perm group revoke <name> <permission>"
+        remove_usage: "&cUsage: /perm group removepermission <name> <permission>"
+        list_empty: "&eGroup '&7{name}&e' has no permissions."
+        list_header: "&ePermissions for group '&7{name}&e':"
+        list_usage: "&cUsage: /perm group listperms <name>"
+        check_not_set: "&eGroup '&7{name}&e' does not have permission '&7{permission}&e' set."
+        check_result: "&eGroup '&7{name}&e' has permission '&7{permission}&e': {status}"
+        check_usage: "&cUsage: /perm group hasperm <name> <permission>"
+      edit:
+        priority_success: "&aGroup '&7{name}&a' priority set to &7{priority}&a'."
+        display_success: "&aGroup '&7{name}&a' display name set to '&7{display}&a'."
+        priority_usage: "&cUsage: /perm group setpriority <name> <priority>"
+        display_usage: "&cUsage: /perm group setdisplay <name> <displayName>"
+    player:
+      info:
+        header: "&ePlayer Information: &7{name}"
+        highest_group: "&7Highest Group: &b{group}"
+        total_groups: "&7Total Groups: &b{count}"
+        total_permissions: "&7Total Permissions: &b{count}"
+        individual_permissions: "&7Individual Permissions: &b{count}"
+        groups: "&7Groups: {groups}"
+        usage: "&cUsage: /perm player info <player>"
+      groups:
+        add_success: "&aGroup '&7{group}&a' added to player '&7{player}&a'."
+        add_failed: "&cGroup '&7{group}&c' not found."
+        remove_success: "&aGroup '&7{group}&a' removed from player '&7{player}&a'."
+        remove_failed: "&cCannot remove group '&7{group}&c' (may be default group)."
+        set_success: "&aPlayer '&7{player}&a' groups set to: &7{groups}"
+        set_invalid: "&cInvalid groups: {groups}"
+        list_empty: "&ePlayer '&7{player}&e' has no groups."
+        list_header: "&eGroups for player '&7{player}&e':"
+        list_format: "  &7{name} &f({display}&f) &7- Priority: &b{priority}"
+        add_usage: "&cUsage: /perm player addgroup <player> <group>"
+        remove_usage: "&cUsage: /perm player removegroup <player> <group>"
+        set_usage: "&cUsage: /perm player setgroups <player> <group1,group2,...>"
+        list_usage: "&cUsage: /perm player listgroups <player>"
+      permissions:
+        grant_success: "&aPermission '&7{permission}&a' granted to player '&7{player}&a'."
+        revoke_success: "&aPermission '&7{permission}&a' revoked from player '&7{player}&a'."
+        remove_success: "&aPermission '&7{permission}&a' entry removed from player '&7{player}&a'."
+        remove_failed: "&cPlayer '&7{player}&c' does not have permission entry '&7{permission}&c' set."
+        list_empty: "&ePlayer '&7{player}&e' has no effective permissions."
+        list_header: "&eEffective permissions for player '&7{player}&e':"
+        list_individual: "&7- {permission}: {status} &7(Individual)"
+        list_group: "&7- {permission}: &aGRANTED &7(via group)"
+        own_empty: "&ePlayer '&7{player}&e' has no individual permissions."
+        own_header: "&eIndividual permissions for player '&7{player}&e':"
+        own_format: "&7- {permission}: {status}"
+        check_yes: "&aYES"
+        check_no: "&cNO"
+        check_result: "&ePlayer '&7{player}&e' has permission '&7{permission}&e': {status}"
+        check_individual: "&ePlayer '&7{player}&e' has permission '&7{permission}&e' individually: {status}"
+        check_group: "&ePlayer '&7{player}&e' has permission '&7{permission}&e' via group '&7{group}&e': {status}"
+        check_not_found: "&ePlayer '&7{player}&e' does not have permission '&7{permission}&e' (not found in individual or group permissions)."
+        grant_usage: "&cUsage: /perm player grant <player> <permission>"
+        revoke_usage: "&cUsage: /perm player revoke <player> <permission>"
+        remove_usage: "&cUsage: /perm player removepermission <player> <permission>"
+        list_usage: "&cUsage: /perm player listperms <player>"
+        own_usage: "&cUsage: /perm player listownperms <player>"
+        check_usage: "&cUsage: /perm player check <player> <permission>"
+        hasperm_usage: "&cUsage: /perm player hasperm <player> <permission>"
+    reload:
+      success: "&aPermissions reloaded successfully."
+      failed: "&cFailed to reload permissions: {error}"
+    who:
+      header: "&eWho has permission '&7{permission}&e':"
+      groups: "&fGroups: {groups}"
+      players: "&fPlayers: {players}"
+      group_format: "&7{name} &f({display}&f) [&b{status}&f]"
+      player_format: "&7{name} [&b{status}&f]"
+      player_via_group: "&7{name} [&aGRANTED&f via group]"
+      no_one: "&cNo one has this permission explicitly set."
+      usage: "&cUsage: /perm who <permission>"
+    no_permission_manage_groups: "&cYou don't have permission to create groups."
+    no_permission_delete_groups: "&cYou don't have permission to delete groups."
+    no_permission_edit_groups: "&cYou don't have permission to edit groups."
+    no_permission_manage_player_groups: "&cYou don't have permission to manage player groups."
+    no_permission_manage_player_perms: "&cYou don't have permission to manage player permissions."
+    no_permission_reload: "&cYou don't have permission to reload permissions."
+    subcommands:
+      available: "&eAvailable SubCommands: {commands}"
+      none_available: "&cNo subcommands available."
+    help:
+      group_header: "&eGroup Management Commands:"
+      group_create: "&7- create <name> <displayName> <priority> &f- Create new group"
+      group_delete: "&7- delete <name> [confirm] &f- Delete group"
+      group_list: "&7- list [page] &f- List all groups"
+      group_info: "&7- info <name> &f- Show group information"
+      group_setpriority: "&7- setpriority <name> <priority> &f- Set group priority"
+      group_setdisplay: "&7- setdisplay <name> <displayName> &f- Set display name"
+      group_grant: "&7- grant <name> <permission> &f- Grant permission"
+      group_revoke: "&7- revoke <name> <permission> &f- Revoke permission"
+      group_remove: "&7- removepermission <name> <permission> &f- Remove permission entry"
+      group_listperms: "&7- listperms <name> &f- List group permissions"
+      group_hasperm: "&7- hasperm <name> <permission> &f- Check permission"
+      player_header: "&ePlayer Management Commands:"
+      player_info: "&7- info <player> &f- Show player information"
+      player_addgroup: "&7- addgroup <player> <group> &f- Add group to player"
+      player_removegroup: "&7- removegroup <player> <group> &f- Remove group from player"
+      player_setgroups: "&7- setgroups <player> <group1,group2,...> &f- Set player groups"
+      player_listgroups: "&7- listgroups <player> &f- List player groups"
+      player_grant: "&7- grant <player> <permission> &f- Grant individual permission"
+      player_revoke: "&7- revoke <player> <permission> &f- Revoke individual permission"
+      player_remove: "&7- removepermission <player> <permission> &f- Remove individual permission entry"
+      player_listperms: "&7- listperms <player> &f- List all effective permissions"
+      player_listownperms: "&7- listownperms <player> &f- List individual permissions only"
+      player_hasperm: "&7- hasperm <player> <permission> &f- Check if has permission"
+      player_check: "&7- check <player> <permission> &f- Check permission with source"
+
+  # Plugin Management
+  plugin:
+    list:
+      no_plugins: "&cNo plugins are currently loaded."
+      header: "&eLoaded plugins:"
+      format: "&e{name} &b(v{version}): &7{description}"
+    info:
+      header: "&ePlugin Information: &e{name}"
+      version: "&eVersion: &e{version}"
+      description: "&eDescription: &7{description}"
+      authors: "&eAuthors: &7{authors}"
+      dependencies: "&eDependencies: &7{dependencies}"
+      not_found: "&cPlugin '&7{name}&c' not found."
+      usage: "&cUsage: /plugin info <name>"
+    load:
+      success: "&aPlugin '&7{name}&a' loaded successfully."
+      failed: "&cFailed to load plugin '&7{name}&c'. Check if the jar exists and is valid."
+      usage: "&cUsage: /plugin load <name>"
+    unload:
+      success: "&aPlugin '&7{name}&a' unloaded successfully."
+      failed: "&cFailed to unload plugin '&7{name}&c'."
+      usage: "&cUsage: /plugin unload <name>"
+    reload:
+      success_single: "&aPlugin '&7{name}&a' reloaded successfully."
+      success_all: "&aAll plugins reloaded successfully."
+      failed: "&cFailed to reload plugin '&7{name}&c'."
+      usage: "&cUsage: /plugin reload <name|all>"
+    subcommands:
+      available: "&eAvailable SubCommands: &7list, info, load, unload, reload"
+
+  # Block Management
+  block:
+    global_or_level_required: "&cUsage: /block <global|levelId> <subcommand>"
+    air_not_editable: "&cCannot modify block ID 0 (AIR) - it is reserved."
+    level_not_found: "&cLevel '&7{level}&c' not found."
+    block_not_found: "&cBlock with ID &7{id} &cnot found."
+    invalid_property: "&cInvalid property '&7{property}&c'."
+    invalid_id: "&cInvalid block ID. Must be between 1 and 255."
+    id_already_exists: "&cBlock ID &7{id} &calready exists."
+
+    info:
+      header: "&eBlock Information (ID: &7{id}&e):"
+      name: "&eName: &f{name}"
+      fallback: "&eFallback: &f{fallback}"
+      solidity: "&eSolidity: &f{solidity}"
+      movement_speed: "&eMovement Speed: &f{speed}"
+      textures: "&eTextures: &fTop={top}, Side={side}, Bottom={bottom}"
+      extended_textures: "&eTextures: &fTop={top}, Left={left}, Right={right}, Front={front}, Back={back}, Bottom={bottom}"
+      transmits_light: "&eTransmits Light: &f{transmits}"
+      walk_sound: "&eWalk Sound: &f{sound}"
+      full_bright: "&eFull Bright: &f{bright}"
+      shape: "&eShape: &f{shape}"
+      block_draw: "&eBlock Draw: &f{draw}"
+      fog: "&eFog: &fDensity={density}, RGB=({r},{g},{b})"
+      bounds: "&eBounds: &fMin=({minX},{minY},{minZ}), Max=({maxX},{maxY},{maxZ})"
+      extended: "&eExtended Block: &f{extended}"
+      usage: "&cUsage: /block <global|levelId> info <id>"
+
+    edit:
+      success: "&aBlock &7{id} &a'{name}' property &7{property} &aset to &7{value}&a."
+      success_id_changed: "&aBlock &7{oldId} &a'{name}' moved to ID &7{newId} &awith property &7{property} &aset to &7{value}&a."
+      properties: "&eEditable properties: &7id, name, fallback, solidity, speed, topTex, sideTex, bottomTex, leftTex, rightTex, frontTex, backTex, transmitsLight, walkSound, fullBright, shape, blockDraw, fogDensity, fogR, fogG, fogB, minX, minY, minZ, maxX, maxY, maxZ"
+      usage: "&cUsage: /block <global|levelId> edit <id> <property> <value>"
+
+    add:
+      success: "&aBlock &7{id} &a'{name}' created successfully."
+      usage: "&cUsage: /block <global|levelId> add <id> [name] [textureId]"
+
+    delete:
+      success: "&aBlock &7{id} &a'{name}' deleted successfully."
+      usage: "&cUsage: /block <global|levelId> delete <id>"
+
+    list:
+      header_global: "&eGlobal Blocks:"
+      header_level: "&eBlocks for level '&7{level}&e':"
+      header_all: "&eAll Available Blocks:"
+      format: "&f- &7{id}: &f{name}"
+      no_blocks: "&cNo blocks found."
+      usage: "&cUsage: /block <global|levelId|all> list"
+
+    reload:
+      success: "&aAll block definitions reloaded successfully."
+      failed: "&cFailed to reload block definitions: {error}"
+      usage: "&cUsage: /block reload"
+
+    subcommands:
+      available: "&eAvailable SubCommands: &7info, edit, add, delete, list, reload"

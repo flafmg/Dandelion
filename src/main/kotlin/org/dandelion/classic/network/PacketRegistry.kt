@@ -46,6 +46,17 @@ object PacketRegistry {
         addCPE("EnvWeatherType")
         addCPE("EnvMapAspect")
         addCPE("CustomBlocks")
+        addCPE("ClickDistance")
+        addCPE("BlockPermissions")
+        addCPE("HackControl")
+        addCPE("HeldBlock")
+        addCPE("SetHotbar")
+        addCPE("SetSpawnPoint")
+        addCPE("MessageTypes")
+        addCPE("InstantMOTD")
+        addCPE("LongerMessages")
+        addCPE("BlockDefinitions")
+        addCPE("BlockDefinitionsExt", 2)
     }
 
     fun registerPacket(id: Byte, factory : () -> Packet){

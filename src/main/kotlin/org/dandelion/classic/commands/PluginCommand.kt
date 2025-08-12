@@ -6,6 +6,7 @@ import org.dandelion.classic.commands.annotations.OnSubCommand
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
+import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.plugins.manager.PluginRegistry
 
 @CommandDef(
@@ -21,12 +22,12 @@ class PluginCommand : Command {
     fun listPlugins(executor: CommandExecutor, args: Array<String>) {
         val plugins = PluginRegistry.getAllPlugins()
         if (plugins.isEmpty()) {
-            executor.sendMessage("&cNo plugins are currently loaded.")
+            MessageRegistry.Commands.Plugin.List.sendNoPlugins(executor)
             return
         }
-        executor.sendMessage("&eLoaded plugins:")
+        MessageRegistry.Commands.Plugin.List.sendHeader(executor)
         plugins.values.forEach {
-            executor.sendMessage("&e${it.info.name} &b(v${it.info.version}): &7${it.info.description}")
+            MessageRegistry.Commands.Plugin.List.sendPlugin(executor, it.info.name, it.info.version, it.info.description)
         }
     }
 
@@ -34,21 +35,22 @@ class PluginCommand : Command {
     @RequirePermission("dandelion.plugin.manage")
     fun pluginInfo(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
-            executor.sendMessage("&cUsage: /plugin info <name>")
+            MessageRegistry.Commands.Plugin.Info.sendUsage(executor)
             return
         }
         val plugin = PluginRegistry.getPlugin(args[0])
         if (plugin == null) {
-            executor.sendMessage("&cPlugin '&7${args[0]}&c' not found.")
+            MessageRegistry.Commands.Plugin.Info.sendNotFound(executor, args[0])
             return
         }
         val info = plugin.info
-        executor.sendMessage("&ePlugin Information: &e${info.name}")
-        executor.sendMessage("&eVersion: &e${info.version}")
-        executor.sendMessage("&eDescription: &7${info.description}")
-        executor.sendMessage("&eAuthors: &7${info.authors.joinToString(", ")}")
+        MessageRegistry.Commands.Plugin.Info.sendHeader(executor, info.name)
+        MessageRegistry.Commands.Plugin.Info.sendVersion(executor, info.version)
+        MessageRegistry.Commands.Plugin.Info.sendDescription(executor, info.description)
+        MessageRegistry.Commands.Plugin.Info.sendAuthors(executor, info.authors.joinToString(", "))
         if (info.dependencies.isNotEmpty()) {
-            executor.sendMessage("&eDependencies: &7${info.dependencies.joinToString(", ") { it.first + (it.second?.let { v -> " (v$v)" } ?: "") }}")
+            val deps = info.dependencies.joinToString(", ") { it.first + (it.second?.let { v -> " (v$v)" } ?: "") }
+            MessageRegistry.Commands.Plugin.Info.sendDependencies(executor, deps)
         }
     }
 
@@ -56,15 +58,15 @@ class PluginCommand : Command {
     @RequirePermission("dandelion.plugin.manage")
     fun loadPlugin(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
-            executor.sendMessage("&cUsage: /plugin load <name>")
+            MessageRegistry.Commands.Plugin.Load.sendUsage(executor)
             return
         }
         val name = args[0]
         val success = PluginRegistry.loadPluginByName(name)
         if (success) {
-            executor.sendMessage("&aPlugin '&7$name&a' loaded successfully.")
+            MessageRegistry.Commands.Plugin.Load.sendSuccess(executor, name)
         } else {
-            executor.sendMessage("&cFailed to load plugin '&7$name&c'. Check if the jar exists and is valid.")
+            MessageRegistry.Commands.Plugin.Load.sendFailed(executor, name)
         }
     }
 
@@ -72,15 +74,15 @@ class PluginCommand : Command {
     @RequirePermission("dandelion.plugin.manage")
     fun unloadPlugin(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
-            executor.sendMessage("&cUsage: /plugin unload <name>")
+            MessageRegistry.Commands.Plugin.Unload.sendUsage(executor)
             return
         }
         val name = args[0]
         val success = PluginRegistry.unloadPluginByName(name)
         if (success) {
-            executor.sendMessage("&aPlugin '&7$name&a' unloaded successfully.")
+            MessageRegistry.Commands.Plugin.Unload.sendSuccess(executor, name)
         } else {
-            executor.sendMessage("&cFailed to unload plugin '&7$name&c'.")
+            MessageRegistry.Commands.Plugin.Unload.sendFailed(executor, name)
         }
     }
 
@@ -88,26 +90,26 @@ class PluginCommand : Command {
     @RequirePermission("dandelion.plugin.manage")
     fun reloadPlugin(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
-            executor.sendMessage("&cUsage: /plugin reload <name|all>")
+            MessageRegistry.Commands.Plugin.Reload.sendUsage(executor)
             return
         }
         val target = args[0]
         if (target.equals("all", ignoreCase = true)) {
             PluginRegistry.shutdown()
             PluginRegistry.init()
-            executor.sendMessage("&aAll plugins reloaded successfully.")
+            MessageRegistry.Commands.Plugin.Reload.sendSuccessAll(executor)
         } else {
             val success = PluginRegistry.reloadPluginByName(target)
             if (success) {
-                executor.sendMessage("&aPlugin '&7$target&a' reloaded successfully.")
+                MessageRegistry.Commands.Plugin.Reload.sendSuccessSingle(executor, target)
             } else {
-                executor.sendMessage("&cFailed to reload plugin '&7$target&c'.")
+                MessageRegistry.Commands.Plugin.Reload.sendFailed(executor, target)
             }
         }
     }
 
     @OnExecute
     fun showAvailableSubCommands(executor: CommandExecutor, args: Array<String>) {
-        executor.sendMessage("&eAvailable SubCommands: &7list, info, load, unload, reload")
+        MessageRegistry.Commands.Plugin.sendSubcommandsAvailable(executor)
     }
 }

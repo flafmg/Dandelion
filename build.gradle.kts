@@ -7,7 +7,7 @@ kotlin {
 }
 
 group = "org.dandelion.classic"
-version = "0.1.0-dev"
+version = "0.1.1-dev"
 
 repositories {
     mavenCentral()
@@ -21,7 +21,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.yaml:snakeyaml:2.4")
     implementation("io.netty:netty-all:4.2.2.Final")
-    implementation("org.jline:jline:3.26.0")
+    implementation("org.jline:jline:3.30.0")
 }
 
 application {

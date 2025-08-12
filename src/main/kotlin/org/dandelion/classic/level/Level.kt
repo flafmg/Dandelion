@@ -1,5 +1,6 @@
 package org.dandelion.classic.level
 import org.dandelion.classic.blocks.model.Block
+import org.dandelion.classic.blocks.manager.BlockRegistry
 import org.dandelion.classic.level.generator.LevelGenerator
 import org.dandelion.classic.level.io.DandelionLevelSerializer
 import org.dandelion.classic.level.io.DandelionLevelDeserializer
@@ -36,7 +37,7 @@ import kotlin.collections.filter
 class Level(
     val id: String,
     val author: String,
-    val description: String,
+    var description: String,
     val size: SVec,
     var spawn: Position,
     var extraData: String = "",
@@ -48,420 +49,377 @@ class Level(
     internal val availableEntityIds = ArrayDeque<Byte>(MAX_ENTITIES)
     internal val entities = HashMap<Byte, Entity>(MAX_ENTITIES)
 
-    // Environment properties from SetMapEnvUrl packet
-    internal var texturePackUrl: String = ""
-
-    // Environment properties from SetMapEnvProperty packet
-    internal var sideBlock: Byte = 7
-    internal var edgeBlock: Byte = 8
-    internal var edgeHeight: Int = size.y / 2
-    internal var cloudsHeight: Int = size.y + 2
-    internal var maxFogDistance: Int = 0
-    internal var cloudsSpeed: Int = 256
-    internal var weatherSpeed: Int = 256
-    internal var weatherFade: Int = 128
-    internal var exponentialFog: Boolean = false
-    internal var sidesOffset: Int = -2
-
-    // Environment property from EnvSetWeatherType packet
-    internal var weatherType: Byte = 0
-
-    // Environment properties fom EnvSetColor packet
-    internal var skyColor: Color? = null
-    internal var cloudColor: Color? = null
-    internal var fogColor: Color? = null
-    internal var ambientLightColor: Color? = null
-    internal var diffuseLightColor: Color? = null
-    internal var skyboxColor: Color? = null
-
     init {
         initializeEntityIdPool()
     }
 
-    /**
-     * Sets the texture pack URL for this level (from SetMapEnvUrl)
-     *
-     * @param url The texture pack URL
-     */
-    fun setTexturePackUrl(url: String) {
-        texturePackUrl = url
-    }
+    //region Environment Control
 
     /**
-     * Gets the texture pack URL for this level (from SetMapEnvUrl)
-     *
-     * @return The texture pack URL
+     * The texture pack URL for this level (from SetMapEnvUrl)
      */
-    fun getTexturePackUrl(): String = texturePackUrl
-
-    /**
-     * Sets the map sides block ID (from SetMapEnvProperty)
-     *
-     * @param blockId The block ID for map sides
-     */
-    fun setSideBlock(blockId: Byte) {
-        sideBlock = blockId
-        ServerSetMapEnvProperty(0, blockId.toInt()).send(getPlayers())
-    }
-
-    /**
-     * Gets the map sides block ID (from SetMapEnvProperty)
-     *
-     * @return The block ID for map sides
-     */
-    fun getSideBlock(): Byte = sideBlock
-
-    /**
-     * Sets the map edge/horizon block ID (from SetMapEnvProperty)
-     *
-     * @param blockId The block ID for map edge
-     */
-    fun setEdgeBlock(blockId: Byte) {
-        edgeBlock = blockId
-        ServerSetMapEnvProperty(1, blockId.toInt()).send(getPlayers())
-    }
-
-    /**
-     * Gets the map edge/horizon block ID (from SetMapEnvProperty)
-     *
-     * @return The block ID for map edge
-     */
-    fun getEdgeBlock(): Byte = edgeBlock
-
-    /**
-     * Sets the map edge height (from SetMapEnvProperty)
-     *
-     * @param height The edge height
-     */
-    fun setEdgeHeight(height: Int) {
-        edgeHeight = height
-        ServerSetMapEnvProperty(2, height).send(getPlayers())
-    }
-
-    /**
-     * Gets the map edge height (from SetMapEnvProperty)
-     *
-     * @return The edge height
-     */
-    fun getEdgeHeight(): Int = edgeHeight
-
-    /**
-     * Sets the map clouds height (from SetMapEnvProperty)
-     *
-     * @param height The clouds height
-     */
-    fun setCloudsHeight(height: Int) {
-        cloudsHeight = height
-        ServerSetMapEnvProperty(3, height).send(getPlayers())
-    }
-
-    /**
-     * Gets the map clouds height (from SetMapEnvProperty)
-     *
-     * @return The clouds height
-     */
-    fun getCloudsHeight(): Int = cloudsHeight
-
-    /**
-     * Sets the max fog/view distance (from SetMapEnvProperty)
-     *
-     * @param distance The max fog distance
-     */
-    fun setMaxFogDistance(distance: Int) {
-        maxFogDistance = distance
-        ServerSetMapEnvProperty(4, distance).send(getPlayers())
-    }
-
-    /**
-     * Gets the max fog/view distance (from SetMapEnvProperty)
-     *
-     * @return The max fog distance
-     */
-    fun getMaxFogDistance(): Int = maxFogDistance
-
-    /**
-     * Sets the clouds speed (from SetMapEnvProperty)
-     *
-     * @param speed The clouds speed * 256
-     */
-    fun setCloudsSpeed(speed: Int) {
-        cloudsSpeed = speed
-        ServerSetMapEnvProperty(5, speed).send(getPlayers())
-    }
-
-    /**
-     * Gets the clouds speed (from SetMapEnvProperty)
-     *
-     * @return The clouds speed * 256
-     */
-    fun getCloudsSpeed(): Int = cloudsSpeed
-
-    /**
-     * Sets the weather speed (from SetMapEnvProperty)
-     *
-     * @param speed The weather speed * 256
-     */
-    fun setWeatherSpeed(speed: Int) {
-        weatherSpeed = speed
-        ServerSetMapEnvProperty(6, speed).send(getPlayers())
-    }
-
-    /**
-     * Gets the weather speed (from SetMapEnvProperty)
-     *
-     * @return The weather speed * 256
-     */
-    fun getWeatherSpeed(): Int = weatherSpeed
-
-    /**
-     * Sets the weather fade (from SetMapEnvProperty)
-     *
-     * @param fade The weather fade * 128
-     */
-    fun setWeatherFade(fade: Int) {
-        weatherFade = fade
-        ServerSetMapEnvProperty(7, fade).send(getPlayers())
-    }
-
-    /**
-     * Gets the weather fade (from SetMapEnvProperty)
-     *
-     * @return The weather fade * 128
-     */
-    fun getWeatherFade(): Int = weatherFade
-
-    /**
-     * Sets whether to use exponential fog (from SetMapEnvProperty)
-     *
-     * @param useExponential Whether to use exponential fog
-     */
-    fun setExponentialFog(useExponential: Boolean) {
-        exponentialFog = useExponential
-        val exponentialFogValue = if (exponentialFog) 1 else 0
-        ServerSetMapEnvProperty(8, exponentialFogValue).send(getPlayers())
-    }
-
-    /**
-     * Gets whether to use exponential fog (from SetMapEnvProperty)
-     *
-     * @return Whether to use exponential fog
-     */
-    fun getExponentialFog(): Boolean = exponentialFog
-
-    /**
-     * Sets the offset of map sides height from map edge height (from SetMapEnvProperty)
-     *
-     * @param offset The sides offset
-     */
-    fun setSidesOffset(offset: Int) {
-        sidesOffset = offset
-        ServerSetMapEnvProperty(9, offset).send(getPlayers())
-    }
-
-    /**
-     * Gets the offset of map sides height from map edge height (from SetMapEnvProperty)
-     *
-     * @return The sides offset
-     */
-    fun getSidesOffset(): Int = sidesOffset
-
-    /**
-     * Sets the weather type (from EnvSetWeatherType)
-     *
-     * @param type The weather type (0 = sunny, 1 = raining, 2 = snowing)
-     */
-    fun setWeatherType(type: Byte) {
-        if (type in 0..2) {
-            weatherType = type
-            ServerEnvWeatherType(type).send(getPlayers())
-        } else {
-            Console.warnLog("Invalid weather type $type, ignoring")
-        }
-    }
-
-    /**
-     * Gets the weather type (from EnvSetWeatherType)
-     *
-     * @return The weather type (0 = sunny, 1 = raining, 2 = snowing)
-     */
-    fun getWeatherType(): Byte = weatherType
-
-    /**
-     * Sets the sky color (from EnvSetColor)
-     *
-     * @param color The sky color, null to reset to default
-     */
-    fun setSkyColor(color: Color?) {
-        skyColor = color
-        val colorPacket = ServerEnvColors(
-            0,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
-
-    /**
-     * Gets the sky color (from EnvSetColor)
-     *
-     * @return The sky color, null means default
-     */
-    fun getSkyColor(): Color? = skyColor
-
-    /**
-     * Sets the cloud color (from EnvSetColor)
-     *
-     * @param color The cloud color, null to reset to default
-     */
-    fun setCloudColor(color: Color?) {
-        cloudColor = color
-        val colorPacket = ServerEnvColors(
-            1,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
-
-    /**
-     * Gets the cloud color (from EnvSetColor)
-     *
-     * @return The cloud color, null means default
-     */
-    fun getCloudColor(): Color? = cloudColor
-
-    /**
-     * Sets the fog color (from EnvSetColor)
-     *
-     * @param color The fog color, null to reset to default
-     */
-    fun setFogColor(color: Color?) {
-        fogColor = color
-        val colorPacket = ServerEnvColors(
-            2,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
-
-    /**
-     * Gets the fog color (from EnvSetColor)
-     *
-     * @return The fog color, null means default
-     */
-    fun getFogColor(): Color? = fogColor
-
-    /**
-     * Sets the ambient light color (from EnvSetColor)
-     *
-     * @param color The ambient light color, null to reset to default
-     */
-    fun setAmbientLightColor(color: Color?) {
-        ambientLightColor = color
-        val colorPacket = ServerEnvColors(
-            3,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
-
-    /**
-     * Gets the ambient light color (from EnvSetColor)
-     *
-     * @return The ambient light color, null means default
-     */
-    fun getAmbientLightColor(): Color? = ambientLightColor
-
-    /**
-     * Sets the diffuse light color (from EnvSetColor)
-     *
-     * @param color The diffuse light color, null to reset to default
-     */
-    fun setDiffuseLightColor(color: Color?) {
-        diffuseLightColor = color
-        val colorPacket = ServerEnvColors(
-            4,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
-
-    /**
-     * Gets the diffuse light color (from EnvSetColor)
-     *
-     * @return The diffuse light color, null means default
-     */
-    fun getDiffuseLightColor(): Color? = diffuseLightColor
-
-    /**
-     * Sets the skybox color (from EnvSetColor)
-     *
-     * @param color The skybox color, null to reset to default
-     */
-    fun setSkyboxColor(color: Color?) {
-        skyboxColor = color
-        val colorPacket = ServerEnvColors(
-            5,
-            color?.red ?: -1,
-            color?.green ?: -1,
-            color?.blue ?: -1
-        ).send(getPlayers())
-    }
-
-    /**
-     * Gets the skybox color (from EnvSetColor)
-     *
-     * @return The skybox color, null means default
-     */
-    fun getSkyboxColor(): Color? = skyboxColor
-
-
-    /**
-     * Sends all env packets to the player
-     *
-     * @param player the [Player] that will receive the env update
-     */
-    fun sendEnv(player: Player){
-        val weather = ServerEnvWeatherType(weatherType)
-        weather.send(player)
-
-        listOf(
-            Pair(0, skyColor),
-            Pair(1, cloudColor),
-            Pair(2, fogColor),
-            Pair(3, ambientLightColor),
-            Pair(4, diffuseLightColor),
-            Pair(5, skyboxColor)
-        ).forEach { (variable, color) ->
-            if (color != null) {
-                val colorPacket = ServerEnvColors(variable.toByte(), color.red, color.green, color.blue)
-                colorPacket.send(player)
+    var texturePackUrl: String = ""
+        /**
+         * Sets the texture pack URL for this level
+         *
+         * @param value The texture pack URL
+         */
+        set(value) {
+            field = value
+            if (value.isNotEmpty()) {
+                ServerSetMapEnvUrl(value).send(getPlayers().filter { it.supports("EnvMapAspect") })
             }
         }
 
-        if(texturePackUrl.isNotEmpty()){
-            val texture = ServerSetMapEnvUrl(texturePackUrl)
-            texture.send(player)
+    /**
+     * The block ID used for map sides (from SetMapEnvProperty)
+     */
+    var sideBlock: Byte = 7
+        /**
+         * Sets the map sides block ID
+         *
+         * @param value The block ID for map sides
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(0, value.toInt()).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The block ID used for map edge/horizon (from SetMapEnvProperty)
+     */
+    var edgeBlock: Byte = 8
+        /**
+         * Sets the map edge/horizon block ID
+         *
+         * @param value The block ID for map edge
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(1, value.toInt()).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The height of the map edge (from SetMapEnvProperty)
+     */
+    var edgeHeight: Int = size.y / 2
+        /**
+         * Sets the map edge height
+         *
+         * @param value The edge height
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(2, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The height of the clouds (from SetMapEnvProperty)
+     */
+    var cloudsHeight: Int = size.y + 2
+        /**
+         * Sets the map clouds height
+         *
+         * @param value The clouds height
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(3, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The maximum fog/view distance (from SetMapEnvProperty)
+     */
+    var maxFogDistance: Int = 0
+        /**
+         * Sets the max fog/view distance
+         *
+         * @param value The max fog distance
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(4, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The clouds speed multiplied by 256 (from SetMapEnvProperty)
+     */
+    var cloudsSpeed: Int = 256
+        /**
+         * Sets the clouds speed
+         *
+         * @param value The clouds speed * 256
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(5, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The weather speed multiplied by 256 (from SetMapEnvProperty)
+     */
+    var weatherSpeed: Int = 256
+        /**
+         * Sets the weather speed
+         *
+         * @param value The weather speed * 256
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(6, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The weather fade multiplied by 128 (from SetMapEnvProperty)
+     */
+    var weatherFade: Int = 128
+        /**
+         * Sets the weather fade
+         *
+         * @param value The weather fade * 128
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(7, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * Whether to use exponential fog (from SetMapEnvProperty)
+     */
+    var exponentialFog: Boolean = false
+        /**
+         * Sets whether to use exponential fog
+         *
+         * @param value Whether to use exponential fog
+         */
+        set(value) {
+            field = value
+            val exponentialFogValue = if (value) 1 else 0
+            ServerSetMapEnvProperty(8, exponentialFogValue).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The offset of map sides height from map edge height (from SetMapEnvProperty)
+     */
+    var sidesOffset: Int = -2
+        /**
+         * Sets the offset of map sides height from map edge height
+         *
+         * @param value The sides offset
+         */
+        set(value) {
+            field = value
+            ServerSetMapEnvProperty(9, value).send(getPlayers().filter { it.supports("EnvMapAspect") } )
+        }
+
+    /**
+     * The weather type (0 = sunny, 1 = raining, 2 = snowing) (from EnvSetWeatherType)
+     */
+    var weatherType: Byte = 0
+        /**
+         * Sets the weather type
+         *
+         * @param value The weather type (0 = sunny, 1 = raining, 2 = snowing)
+         */
+        set(value) {
+            when {
+                value in 0..2 -> {
+                    field = value
+                    ServerEnvWeatherType(value).send(getPlayers().filter { it.supports("EnvWeatherType") })
+                }
+                else -> Console.warnLog("Invalid weather type $value, ignoring")
+            }
+        }
+
+    /**
+     * The sky color, null to reset to default (from EnvSetColor)
+     */
+    var skyColor: Color? = null
+        /**
+         * Sets the sky color
+         *
+         * @param value The sky color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                0,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The cloud color, null to reset to default (from EnvSetColor)
+     */
+    var cloudColor: Color? = null
+        /**
+         * Sets the cloud color
+         *
+         * @param value The cloud color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                1,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The fog color, null to reset to default (from EnvSetColor)
+     */
+    var fogColor: Color? = null
+        /**
+         * Sets the fog color
+         *
+         * @param value The fog color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                2,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The ambient light color, null to reset to default (from EnvSetColor)
+     */
+    var ambientLightColor: Color? = null
+        /**
+         * Sets the ambient light color
+         *
+         * @param value The ambient light color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                3,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The diffuse light color, null to reset to default (from EnvSetColor)
+     */
+    var diffuseLightColor: Color? = null
+        /**
+         * Sets the diffuse light color
+         *
+         * @param value The diffuse light color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                4,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    /**
+     * The skybox color, null to reset to default (from EnvSetColor)
+     */
+    var skyboxColor: Color? = null
+        /**
+         * Sets the skybox color
+         *
+         * @param value The skybox color, null to reset to default
+         */
+        set(value) {
+            field = value
+            ServerEnvColors(
+                5,
+                value?.red ?: -1,
+                value?.green ?: -1,
+                value?.blue ?: -1
+            ).send(getPlayers().filter { it.supports("EnvColors") } )
+        }
+
+    //endregion
+
+    /**
+     * Registers a custom block definition for this level.
+     *
+     * @param block The block instance to register for this level
+     */
+    fun registerBlockDef(block: Block) {
+        BlockRegistry.register(this, block)
+    }
+
+    /**
+     * Unregisters a custom block definition from this level.
+     *
+     * @param blockId The ID of the block to unregister from this level
+     * @return true if the block was removed, false otherwise
+     */
+    fun unregisterBlockDef(blockId: Byte): Boolean {
+        return BlockRegistry.unregister(this, blockId)
+    }
+
+    /**
+     * Gets a block definition for this level, with level blocks taking priority over global blocks.
+     *
+     * @param blockId The ID of the block to retrieve
+     * @return The block instance, or null if not found
+     */
+    fun getBlockDef(blockId: Byte): Block? {
+        return BlockRegistry.get(this, blockId)
+    }
+
+    /**
+     * Sends all env packets and other packets to the player
+     *
+     * @param player the [Player] that will receive the env update
+     */
+    fun sendAllCustomData(player: Player) {
+        if(player.supports("EnvWeatherType")) {
+            ServerEnvWeatherType(weatherType).send(player)
+        }
+        listOf(
+            0 to skyColor,
+            1 to cloudColor,
+            2 to fogColor,
+            3 to ambientLightColor,
+            4 to diffuseLightColor,
+            5 to skyboxColor
+        ).forEach { (variable, color) ->
+            color?.let {
+                if(player.supports("EnvColors")) {
+                    ServerEnvColors(variable.toByte(), it.red, it.green, it.blue).send(player)
+                }
+            }
+        }
+
+        if (texturePackUrl.isNotEmpty() && player.supports("EnvMapAspect")) {
+            ServerSetMapEnvUrl(texturePackUrl).send(player)
         }
 
         val exponentialFogValue = if (exponentialFog) 1 else 0
         listOf(
-            Pair(0, sideBlock.toInt()),
-            Pair(1, edgeBlock.toInt()),
-            Pair(2, edgeHeight),
-            Pair(3, cloudsHeight),
-            Pair(4, maxFogDistance),
-            Pair(5, cloudsSpeed),
-            Pair(6, weatherSpeed),
-            Pair(7, weatherFade),
-            Pair(8, exponentialFogValue),
-            Pair(9, sidesOffset)
+            0 to sideBlock.toInt(),
+            1 to edgeBlock.toInt(),
+            2 to edgeHeight,
+            3 to cloudsHeight,
+            4 to maxFogDistance,
+            5 to cloudsSpeed,
+            6 to weatherSpeed,
+            7 to weatherFade,
+            8 to exponentialFogValue,
+            9 to sidesOffset
         ).forEach { (propertyType, value) ->
-            val propertyPacket = ServerSetMapEnvProperty(propertyType.toByte(), value)
-            propertyPacket.send(player.channel)
+            if(player.supports("EnvMapAspect")) {
+                ServerSetMapEnvProperty(propertyType.toByte(), value).send(player.channel)
+            }
         }
     }
 
@@ -554,12 +512,15 @@ class Level(
      */
     fun tryAddEntity(entity: Entity): Boolean {
         entity.level?.removeEntity(entity)
+
         val entityId = getNextAvailableId() ?: return false
+
         entity.entityId = entityId
         entities[entityId] = entity
         entity.level = this
         return true
     }
+
     /**
      * Removes an entity from the level by entity reference
      *
@@ -572,24 +533,29 @@ class Level(
         }
         removeEntityById(entity.entityId)
     }
+
     /**
      * Removes an entity from the level by entity ID
      *
      * @param entityId The [Byte] ID of the entity to remove.
      */
     fun removeEntityById(entityId: Byte) {
-        val entity = entities[entityId] ?: run {
+        val entity = entities[entityId]
+        if (entity == null) {
             Console.warnLog("Attempted to remove entity with ID $entityId that doesn't exist in level '$id'")
             return
         }
+
         if (entity is Player) {
             broadcastEntityDespawn(entityId)
         }
+
         freeId(entityId)
         entities.remove(entityId)
         entity.entityId = -1
         entity.level = null
     }
+
     /**
      * Notifies all other players when a player despawns
      *
@@ -721,6 +687,7 @@ class Level(
             Console.warnLog("Attempted to set block at invalid position ($x, $y, $z) in level '$id'")
             return
         }
+
         val blockIndex = calculateBlockIndex(x, y, z)
         blocks[blockIndex] = blockType
         broadcastBlockChange(x.toShort(), y.toShort(), z.toShort(), blockType)
@@ -797,13 +764,16 @@ class Level(
         val maxY = maxOf(startY, endY)
         val minZ = minOf(startZ, endZ)
         val maxZ = maxOf(startZ, endZ)
+
         if (!isValidFillArea(minX, minY, minZ, maxX, maxY, maxZ)) {
             Console.warnLog("Attempted to fill blocks outside level bounds in level '$id'")
             return
         }
+
         performBlockFill(minX, minY, minZ, maxX, maxY, maxZ, blockType)
         notifyPlayersOfAreaChange(minX, minY, minZ, maxX, maxY, maxZ)
     }
+
     /**
      * Performs the actual block filling operation
      *
@@ -865,9 +835,8 @@ class Level(
      * @return The [Byte] block type ID at the specified position, or 0x00 if the position is invalid.
      */
     fun getBlock(x: Int, y: Int, z: Int): Byte {
-        if (!isValidBlockPosition(x, y, z)) {
-            return 0x00
-        }
+        if (!isValidBlockPosition(x, y, z)) return 0x00
+
         val blockIndex = calculateBlockIndex(x, y, z)
         return blocks[blockIndex]
     }
@@ -917,20 +886,18 @@ class Level(
     fun spawnPlayerInLevel(player: Player) {
         getAllEntities()
             .filter { it.entityId != player.entityId }
-            .forEach { entity ->
-                player.mutualSpawn(entity)
-            }
+            .forEach { entity -> player.mutualSpawn(entity) }
     }
+
     /**
      * Spawns an entity in the level and shows it to all players
      *
      * @param entity The [Entity] to spawn in the level.
      */
     fun spawnEntityInLevel(entity: Entity) {
-        getPlayers().forEach { player ->
-            entity.spawnFor(player)
-        }
+        getPlayers().forEach { player -> entity.spawnFor(player) }
     }
+
     /**
      * Saves the level using the specified serializer and file
      *
@@ -940,6 +907,7 @@ class Level(
     fun save(serializer: LevelSerializer, file: File) {
         serializer.serialize(this, file)
     }
+
     /**
      * Saves the level using the specified serializer and file path
      *
@@ -947,18 +915,18 @@ class Level(
      * @param path The file path string to save the level to.
      */
     fun save(serializer: LevelSerializer, path: String) {
-        val file = File(path)
-        serializer.serialize(this, file)
+        serializer.serialize(this, File(path))
     }
+
     /**
      * Saves the level using the specified serializer to the default location
      *
      * @param serializer The [LevelSerializer] to use for saving.
      */
     fun save(serializer: LevelSerializer) {
-        val file = File("levels/$id.dlvl")
-        serializer.serialize(this, file)
+        save(serializer, File("levels/$id.dlvl"))
     }
+
     /**
      * Saves the level using the default serializer and specified file
      *
@@ -967,6 +935,7 @@ class Level(
     fun save(file: File) {
         save(DandelionLevelSerializer(), file)
     }
+
     /**
      * Saves the level using the default serializer and specified path
      *
@@ -975,12 +944,14 @@ class Level(
     fun save(path: String) {
         save(DandelionLevelSerializer(), path)
     }
+
     /**
      * Saves the level using the default serializer to the default location
      */
     fun save() {
         save(DandelionLevelSerializer())
     }
+
     /**
      * Validates if the given coordinates are within level bounds
      *
@@ -1051,6 +1022,7 @@ class Level(
             }
         }
     }
+
     companion object {
         /**
          * Loads a level using the specified deserializer and file
@@ -1059,9 +1031,8 @@ class Level(
          * @param file The [File] to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(deserializer: LevelDeserializer, file: File): Level? {
-            return deserializer.deserialize(file)
-        }
+        fun load(deserializer: LevelDeserializer, file: File): Level? = deserializer.deserialize(file)
+
         /**
          * Loads a level using the specified deserializer and file path
          *
@@ -1069,28 +1040,23 @@ class Level(
          * @param path The file path string to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(deserializer: LevelDeserializer, path: String): Level? {
-            val file = File(path)
-            return deserializer.deserialize(file)
-        }
+        fun load(deserializer: LevelDeserializer, path: String): Level? = deserializer.deserialize(File(path))
+
         /**
          * Loads a level using the default deserializer ([DandelionLevelDeserializer]) and specified file
          *
          * @param file The [File] to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(file: File): Level? {
-            return DandelionLevelDeserializer().deserialize(file)
-        }
+        fun load(file: File): Level? = DandelionLevelDeserializer().deserialize(file)
+
         /**
          * Loads a level using the default deserializer ([DandelionLevelDeserializer]) and specified path
          *
          * @param path The file path string to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(path: String): Level? {
-            val file = File(path)
-            return DandelionLevelDeserializer().deserialize(file)
-        }
+        fun load(path: String): Level? = load(File(path))
     }
 }
+

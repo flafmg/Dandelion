@@ -1,6 +1,7 @@
 package org.dandelion.classic.network.packets
 
 import io.netty.buffer.Unpooled
+import io.netty.buffer.Unpooled.buffer
 import io.netty.channel.Channel
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.server.Console
@@ -20,6 +21,37 @@ abstract class Packet {
     }
     fun send(channel: Channel) {
         val encodedData = encode()
+
+        //buffer vier for debuging
+        /*val buffer = encodedData
+        println("buffer view")
+        buffer.forEachIndexed { index, byte ->
+            if (index % 16 == 0) {
+                if (index != 0) {
+                    print(" | ")
+                    for (i in (index - 16) until index) {
+                        val b = buffer.getOrNull(i) ?: 0
+                        print(if (b in 32..126) b.toInt().toChar() else '.')
+                    }
+                    println()
+                }
+                print(String.format("%04X: ", index))
+            }
+            print(String.format("%02X ", byte.toInt() and 0xFF))
+            if (index == buffer.size - 1) {
+                val pad = 16 - (buffer.size % 16)
+                if (pad != 16) repeat(pad) { print("   ") }
+                print(" | ")
+                for (i in (index - (index % 16))..index) {
+                    val b = buffer.getOrNull(i) ?: 0
+                    print(if (b in 32..126) b.toInt().toChar() else '.')
+                }
+                println()
+            }
+        }
+        println("size is: ${buffer.size} bytes")*/
+
+
         if (!channel.isActive || !channel.isOpen) {
             Console.warnLog("Channel is not open, disconnecting client")
             channel.disconnect()
