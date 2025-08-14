@@ -17,17 +17,17 @@ import org.dandelion.classic.commands.StopCommand
 import org.dandelion.classic.commands.UnbanCommand
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
-import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.Console
+import org.dandelion.classic.server.MessageRegistry
 
 /**
- * CommandRegistry manages the registration, lookup, and unregistration of commands.
+ * CommandRegistry manages the registration, lookup, and unregistration of
+ * commands.
  */
 object CommandRegistry {
     private val commands = mutableMapOf<String, CommandInfo>()
 
-
-    internal fun init(){
+    internal fun init() {
         // Initialize the message system first
         MessageRegistry.init()
 
@@ -55,12 +55,11 @@ object CommandRegistry {
      * @return True if the command was registered successfully, false otherwise.
      */
     @JvmStatic
-    fun register(command: Command): Boolean{
-        val commandInfo = CommandProcessor.processCommand(command) ?: return false
+    fun register(command: Command): Boolean {
+        val commandInfo =
+            CommandProcessor.processCommand(command) ?: return false
         commands[commandInfo.name] = commandInfo
-        commandInfo.aliases.forEach{ alias ->
-            commands[alias] = commandInfo
-        }
+        commandInfo.aliases.forEach { alias -> commands[alias] = commandInfo }
         Console.debugLog("Command ${commandInfo.name} registered")
         return true
     }
@@ -69,38 +68,39 @@ object CommandRegistry {
      * Unregisters a command and its aliases from the registry.
      *
      * @param commandName The name or alias of the command to unregister.
-     * @return True if the command was unregistered successfully, false otherwise.
+     * @return True if the command was unregistered successfully, false
+     *   otherwise.
      */
     @JvmStatic
-    fun unregister(commandName: String): Boolean{
+    fun unregister(commandName: String): Boolean {
         val commandInfo = commands[commandName]
-        if(commandInfo == null){
-            Console.errLog("Cannot unregister command $commandName, it doesnt exist")
+        if (commandInfo == null) {
+            Console.errLog(
+                "Cannot unregister command $commandName, it doesnt exist"
+            )
             return false
         }
         commands.remove(commandInfo.name)
-        commandInfo.aliases.forEach { alias ->
-            commands.remove(alias)
-        }
+        commandInfo.aliases.forEach { alias -> commands.remove(alias) }
         Console.debugLog("Command ${commandInfo.name} unregistered")
         return true
     }
 
-    /**
-     * Unregisters all commands from the registry.
-     */
+    /** Unregisters all commands from the registry. */
     private fun unregisterAll() {
         commands.clear()
     }
 
     /**
-     * Executes a command line by parsing the command name and arguments, then dispatching to the appropriate command handler.
+     * Executes a command line by parsing the command name and arguments, then
+     * dispatching to the appropriate command handler.
      *
      * @param commandLine The full command line string entered by the user.
-     * @param executor The executor that will run the command (e.g., player or console).
+     * @param executor The executor that will run the command (e.g., player or
+     *   console).
      */
     @JvmStatic
-    fun execute(commandLine: String, executor: CommandExecutor){
+    fun execute(commandLine: String, executor: CommandExecutor) {
         var cleanCommand = commandLine.trim()
         if (cleanCommand.startsWith("/")) {
             cleanCommand = cleanCommand.drop(1)
@@ -123,10 +123,13 @@ object CommandRegistry {
      */
     @JvmStatic
     fun execute(name: String, executor: CommandExecutor, args: Array<String>) {
-        val command = commands[name] ?: commands.values.find { it.aliases.contains(name) }
+        val command =
+            commands[name] ?: commands.values.find { it.aliases.contains(name) }
 
         if (command == null) {
-            executor.sendMessage("Unknown command. Type /help for a list of commands.")
+            executor.sendMessage(
+                "Unknown command. Type /help for a list of commands."
+            )
             return
         }
 

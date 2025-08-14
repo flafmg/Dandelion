@@ -19,7 +19,7 @@ class ServerDefineBlock(
     val fogDensity: Byte,
     val fogR: Byte,
     val fogG: Byte,
-    val fogB: Byte
+    val fogB: Byte,
 ) : Packet() {
     override val id: Byte = 0x23
     override val isCpe: Boolean = true

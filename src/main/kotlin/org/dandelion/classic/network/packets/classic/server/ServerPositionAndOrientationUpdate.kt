@@ -10,7 +10,7 @@ class ServerPositionAndOrientationUpdate(
     val changeInZ: Float,
     val yaw: Byte,
     val pitch: Byte,
-): Packet() {
+) : Packet() {
     override val id: Byte = 0x09
 
     override fun encode(): ByteArray {
@@ -25,5 +25,4 @@ class ServerPositionAndOrientationUpdate(
         writer.writeByte(pitch)
         return writer.toByteArray()
     }
-
 }

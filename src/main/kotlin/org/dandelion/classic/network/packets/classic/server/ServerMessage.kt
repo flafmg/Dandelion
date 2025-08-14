@@ -3,10 +3,7 @@ package org.dandelion.classic.network.packets.classic.server
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
-class ServerMessage(
-    val playerId: Byte,
-    val message: String,
-) : Packet() {
+class ServerMessage(val playerId: Byte, val message: String) : Packet() {
     override val id: Byte = 0x0D
 
     override fun encode(): ByteArray {
@@ -17,5 +14,4 @@ class ServerMessage(
         writer.writeString(message)
         return writer.toByteArray()
     }
-
 }

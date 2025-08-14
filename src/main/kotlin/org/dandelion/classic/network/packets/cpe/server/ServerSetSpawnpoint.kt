@@ -8,7 +8,7 @@ class ServerSetSpawnpoint(
     val y: Short,
     val z: Short,
     val yaw: Byte,
-    val pitch: Byte
+    val pitch: Byte,
 ) : Packet() {
     override val id: Byte = 0x2E
     override val isCpe: Boolean = true

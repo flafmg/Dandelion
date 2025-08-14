@@ -21,5 +21,4 @@ class ServerPositionUpdate(
         writer.writeFByte(changeInZ)
         return writer.toByteArray()
     }
-
 }

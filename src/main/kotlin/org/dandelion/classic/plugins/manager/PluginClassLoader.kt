@@ -5,8 +5,9 @@ import java.net.URLClassLoader
 
 class PluginClassLoader(
     parent: ClassLoader,
-    private val pluginJars: List<File>
-) : URLClassLoader(
-    pluginJars.map { it.toURI().toURL() }.toTypedArray(),
-    parent
-)
+    private val pluginJars: List<File>,
+) :
+    URLClassLoader(
+        pluginJars.map { it.toURI().toURL() }.toTypedArray(),
+        parent,
+    )

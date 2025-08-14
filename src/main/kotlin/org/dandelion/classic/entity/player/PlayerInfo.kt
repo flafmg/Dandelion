@@ -1,11 +1,12 @@
 package org.dandelion.classic.entity.player
 
-import org.dandelion.classic.util.YamlConfig
 import java.util.Date
+import org.dandelion.classic.util.YamlConfig
 
 /**
- * Represents persistent information about a player that is stored between sessions.
- * Handles player data such as permissions, ban status, playtime statistics, and connection history.
+ * Represents persistent information about a player that is stored between
+ * sessions. Handles player data such as permissions, ban status, playtime
+ * statistics, and connection history.
  *
  * @property name The name of the player.
  * @property firstJoin The [Date] when the player first joined the server.
@@ -14,58 +15,44 @@ import java.util.Date
 class PlayerInfo(
     val name: String,
     val firstJoin: Date = Date(),
-    var lastJoin: Date = Date()
+    var lastJoin: Date = Date(),
 ) {
 
-    /**
-     * Whether the player has operator permissions
-     */
+    /** Whether the player has operator permissions */
     var isOperator: Boolean = false
         internal set
 
-    /**
-     * Whether the player is currently banned
-     */
+    /** Whether the player is currently banned */
     var isBanned: Boolean = false
         internal set
 
-    /**
-     * The reason for the player's ban (empty if not banned)
-     */
+    /** The reason for the player's ban (empty if not banned) */
     var banReason: String = ""
         internal set
 
     /**
-     * The last time the player was seen online.
-     * Returns current time if player is currently online, otherwise returns stored value.
+     * The last time the player was seen online. Returns current time if player
+     * is currently online, otherwise returns stored value.
      */
     var lastSeen: Date = Date()
         get() = if (isOnline()) Date() else field
         internal set
 
-    /**
-     * Total playtime in milliseconds across all sessions
-     */
+    /** Total playtime in milliseconds across all sessions */
     var totalPlaytime: Long = 0
         internal set
 
-    /**
-     * Number of times the player has joined the server
-     */
+    /** Number of times the player has joined the server */
     var joinCount: Int = 0
         internal set
 
-    /**
-     * Grants operator permissions to the player
-     */
+    /** Grants operator permissions to the player */
     fun grantOperator() {
         isOperator = true
         save()
     }
 
-    /**
-     * Revokes operator permissions from the player
-     */
+    /** Revokes operator permissions from the player */
     fun revokeOperator() {
         isOperator = false
         save()
@@ -74,7 +61,8 @@ class PlayerInfo(
     /**
      * Bans the player with the specified reason
      *
-     * @param reason The reason for banning the player. Defaults to "No reason provided".
+     * @param reason The reason for banning the player. Defaults to "No reason
+     *   provided".
      */
     fun setBanned(reason: String = "No reason provided") {
         isBanned = true
@@ -82,27 +70,21 @@ class PlayerInfo(
         save()
     }
 
-    /**
-     * Unbans the player and clears the ban reason
-     */
+    /** Unbans the player and clears the ban reason */
     fun removeBan() {
         isBanned = false
         banReason = ""
         save()
     }
 
-    /**
-     * Updates the join statistics when player connects
-     */
+    /** Updates the join statistics when player connects */
     internal fun recordJoin() {
         lastJoin = Date()
         joinCount++
         save()
     }
 
-    /**
-     * Updates playtime and last seen when player disconnects
-     */
+    /** Updates playtime and last seen when player disconnects */
     internal fun recordDisconnect() {
         val sessionDuration = Date().time - lastJoin.time
         totalPlaytime += sessionDuration
@@ -113,7 +95,8 @@ class PlayerInfo(
     /**
      * Gets formatted total playtime as a human-readable string
      *
-     * @return A formatted string representing the total playtime (e.g., "2h 30m 15s").
+     * @return A formatted string representing the total playtime (e.g., "2h 30m
+     *   15s").
      */
     fun getPlaytime(): String {
         val totalSeconds = totalPlaytime / 1000
@@ -128,9 +111,7 @@ class PlayerInfo(
         }
     }
 
-    /**
-     * Saves this player's information to the persistent storage
-     */
+    /** Saves this player's information to the persistent storage */
     fun save() {
         PlayerInfoRepository.save(this)
     }
@@ -162,37 +143,44 @@ class PlayerInfo(
                 appendLine("Status: BANNED")
                 appendLine("Ban reason: $banReason")
             }
-            else -> appendLine("Status: ${if (isOnline()) "Online" else "Offline"}")
+            else ->
+                appendLine("Status: ${if (isOnline()) "Online" else "Offline"}")
         }
     }
 
     companion object {
-        /**
-         * Repository for loading and saving player information
-         */
+        /** Repository for loading and saving player information */
         private object PlayerInfoRepository {
-            private val playerDataConfig: YamlConfig = YamlConfig.load("player-info.yml")
+            private val playerDataConfig: YamlConfig =
+                YamlConfig.load("player-info.yml")
 
             /**
              * Loads player information from persistent storage
              *
              * @param name The name of the player to load.
-             * @return The loaded [PlayerInfo] instance if found, `null` otherwise.
+             * @return The loaded [PlayerInfo] instance if found, `null`
+             *   otherwise.
              */
             fun load(name: String): PlayerInfo? {
-                val playerSection = playerDataConfig.getSection(name) ?: return null
+                val playerSection =
+                    playerDataConfig.getSection(name) ?: return null
 
-                val firstJoinTime = playerSection.getLong("firstJoin", Date().time)
-                val lastJoinTime = playerSection.getLong("lastJoin", Date().time)
+                val firstJoinTime =
+                    playerSection.getLong("firstJoin", Date().time)
+                val lastJoinTime =
+                    playerSection.getLong("lastJoin", Date().time)
 
-                return PlayerInfo(name, Date(firstJoinTime), Date(lastJoinTime)).apply {
-                    isOperator = playerSection.getBoolean("isOp", false)
-                    isBanned = playerSection.getBoolean("banned", false)
-                    banReason = playerSection.getString("banReason", "")
-                    lastSeen = Date(playerSection.getLong("lastSeen", Date().time))
-                    totalPlaytime = playerSection.getLong("totalPlaytime", 0L)
-                    joinCount = playerSection.getInt("joinCount", 0)
-                }
+                return PlayerInfo(name, Date(firstJoinTime), Date(lastJoinTime))
+                    .apply {
+                        isOperator = playerSection.getBoolean("isOp", false)
+                        isBanned = playerSection.getBoolean("banned", false)
+                        banReason = playerSection.getString("banReason", "")
+                        lastSeen =
+                            Date(playerSection.getLong("lastSeen", Date().time))
+                        totalPlaytime =
+                            playerSection.getLong("totalPlaytime", 0L)
+                        joinCount = playerSection.getInt("joinCount", 0)
+                    }
             }
 
             /**

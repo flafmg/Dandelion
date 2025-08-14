@@ -3,9 +3,7 @@ package org.dandelion.classic.network.packets.classic.server
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
-class ServerDespawnPlayer(
-    val playerId: Byte,
-) : Packet() {
+class ServerDespawnPlayer(val playerId: Byte) : Packet() {
     override val id: Byte = 0x0C
 
     override fun encode(): ByteArray {
@@ -15,5 +13,4 @@ class ServerDespawnPlayer(
         writer.writeByte(playerId)
         return writer.toByteArray()
     }
-
 }

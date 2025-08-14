@@ -1,21 +1,17 @@
 package org.dandelion.classic.commands.model
 
 import org.dandelion.classic.commands.manager.CommandRegistry
-import org.dandelion.classic.entity.player.Player
 
 /**
  * CommandExecutor is an interface for entities that can execute commands.
  *
- * Classes implementing this interface must provide a name, a list of permissions, and methods to send messages and check permissions.
+ * Classes implementing this interface must provide a name, a list of
+ * permissions, and methods to send messages and check permissions.
  */
 interface CommandExecutor {
-    /**
-     * The name of the executor (e.g., player or console).
-     */
+    /** The name of the executor (e.g., player or console). */
     val name: String
-    /**
-     * The list of permissions assigned to the executor.
-     */
+    /** The list of permissions assigned to the executor. */
     val permissions: List<String>
 
     /**
@@ -38,7 +34,8 @@ interface CommandExecutor {
 
         val permissionParts = permission.split('.')
         for (i in 1 until permissionParts.size) {
-            val wildcard = permissionParts.subList(0, i).joinToString(".") + ".*"
+            val wildcard =
+                permissionParts.subList(0, i).joinToString(".") + ".*"
             if (permissions.contains(wildcard)) {
                 return true
             }
@@ -48,7 +45,8 @@ interface CommandExecutor {
     }
 
     /**
-     * Sends a command string to the command registry for execution by this executor.
+     * Sends a command string to the command registry for execution by this
+     * executor.
      *
      * @param command The command string to execute.
      */

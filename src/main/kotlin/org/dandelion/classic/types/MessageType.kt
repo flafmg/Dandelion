@@ -11,6 +11,7 @@ enum class MessageType(val code: Int) {
     Announcement(100);
 
     companion object {
-        fun fromCode(code: Int): MessageType? = values().find { it.code == code }
+        fun fromCode(code: Int): MessageType? =
+            values().find { it.code == code }
     }
 }

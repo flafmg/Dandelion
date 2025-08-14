@@ -25,5 +25,4 @@ class ServerSetPositionAndOrientation(
         writer.writeByte(pitch)
         return writer.toByteArray()
     }
-
 }

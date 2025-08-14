@@ -5,7 +5,7 @@ import org.dandelion.classic.network.PacketRegistry
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketReader
 
-class ClientExtInfo: Packet() {
+class ClientExtInfo : Packet() {
     override val id: Byte = 0x10
     override val size = 67
     override val isCpe: Boolean = true

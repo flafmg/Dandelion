@@ -5,5 +5,3 @@ package org.dandelion.classic.events.annotations
 annotation class EventHandler(
     val priority: EventPriority = EventPriority.NORMAL
 )
-
-

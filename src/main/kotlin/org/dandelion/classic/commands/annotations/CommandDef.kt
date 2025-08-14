@@ -6,5 +6,5 @@ annotation class CommandDef(
     val name: String,
     val aliases: Array<String> = [],
     val description: String = "",
-    val usage: String = ""
+    val usage: String = "",
 )

@@ -8,7 +8,7 @@ data class Position(
     var y: Float,
     var z: Float,
     var yaw: Float = 0f,
-    var pitch: Float = 0f
+    var pitch: Float = 0f,
 ) {
     fun set(x: Float, y: Float, z: Float, yaw: Float, pitch: Float) {
         this.x = x
@@ -20,13 +20,14 @@ data class Position(
 
     fun distanceTo(target: Position): Float {
         return sqrt(
-            (x - target.x).toDouble().pow(2.0)
-                    + (y - target.y).toDouble().pow(2.0)
-                    + (z - target.z).toDouble().pow(2.0)
-        ).toFloat()
+                (x - target.x).toDouble().pow(2.0) +
+                    (y - target.y).toDouble().pow(2.0) +
+                    (z - target.z).toDouble().pow(2.0)
+            )
+            .toFloat()
     }
 
-    //we should do yaw pitch too?
+    // we should do yaw pitch too?
     operator fun plus(other: Position): Position {
         return Position(x + other.x, y + other.y, z + other.z, yaw, pitch)
     }

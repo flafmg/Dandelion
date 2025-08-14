@@ -8,5 +8,5 @@ class PlayerPreConnectEvent(
     val userName: String,
     val verificationKey: String,
     val unused: Byte,
-    override var isCancelled: Boolean = false
+    override var isCancelled: Boolean = false,
 ) : Event, Cancellable

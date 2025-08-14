@@ -1,7 +1,7 @@
 package org.dandelion.classic.level.io
 
-import org.dandelion.classic.level.Level
 import java.io.File
+import org.dandelion.classic.level.Level
 
 interface LevelSerializer {
     fun serialize(level: Level, file: File)

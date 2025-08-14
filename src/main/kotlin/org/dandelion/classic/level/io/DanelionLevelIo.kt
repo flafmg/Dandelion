@@ -1,19 +1,20 @@
 package org.dandelion.classic.level.io
 
-import org.dandelion.classic.level.Level
-import org.dandelion.classic.types.Color
-import org.dandelion.classic.util.BinaryReader
-import org.dandelion.classic.util.BinaryWriter
-import org.dandelion.classic.types.Position
-import org.dandelion.classic.types.SVec
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.MessageDigest
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import org.dandelion.classic.level.Level
+import org.dandelion.classic.types.Color
+import org.dandelion.classic.types.Position
+import org.dandelion.classic.types.SVec
+import org.dandelion.classic.util.BinaryReader
+import org.dandelion.classic.util.BinaryWriter
 
 private const val MAGIC: String = "DLVL"
-private const val VERSION_V1: Byte = 1 //i know this is redundant but looks better this way
+private const val VERSION_V1: Byte =
+    1 // i know this is redundant but looks better this way
 private const val VERSION_V2: Byte = 2
 
 /**
@@ -21,57 +22,54 @@ private const val VERSION_V2: Byte = 2
  * ==============================
  *
  * The file is structured as follows:
- *
  * 1. HEADER
- *    - Magic (String, 4 bytes, unprefixed)
- *    - Version (Byte) (currently 2)
- *
+ *         - Magic (String, 4 bytes, unprefixed)
+ *         - Version (Byte) (currently 2)
  * 2. INFO SECTION
- *    - Level ID (String)
- *    - Author (String)
- *    - Description (String)
- *    - Creation Timestamp (Long)
- *
+ *         - Level ID (String)
+ *         - Author (String)
+ *         - Description (String)
+ *         - Creation Timestamp (Long)
  * 3. LEVEL DATA
- *    - Size X (Short)
- *    - Size Y (Short)
- *    - Size Z (Short)
- *    - Spawn X (Float)
- *    - Spawn Y (Float)
- *    - Spawn Z (Float)
- *    - Spawn Yaw (Float)
- *    - Spawn Pitch (Float)
- *    - Extra Data (String, JSON)
- *    - Block Array Data (ByteArray, compressed with GZIP)
- *    - MD5 Validation Hash (16 bytes, unprefixed)
- *
+ *         - Size X (Short)
+ *         - Size Y (Short)
+ *         - Size Z (Short)
+ *         - Spawn X (Float)
+ *         - Spawn Y (Float)
+ *         - Spawn Z (Float)
+ *         - Spawn Yaw (Float)
+ *         - Spawn Pitch (Float)
+ *         - Extra Data (String, JSON)
+ *         - Block Array Data (ByteArray, compressed with GZIP)
+ *         - MD5 Validation Hash (16 bytes, unprefixed)
  * 4. ENVIRONMENT SECTION (v2 only)
- *   - 4.1 SetMapEnvUrl Properties:
- *        - Texture Pack URL (String)
- *   - 4.2 SetMapEnvProperty Properties:
- *        - Side Block (Byte)
- *        - Edge Block (Byte)
- *        - Edge Height (Int)
- *        - Clouds Height (Int)
- *        - Max Fog Distance (Int)
- *        - Clouds Speed (Int)
- *        - Weather Speed (Int)
- *        - Weather Fade (Int)
- *        - Exponential Fog (Boolean)
- *        - Sides Offset (Int)
- *   - 4.3 EnvSetWeatherType Properties:
- *        - Weather Type (Byte)
- *   - 4.4 EnvSetColor Properties (6 colors):
- *        For each color (Sky, Cloud, Fog, Ambient Light, Diffuse Light, Skybox):
- *        - Has Color (Boolean)
- *        - Red (Short) - only if Has Color = true
- *        - Green (Short) - only if Has Color = true
- *        - Blue (Short) - only if Has Color = true
+ *     - 4.1 SetMapEnvUrl Properties:
+ *             - Texture Pack URL (String)
+ *     - 4.2 SetMapEnvProperty Properties:
+ *             - Side Block (Byte)
+ *             - Edge Block (Byte)
+ *             - Edge Height (Int)
+ *             - Clouds Height (Int)
+ *             - Max Fog Distance (Int)
+ *             - Clouds Speed (Int)
+ *             - Weather Speed (Int)
+ *             - Weather Fade (Int)
+ *             - Exponential Fog (Boolean)
+ *             - Sides Offset (Int)
+ *     - 4.3 EnvSetWeatherType Properties:
+ *             - Weather Type (Byte)
+ *     - 4.4 EnvSetColor Properties (6 colors): For each color (Sky, Cloud, Fog,
+ *       Ambient Light, Diffuse Light, Skybox):
+ *             - Has Color (Boolean)
+ *             - Red (Short) - only if Has Color = true
+ *             - Green (Short) - only if Has Color = true
+ *             - Blue (Short) - only if Has Color = true
  *
  * notes:
  * - All strings are length-prefixed unless otherwise specified.
  * - The block array is compressed using GZIP before being written.
- * - The MD5 hash is calculated from the compressed block array for integrity validation.
+ * - The MD5 hash is calculated from the compressed block array for integrity
+ *   validation.
  * - v1 files do not contain the Environment Section.
  */
 class DandelionLevelSerializer : LevelSerializer {
@@ -151,9 +149,7 @@ class DandelionLevelSerializer : LevelSerializer {
 
     private fun getCompressedData(level: Level): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        GZIPOutputStream(byteArrayOutputStream).use {
-            it.write(level.blocks)
-        }
+        GZIPOutputStream(byteArrayOutputStream).use { it.write(level.blocks) }
         return byteArrayOutputStream.toByteArray()
     }
 
@@ -182,7 +178,8 @@ class DandelionLevelDeserializer : LevelDeserializer {
 
     private fun readHeader(reader: BinaryReader): Byte {
         val magic = reader.readString(4)
-        if (magic != MAGIC) throw IllegalArgumentException("Invalid magic: $magic")
+        if (magic != MAGIC)
+            throw IllegalArgumentException("Invalid magic: $magic")
         val version = reader.readByte()
         if (version != VERSION_V1 && version != VERSION_V2) {
             throw IllegalArgumentException("Unsupported version: $version")
@@ -194,7 +191,7 @@ class DandelionLevelDeserializer : LevelDeserializer {
         val id: String,
         val author: String,
         val description: String,
-        val timeCreated: Long
+        val timeCreated: Long,
     )
 
     private fun readInfo(reader: BinaryReader): Info {
@@ -221,20 +218,23 @@ class DandelionLevelDeserializer : LevelDeserializer {
         val md = MessageDigest.getInstance("MD5")
         val computedHash = md.digest(compressedBlocks)
         if (!computedHash.contentEquals(hash)) {
-            throw IllegalArgumentException("Level is corrupted! MD5 hash mismatch")
+            throw IllegalArgumentException(
+                "Level is corrupted! MD5 hash mismatch"
+            )
         }
 
         val blocks = decompressBlocks(compressedBlocks, sizeX * sizeY * sizeZ)
 
-        val level = Level(
-            id = info.id,
-            author = info.author,
-            description = info.description,
-            size = SVec(sizeX, sizeY, sizeZ),
-            spawn = Position(spawnX, spawnY, spawnZ, spawnYaw, spawnPitch),
-            extraData = extraData,
-            timeCreated = info.timeCreated
-        )
+        val level =
+            Level(
+                id = info.id,
+                author = info.author,
+                description = info.description,
+                size = SVec(sizeX, sizeY, sizeZ),
+                spawn = Position(spawnX, spawnY, spawnZ, spawnYaw, spawnPitch),
+                extraData = extraData,
+                timeCreated = info.timeCreated,
+            )
         level.blocks = blocks
         return level
     }
@@ -275,7 +275,10 @@ class DandelionLevelDeserializer : LevelDeserializer {
         }
     }
 
-    private fun decompressBlocks(compressed: ByteArray, expectedSize: Int): ByteArray {
+    private fun decompressBlocks(
+        compressed: ByteArray,
+        expectedSize: Int,
+    ): ByteArray {
         GZIPInputStream(compressed.inputStream()).use { gzip ->
             val out = ByteArray(expectedSize)
             var read = 0
@@ -284,7 +287,10 @@ class DandelionLevelDeserializer : LevelDeserializer {
                 if (r == -1) break
                 read += r
             }
-            if (read != expectedSize) throw IllegalArgumentException("Level is corrupted! block array size mismatch")
+            if (read != expectedSize)
+                throw IllegalArgumentException(
+                    "Level is corrupted! block array size mismatch"
+                )
             return out
         }
     }

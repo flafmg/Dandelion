@@ -3,11 +3,10 @@ package org.dandelion.classic.network.packets.classic.server
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
-
 class ServerLevelDataChunk(
     val chunkLength: Short,
     val chunkData: ByteArray,
-    val percentage: Byte
+    val percentage: Byte,
 ) : Packet() {
     override val id: Byte = 0x03
 
@@ -20,5 +19,4 @@ class ServerLevelDataChunk(
         writer.writeByte(percentage)
         return writer.toByteArray()
     }
-
 }

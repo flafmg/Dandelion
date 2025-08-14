@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
+    id("com.diffplug.spotless") version "7.2.1"
     application
 }
 kotlin {
@@ -39,6 +40,25 @@ tasks.jar {
     from(sourceSets.main.get().output)
     dependsOn(configurations.runtimeClasspath)
     from({
-        configurations.runtimeClasspath.get().filter { it.exists() }.map { if (it.isDirectory) it else zipTree(it) }
+        configurations.runtimeClasspath
+            .get()
+            .filter { it.exists() }
+            .map { if (it.isDirectory) it else zipTree(it) }
     })
+}
+
+configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+    kotlin {
+        ktfmt("0.51").googleStyle().configure {
+            it.setMaxWidth(80)
+            it.setBlockIndent(4)
+            it.setContinuationIndent(4)
+            it.setRemoveUnusedImports(true)
+            it.setManageTrailingCommas(true)
+        }
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+    }
 }

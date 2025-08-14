@@ -12,5 +12,4 @@ class ServerLevelInitialize : Packet() {
         writer.writeByte(id)
         return writer.toByteArray()
     }
-
 }

@@ -17,7 +17,6 @@ class ClientExtEntry : Packet() {
         val reader = PacketReader(data)
         extName = reader.readString()
         version = reader.readInt()
-
     }
 
     override fun resolve(channel: Channel) {

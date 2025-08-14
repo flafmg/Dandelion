@@ -27,5 +27,4 @@ class ServerSpawnPlayer(
         writer.writeByte(pitch)
         return writer.toByteArray()
     }
-
 }

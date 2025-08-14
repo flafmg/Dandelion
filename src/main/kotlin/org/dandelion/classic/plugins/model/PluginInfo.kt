@@ -5,15 +5,16 @@ data class PluginInfo(
     val version: String,
     val description: String,
     val authors: List<String>,
-    val dependencies: List<Pair<String, String?>>
-){
+    val dependencies: List<Pair<String, String?>>,
+) {
     companion object {
-        fun empty(): PluginInfo = PluginInfo(
-            name = "",
-            version = "",
-            description = "",
-            authors = emptyList(),
-            dependencies = emptyList()
-        )
+        fun empty(): PluginInfo =
+            PluginInfo(
+                name = "",
+                version = "",
+                description = "",
+                authors = emptyList(),
+                dependencies = emptyList(),
+            )
     }
 }

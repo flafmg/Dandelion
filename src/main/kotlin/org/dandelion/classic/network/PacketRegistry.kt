@@ -2,6 +2,7 @@ package org.dandelion.classic.network
 
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
+import java.util.concurrent.ConcurrentHashMap
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.network.packets.Packet
@@ -17,7 +18,6 @@ import org.dandelion.classic.network.packets.cpe.server.ServerExtEntry
 import org.dandelion.classic.network.packets.cpe.server.ServerExtInfo
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
-import java.util.concurrent.ConcurrentHashMap
 
 object PacketRegistry {
     private val packetFactory = ConcurrentHashMap<Byte, () -> Packet>()
@@ -29,19 +29,20 @@ object PacketRegistry {
         registerSupportedCPE()
     }
 
-    private fun registerPackets(){
-        //classic
+    private fun registerPackets() {
+        // classic
         registerPacket(0x00, ::ClientIdentification)
         registerPacket(0x05, ::ClientSetBlock)
         registerPacket(0x08, ::ClientPositionAndOrientation)
         registerPacket(0x0D, ::ClientMessage)
 
-        //cpe
+        // cpe
         registerPacket(0x10, ::ClientExtInfo)
         registerPacket(0x11, ::ClientExtEntry)
         registerPacket(0x13, ::ClientCustomBlockLevel)
     }
-    private fun registerSupportedCPE(){
+
+    private fun registerSupportedCPE() {
         addCPE("EnvColors")
         addCPE("EnvWeatherType")
         addCPE("EnvMapAspect")
@@ -59,44 +60,49 @@ object PacketRegistry {
         addCPE("BlockDefinitionsExt", 2)
     }
 
-    fun registerPacket(id: Byte, factory : () -> Packet){
-        if(packetFactory.contains(id)){
+    fun registerPacket(id: Byte, factory: () -> Packet) {
+        if (packetFactory.contains(id)) {
             Console.warnLog("Packet of id $id is already registered")
             return
         }
         packetFactory[id] = factory
     }
-    fun unregisterPacket(id: Byte){
-        if(packetFactory.contains(id)) {
+
+    fun unregisterPacket(id: Byte) {
+        if (packetFactory.contains(id)) {
             packetFactory.remove(id)
         }
     }
-    private fun unregisterAllPackets(){
-        packetFactory.keys.forEach { key -> unregisterPacket(key)}
+
+    private fun unregisterAllPackets() {
+        packetFactory.keys.forEach { key -> unregisterPacket(key) }
     }
+
     fun createPacket(id: Byte): Packet? {
-        if(packetFactory.contains(id)){
+        if (packetFactory.contains(id)) {
             Console.warnLog("Packet of id $id is not registered")
             return null
         }
         return packetFactory[id]?.invoke()
     }
 
-    fun getPacketSize(id: Byte): Int{
-        val packet = createPacket(id);
+    fun getPacketSize(id: Byte): Int {
+        val packet = createPacket(id)
         return packet?.size ?: -1
     }
 
-    internal fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray){
-        if(data.isEmpty()){
-            Console.errLog("received data is empty from ${ctx.channel().remoteAddress()}")
+    internal fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray) {
+        if (data.isEmpty()) {
+            Console.errLog(
+                "received data is empty from ${ctx.channel().remoteAddress()}"
+            )
             return
         }
 
         val packetId = data[0]
         val packet = createPacket(packetId)
 
-        if(packet == null){
+        if (packet == null) {
             Console.warnLog("Packet $packetId doesnt exist, closing connection")
             ctx.close()
             return
@@ -105,23 +111,24 @@ object PacketRegistry {
         try {
             packet.decode(data)
             packet.resolve(ctx.channel())
-        } catch (ex: Exception){
+        } catch (ex: Exception) {
             Console.errLog("Error processing packet ${ex.message}")
             ctx.close()
         }
     }
 
-    internal fun sendCPEHandshake(player: Player){
+    internal fun sendCPEHandshake(player: Player) {
         val count = supportedCPE.size.toShort()
-        ServerExtInfo(Server.getSoftware(),count).send(player)
+        ServerExtInfo(Server.getSoftware(), count).send(player)
     }
-    internal fun handleCPEHandshake(info: ClientExtInfo, channel: Channel){
+
+    internal fun handleCPEHandshake(info: ClientExtInfo, channel: Channel) {
         val count = supportedCPE.size.toShort()
         val player = Players.getConnecting(channel)
-        if(player == null){
+        if (player == null) {
             return
         }
-        if(info.extensionCount < count){
+        if (info.extensionCount < count) {
             player.kick("Mismatching CPE support count")
             return
         }
@@ -131,9 +138,9 @@ object PacketRegistry {
     }
 
     // Handles received CPE from player
-    internal fun handleCPEEntry(extEntry: ClientExtEntry, channel: Channel){
+    internal fun handleCPEEntry(extEntry: ClientExtEntry, channel: Channel) {
         val player = Players.getConnecting(channel)
-        if(player == null){
+        if (player == null) {
             return
         }
 
@@ -142,28 +149,29 @@ object PacketRegistry {
 
         player.addCPE(extName, version)
 
-        if(player.getCPE().size.toShort() == player.supportedCpeCount){
+        if (player.getCPE().size.toShort() == player.supportedCpeCount) {
             handleClientPostCPE(player)
             Players.finalizeHandshake(player)
         }
     }
+
     // Sends supportedCPE
-    internal fun sendCPEEntries(player: Player){
+    internal fun sendCPEEntries(player: Player) {
         supportedCPE.forEach { (extName, version) ->
             ServerExtEntry(extName, version).send(player)
         }
     }
 
-    //handle client postCPe and before ServerInfo
-    internal fun handleClientPostCPE(player: Player){
-        if(player.supports("CustomBlocks")){
+    // handle client postCPe and before ServerInfo
+    internal fun handleClientPostCPE(player: Player) {
+        if (player.supports("CustomBlocks")) {
             ServerCustomBlockLevel(1).send(player)
         }
     }
 
-
     /**
      * Adds a supported CPE extension by name and version.
+     *
      * @param name The name of the CPE extension.
      * @param version The version of the CPE extension.
      */
@@ -175,6 +183,7 @@ object PacketRegistry {
 
     /**
      * Adds a supported CPE extension by name only (defaults to version 0).
+     *
      * @param name The name of the CPE extension.
      */
     fun addCPE(name: String) {
@@ -183,6 +192,7 @@ object PacketRegistry {
 
     /**
      * Checks if a CPE extension is supported (optionally checks version).
+     *
      * @param name The name of the CPE extension.
      * @param version The version to check (optional).
      * @return true if supported, false otherwise.

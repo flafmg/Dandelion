@@ -7,8 +7,8 @@ class ServerSetBlock(
     val x: Short,
     val y: Short,
     val z: Short,
-    val blockType: Byte
-): Packet() {
+    val blockType: Byte,
+) : Packet() {
     override val id: Byte = 0x06
 
     override fun encode(): ByteArray {
@@ -21,5 +21,4 @@ class ServerSetBlock(
         writer.writeByte(blockType)
         return writer.toByteArray()
     }
-
 }

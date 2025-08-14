@@ -1,50 +1,62 @@
 package org.dandelion.classic.server
 
-import kotlinx.coroutines.*
-import org.dandelion.classic.events.HeartbeatSendEvent
-import org.dandelion.classic.events.manager.EventDispatcher
-import org.dandelion.classic.entity.player.Players
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import kotlinx.coroutines.*
+import org.dandelion.classic.entity.player.Players
+import org.dandelion.classic.events.HeartbeatSendEvent
+import org.dandelion.classic.events.manager.EventDispatcher
 
 object Heartbeat {
     private var sendLoopJob: Job? = null
 
-    internal fun init(){
+    internal fun init() {
         Console.log("Starting heartbeat")
         startSendHeartbeatLoop()
         sendHeartbeat()
+    }
 
-    }
-    internal fun shutdown(){
+    internal fun shutdown() {
         Console.log("Stopping heatbeat")
-        try{ sendLoopJob?.cancel()} catch (_: Exception){}
+        try {
+            sendLoopJob?.cancel()
+        } catch (_: Exception) {}
     }
-    private fun processHeartbeatPlaceholders(data: String): String{
+
+    private fun processHeartbeatPlaceholders(data: String): String {
         return data
-            .replace("{server-name}", URLEncoder.encode(ServerInfo.name, "UTF-8"))
+            .replace(
+                "{server-name}",
+                URLEncoder.encode(ServerInfo.name, "UTF-8"),
+            )
             .replace("{server-port}", ServerInfo.port.toString())
             .replace("{players-online}", Players.count().toString())
             .replace("{players-max}", ServerInfo.maxPlayers.toString())
             .replace("{server-public}", ServerInfo.isPublic.toString())
             .replace("{server-salt}", Salt.get())
-            .replace("{server-software}", URLEncoder.encode(ServerInfo.serverSoftware, "UTF-8"))
+            .replace(
+                "{server-software}",
+                URLEncoder.encode(ServerInfo.serverSoftware, "UTF-8"),
+            )
     }
 
     private fun startSendHeartbeatLoop() {
-        sendLoopJob = CoroutineScope(Dispatchers.Default).launch {
-            while (isActive) {
-                delay(ServerInfo.heartbeatInterval.inWholeMilliseconds)
-                sendHeartbeat()
+        sendLoopJob =
+            CoroutineScope(Dispatchers.Default).launch {
+                while (isActive) {
+                    delay(ServerInfo.heartbeatInterval.inWholeMilliseconds)
+                    sendHeartbeat()
+                }
             }
-        }
     }
-    private fun sendHeartbeat(){
-        var processedHeartbeatString = processHeartbeatPlaceholders(ServerInfo.heartbeatData)
+
+    private fun sendHeartbeat() {
+        var processedHeartbeatString =
+            processHeartbeatPlaceholders(ServerInfo.heartbeatData)
         val event = HeartbeatSendEvent(processedHeartbeatString)
         EventDispatcher.dispatch(event)
-        if(event.isCancelled){
+        if (event.isCancelled) {
             return
         }
         processedHeartbeatString = event.heartbeat
@@ -70,9 +82,8 @@ object Heartbeat {
                 connection.disconnect()
                 Console.debugLog("heartbeat sent to $finalUrl")
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Console.errLog("Error sending heartbeat: ${e.message}")
         }
     }
-
 }

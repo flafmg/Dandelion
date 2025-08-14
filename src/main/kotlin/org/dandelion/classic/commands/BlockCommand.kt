@@ -22,7 +22,7 @@ import org.dandelion.classic.server.MessageRegistry
     name = "block",
     description = "Manage custom block definitions",
     usage = "/block <global|levelId> <subcommand>",
-    aliases = ["b", "blocks"]
+    aliases = ["b", "blocks"],
 )
 class BlockCommand : Command {
 
@@ -38,23 +38,39 @@ class BlockCommand : Command {
         val target = args[0].lowercase()
         if (args.size == 1) {
             when (target) {
-                "global", "all" -> {
-                    MessageRegistry.Commands.Block.sendGlobalOrLevelRequired(executor)
-                    MessageRegistry.Commands.Block.Subcommands.sendAvailable(executor)
+                "global",
+                "all" -> {
+                    MessageRegistry.Commands.Block.sendGlobalOrLevelRequired(
+                        executor
+                    )
+                    MessageRegistry.Commands.Block.Subcommands.sendAvailable(
+                        executor
+                    )
                 }
                 else -> {
                     if (Levels.getLevel(target) == null) {
-                        MessageRegistry.Commands.Block.sendLevelNotFound(executor, target)
+                        MessageRegistry.Commands.Block.sendLevelNotFound(
+                            executor,
+                            target,
+                        )
                         return
                     }
-                    MessageRegistry.Commands.Block.sendGlobalOrLevelRequired(executor)
-                    MessageRegistry.Commands.Block.Subcommands.sendAvailable(executor)
+                    MessageRegistry.Commands.Block.sendGlobalOrLevelRequired(
+                        executor
+                    )
+                    MessageRegistry.Commands.Block.Subcommands.sendAvailable(
+                        executor
+                    )
                 }
             }
         }
     }
 
-    @OnSubCommand(name = "info", description = "Show detailed information about a block", usage = "/block <global|levelId> info <id>")
+    @OnSubCommand(
+        name = "info",
+        description = "Show detailed information about a block",
+        usage = "/block <global|levelId> info <id>",
+    )
     @RequirePermission("dandelion.block.info")
     @ArgRange(min = 2, max = 2)
     fun blockInfo(executor: CommandExecutor, args: Array<String>) {
@@ -66,18 +82,22 @@ class BlockCommand : Command {
             return
         }
 
-        val block = when (target) {
-            "global" -> BlockRegistry.get(blockId)
-            "all" -> BlockRegistry.get(blockId)
-            else -> {
-                val level = Levels.getLevel(target)
-                if (level == null) {
-                    MessageRegistry.Commands.Block.sendLevelNotFound(executor, target)
-                    return
+        val block =
+            when (target) {
+                "global" -> BlockRegistry.get(blockId)
+                "all" -> BlockRegistry.get(blockId)
+                else -> {
+                    val level = Levels.getLevel(target)
+                    if (level == null) {
+                        MessageRegistry.Commands.Block.sendLevelNotFound(
+                            executor,
+                            target,
+                        )
+                        return
+                    }
+                    BlockRegistry.get(level, blockId)
                 }
-                BlockRegistry.get(level, blockId)
             }
-        }
 
         if (block == null) {
             MessageRegistry.Commands.Block.sendBlockNotFound(executor, blockId)
@@ -87,7 +107,11 @@ class BlockCommand : Command {
         sendBlockInfo(executor, block)
     }
 
-    @OnSubCommand(name = "edit", description = "Edit block properties", usage = "/block <global|levelId> edit <id> <property> <value>")
+    @OnSubCommand(
+        name = "edit",
+        description = "Edit block properties",
+        usage = "/block <global|levelId> edit <id> <property> <value>",
+    )
     @RequirePermission("dandelion.block.edit")
     @ArgRange(min = 4, max = 4)
     fun editBlock(executor: CommandExecutor, args: Array<String>) {
@@ -106,20 +130,25 @@ class BlockCommand : Command {
             return
         }
 
-        val level = if (target != "global") {
-            val lvl = Levels.getLevel(target)
-            if (lvl == null) {
-                MessageRegistry.Commands.Block.sendLevelNotFound(executor, target)
-                return
-            }
-            lvl
-        } else null
+        val level =
+            if (target != "global") {
+                val lvl = Levels.getLevel(target)
+                if (lvl == null) {
+                    MessageRegistry.Commands.Block.sendLevelNotFound(
+                        executor,
+                        target,
+                    )
+                    return
+                }
+                lvl
+            } else null
 
-        val block = if (level != null) {
-            BlockRegistry.get(level, blockId)
-        } else {
-            BlockRegistry.get(blockId)
-        }
+        val block =
+            if (level != null) {
+                BlockRegistry.get(level, blockId)
+            } else {
+                BlockRegistry.get(blockId)
+            }
 
         if (block == null) {
             MessageRegistry.Commands.Block.sendBlockNotFound(executor, blockId)
@@ -135,48 +164,79 @@ class BlockCommand : Command {
                 if (originalId != newId) {
                     if (level != null) {
                         if (BlockRegistry.has(level, newId)) {
-                            MessageRegistry.Commands.Block.sendIdAlreadyExists(executor, newId)
+                            MessageRegistry.Commands.Block.sendIdAlreadyExists(
+                                executor,
+                                newId,
+                            )
                             return
                         }
                         BlockRegistry.unregister(level, originalId)
                         BlockRegistry.register(level, newBlock)
                     } else {
                         if (BlockRegistry.has(newId)) {
-                            MessageRegistry.Commands.Block.sendIdAlreadyExists(executor, newId)
+                            MessageRegistry.Commands.Block.sendIdAlreadyExists(
+                                executor,
+                                newId,
+                            )
                             return
                         }
                         BlockRegistry.unregister(originalId)
                         BlockRegistry.register(newBlock)
                     }
-                    MessageRegistry.Commands.Block.Edit.sendSuccessIdChanged(executor, originalId, newId, newBlock.name, property, value)
+                    MessageRegistry.Commands.Block.Edit.sendSuccessIdChanged(
+                        executor,
+                        originalId,
+                        newId,
+                        newBlock.name,
+                        property,
+                        value,
+                    )
                 } else {
                     if (level != null) {
                         BlockRegistry.register(level, newBlock)
                     } else {
                         BlockRegistry.register(newBlock)
                     }
-                    MessageRegistry.Commands.Block.Edit.sendSuccess(executor, newId, newBlock.name, property, value)
+                    MessageRegistry.Commands.Block.Edit.sendSuccess(
+                        executor,
+                        newId,
+                        newBlock.name,
+                        property,
+                        value,
+                    )
                 }
 
                 BlockRegistry.saveBlockDefinitions(target)
             } else {
-                MessageRegistry.Commands.Block.sendInvalidProperty(executor, property)
+                MessageRegistry.Commands.Block.sendInvalidProperty(
+                    executor,
+                    property,
+                )
                 MessageRegistry.Commands.Block.Edit.sendProperties(executor)
             }
         } catch (e: Exception) {
             Console.errLog("Error editing block: ${e.message}")
-            MessageRegistry.Commands.Block.sendInvalidProperty(executor, property)
+            MessageRegistry.Commands.Block.sendInvalidProperty(
+                executor,
+                property,
+            )
         }
     }
 
-    @OnSubCommand(name = "add", description = "Add a new custom block", usage = "/block <global|levelId> add <id> [name] [textureId]")
+    @OnSubCommand(
+        name = "add",
+        description = "Add a new custom block",
+        usage = "/block <global|levelId> add <id> [name] [textureId]",
+    )
     @RequirePermission("dandelion.block.add")
     @ArgRange(min = 2, max = 4)
     fun addBlock(executor: CommandExecutor, args: Array<String>) {
         val target = args[0].lowercase()
         val blockId = args[1].toUByteOrNull()?.toByte()
         val name = if (args.size > 2) args[2] else "Custom Block"
-        val textureId = if (args.size > 3) args[3].toUByteOrNull()?.toByte() ?: 1.toByte() else 1.toByte()
+        val textureId =
+            if (args.size > 3) args[3].toUByteOrNull()?.toByte() ?: 1.toByte()
+            else 1.toByte()
 
         if (blockId == null || blockId < 1) {
             MessageRegistry.Commands.Block.sendInvalidId(executor)
@@ -188,56 +248,65 @@ class BlockCommand : Command {
             return
         }
 
-        val level = if (target != "global") {
-            val lvl = Levels.getLevel(target)
-            if (lvl == null) {
-                MessageRegistry.Commands.Block.sendLevelNotFound(executor, target)
-                return
-            }
-            lvl
-        } else null
+        val level =
+            if (target != "global") {
+                val lvl = Levels.getLevel(target)
+                if (lvl == null) {
+                    MessageRegistry.Commands.Block.sendLevelNotFound(
+                        executor,
+                        target,
+                    )
+                    return
+                }
+                lvl
+            } else null
 
-        val existingBlock = if (level != null) {
-            BlockRegistry.get(level, blockId)
-        } else {
-            BlockRegistry.get(blockId)
-        }
+        val existingBlock =
+            if (level != null) {
+                BlockRegistry.get(level, blockId)
+            } else {
+                BlockRegistry.get(blockId)
+            }
 
         if (existingBlock != null) {
-            MessageRegistry.Commands.Block.sendIdAlreadyExists(executor, blockId)
+            MessageRegistry.Commands.Block.sendIdAlreadyExists(
+                executor,
+                blockId,
+            )
             return
         }
 
-        val newBlock = JsonBlock(
-            id = blockId,
-            name = name,
-            fallback = blockId,
-            solidity = BlockSolidity.SOLID,
-            movementSpeed = 128.toByte(),
-            topTextureId = textureId,
-            sideTextureId = textureId,
-            bottomTextureId = textureId,
-            transmitsLight = false,
-            walkSound = WalkSound.STONE,
-            fullBright = false,
-            shape = 16,
-            blockDraw = BlockDraw.OPAQUE,
-            fogDensity = 0,
-            fogR = 255.toByte(),
-            fogG = 255.toByte(),
-            fogB = 255.toByte(),
-            extendedBlock = false,
-            leftTextureId = textureId,
-            rightTextureId = textureId,
-            frontTextureId = textureId,
-            backTextureId = textureId,
-            minWidth = 0,
-            minHeight = 0,
-            minDepth = 0,
-            maxWidth = 16,
-            maxHeight = 16,
-            maxDepth = 16
-        )
+        val newBlock =
+            JsonBlock(
+                id = blockId,
+                name = name,
+                fallback = blockId,
+                solidity = BlockSolidity.SOLID,
+                movementSpeed = 128.toByte(),
+                topTextureId = textureId,
+                sideTextureId = textureId,
+                bottomTextureId = textureId,
+                transmitsLight = false,
+                walkSound = WalkSound.STONE,
+                fullBright = false,
+                shape = 16,
+                blockDraw = BlockDraw.OPAQUE,
+                fogDensity = 0,
+                fogR = 255.toByte(),
+                fogG = 255.toByte(),
+                fogB = 255.toByte(),
+                extendedBlock = false,
+                leftTextureId = textureId,
+                rightTextureId = textureId,
+                frontTextureId = textureId,
+                backTextureId = textureId,
+                minWidth = 0,
+                minHeight = 0,
+                minDepth = 0,
+                maxWidth = 16,
+                maxHeight = 16,
+                maxDepth = 16,
+            )
 
         if (level != null) {
             BlockRegistry.register(level, newBlock)
@@ -249,7 +318,11 @@ class BlockCommand : Command {
         BlockRegistry.saveBlockDefinitions(target)
     }
 
-    @OnSubCommand(name = "delete", description = "Delete a custom block", usage = "/block <global|levelId> delete <id>")
+    @OnSubCommand(
+        name = "delete",
+        description = "Delete a custom block",
+        usage = "/block <global|levelId> delete <id>",
+    )
     @RequirePermission("dandelion.block.delete")
     @ArgRange(min = 2, max = 2)
     fun deleteBlock(executor: CommandExecutor, args: Array<String>) {
@@ -266,76 +339,109 @@ class BlockCommand : Command {
             return
         }
 
-        val level = if (target != "global") {
-            val lvl = Levels.getLevel(target)
-            if (lvl == null) {
-                MessageRegistry.Commands.Block.sendLevelNotFound(executor, target)
-                return
-            }
-            lvl
-        } else null
+        val level =
+            if (target != "global") {
+                val lvl = Levels.getLevel(target)
+                if (lvl == null) {
+                    MessageRegistry.Commands.Block.sendLevelNotFound(
+                        executor,
+                        target,
+                    )
+                    return
+                }
+                lvl
+            } else null
 
-        val block = if (level != null) {
-            BlockRegistry.get(level, blockId)
-        } else {
-            BlockRegistry.get(blockId)
-        }
+        val block =
+            if (level != null) {
+                BlockRegistry.get(level, blockId)
+            } else {
+                BlockRegistry.get(blockId)
+            }
 
         if (block == null) {
             MessageRegistry.Commands.Block.sendBlockNotFound(executor, blockId)
             return
         }
 
-        val success = if (level != null) {
-            BlockRegistry.unregister(level, blockId)
-        } else {
-            BlockRegistry.unregister(blockId)
-        }
+        val success =
+            if (level != null) {
+                BlockRegistry.unregister(level, blockId)
+            } else {
+                BlockRegistry.unregister(blockId)
+            }
 
         if (success) {
-            MessageRegistry.Commands.Block.Delete.sendSuccess(executor, blockId, block.name)
+            MessageRegistry.Commands.Block.Delete.sendSuccess(
+                executor,
+                blockId,
+                block.name,
+            )
             BlockRegistry.saveBlockDefinitions(target)
         } else {
             Console.errLog("Failed to delete block $blockId")
         }
     }
 
-    @OnSubCommand(name = "list", description = "List blocks", usage = "/block <global|levelId|all> list")
+    @OnSubCommand(
+        name = "list",
+        description = "List blocks",
+        usage = "/block <global|levelId|all> list",
+    )
     @RequirePermission("dandelion.block.info")
     @ArgRange(min = 1, max = 1)
     fun listBlocks(executor: CommandExecutor, args: Array<String>) {
         val target = args[0].lowercase()
-        val blocks = when (target) {
-            "global" -> {
-                MessageRegistry.Commands.Block.List.sendHeaderGlobal(executor)
-                BlockRegistry.getAll()
-            }
-            "all" -> {
-                MessageRegistry.Commands.Block.List.sendHeaderAll(executor)
-                BlockRegistry.getAll()
-            }
-            else -> {
-                val level = Levels.getLevel(target)
-                if (level == null) {
-                    MessageRegistry.Commands.Block.sendLevelNotFound(executor, target)
-                    return
+        val blocks =
+            when (target) {
+                "global" -> {
+                    MessageRegistry.Commands.Block.List.sendHeaderGlobal(
+                        executor
+                    )
+                    BlockRegistry.getAll()
                 }
-                MessageRegistry.Commands.Block.List.sendHeaderLevel(executor, target)
-                BlockRegistry.getAll(level)
+                "all" -> {
+                    MessageRegistry.Commands.Block.List.sendHeaderAll(executor)
+                    BlockRegistry.getAll()
+                }
+                else -> {
+                    val level = Levels.getLevel(target)
+                    if (level == null) {
+                        MessageRegistry.Commands.Block.sendLevelNotFound(
+                            executor,
+                            target,
+                        )
+                        return
+                    }
+                    MessageRegistry.Commands.Block.List.sendHeaderLevel(
+                        executor,
+                        target,
+                    )
+                    BlockRegistry.getAll(level)
+                }
             }
-        }
 
         if (blocks.isEmpty()) {
             MessageRegistry.Commands.Block.List.sendNoBlocks(executor)
             return
         }
 
-        blocks.sortedBy { it.id }.forEach { block ->
-            MessageRegistry.Commands.Block.List.sendFormat(executor, block.id, block.name)
-        }
+        blocks
+            .sortedBy { it.id }
+            .forEach { block ->
+                MessageRegistry.Commands.Block.List.sendFormat(
+                    executor,
+                    block.id,
+                    block.name,
+                )
+            }
     }
 
-    @OnSubCommand(name = "reload", description = "Reload all block definitions from disk", usage = "/block reload")
+    @OnSubCommand(
+        name = "reload",
+        description = "Reload all block definitions from disk",
+        usage = "/block reload",
+    )
     @RequirePermission("dandelion.block.reload")
     fun reloadBlocks(executor: CommandExecutor, args: Array<String>) {
         try {
@@ -348,42 +454,96 @@ class BlockCommand : Command {
             MessageRegistry.Commands.Block.Reload.sendSuccess(executor)
         } catch (e: Exception) {
             Console.errLog("Error reloading block definitions: ${e.message}")
-            MessageRegistry.Commands.Block.Reload.sendFailed(executor, e.message ?: "Unknown error")
+            MessageRegistry.Commands.Block.Reload.sendFailed(
+                executor,
+                e.message ?: "Unknown error",
+            )
         }
     }
 
     private fun sendBlockInfo(executor: CommandExecutor, block: Block) {
         MessageRegistry.Commands.Block.Info.sendHeader(executor, block.id)
         MessageRegistry.Commands.Block.Info.sendName(executor, block.name)
-        MessageRegistry.Commands.Block.Info.sendFallback(executor, block.fallback)
-        MessageRegistry.Commands.Block.Info.sendSolidity(executor, block.solidity.name)
-        MessageRegistry.Commands.Block.Info.sendMovementSpeed(executor, block.movementSpeed)
+        MessageRegistry.Commands.Block.Info.sendFallback(
+            executor,
+            block.fallback,
+        )
+        MessageRegistry.Commands.Block.Info.sendSolidity(
+            executor,
+            block.solidity.name,
+        )
+        MessageRegistry.Commands.Block.Info.sendMovementSpeed(
+            executor,
+            block.movementSpeed,
+        )
 
         if (block.extendedBlock) {
-            MessageRegistry.Commands.Block.Info.sendExtendedTextures(executor,
-                block.topTextureId, block.leftTextureId, block.rightTextureId,
-                block.frontTextureId, block.backTextureId, block.bottomTextureId)
-            MessageRegistry.Commands.Block.Info.sendBounds(executor,
-                block.minWidth, block.minHeight, block.minDepth, block.maxWidth, block.maxHeight, block.maxDepth)
+            MessageRegistry.Commands.Block.Info.sendExtendedTextures(
+                executor,
+                block.topTextureId,
+                block.leftTextureId,
+                block.rightTextureId,
+                block.frontTextureId,
+                block.backTextureId,
+                block.bottomTextureId,
+            )
+            MessageRegistry.Commands.Block.Info.sendBounds(
+                executor,
+                block.minWidth,
+                block.minHeight,
+                block.minDepth,
+                block.maxWidth,
+                block.maxHeight,
+                block.maxDepth,
+            )
         } else {
-            MessageRegistry.Commands.Block.Info.sendTextures(executor,
-                block.topTextureId, block.sideTextureId, block.bottomTextureId)
+            MessageRegistry.Commands.Block.Info.sendTextures(
+                executor,
+                block.topTextureId,
+                block.sideTextureId,
+                block.bottomTextureId,
+            )
             MessageRegistry.Commands.Block.Info.sendShape(executor, block.shape)
         }
 
-        MessageRegistry.Commands.Block.Info.sendTransmitsLight(executor, block.transmitsLight)
-        MessageRegistry.Commands.Block.Info.sendWalkSound(executor, block.walkSound.name)
-        MessageRegistry.Commands.Block.Info.sendFullBright(executor, block.fullBright)
-        MessageRegistry.Commands.Block.Info.sendBlockDraw(executor, block.blockDraw.name)
+        MessageRegistry.Commands.Block.Info.sendTransmitsLight(
+            executor,
+            block.transmitsLight,
+        )
+        MessageRegistry.Commands.Block.Info.sendWalkSound(
+            executor,
+            block.walkSound.name,
+        )
+        MessageRegistry.Commands.Block.Info.sendFullBright(
+            executor,
+            block.fullBright,
+        )
+        MessageRegistry.Commands.Block.Info.sendBlockDraw(
+            executor,
+            block.blockDraw.name,
+        )
 
         if (block.fogDensity > 0) {
-            MessageRegistry.Commands.Block.Info.sendFog(executor, block.fogDensity, block.fogR, block.fogG, block.fogB)
+            MessageRegistry.Commands.Block.Info.sendFog(
+                executor,
+                block.fogDensity,
+                block.fogR,
+                block.fogG,
+                block.fogB,
+            )
         }
 
-        MessageRegistry.Commands.Block.Info.sendExtended(executor, block.extendedBlock)
+        MessageRegistry.Commands.Block.Info.sendExtended(
+            executor,
+            block.extendedBlock,
+        )
     }
 
-    private fun editBlockProperty(block: Block, property: String, value: String): JsonBlock? {
+    private fun editBlockProperty(
+        block: Block,
+        property: String,
+        value: String,
+    ): JsonBlock? {
         return try {
             when (property) {
                 "id" -> {
@@ -393,11 +553,15 @@ class BlockCommand : Command {
                 }
                 "name" -> copyBlock(block, name = value)
                 "fallback" -> {
-                    val fallback = value.toUByteOrNull()?.toByte() ?: return null
+                    val fallback =
+                        value.toUByteOrNull()?.toByte() ?: return null
                     copyBlock(block, fallback = fallback)
                 }
                 "solidity" -> {
-                    val solidity = value.toUByteOrNull()?.let { BlockSolidity.from(it.toByte()) } ?: return null
+                    val solidity =
+                        value.toUByteOrNull()?.let {
+                            BlockSolidity.from(it.toByte())
+                        } ?: return null
                     copyBlock(block, solidity = solidity)
                 }
                 "speed" -> {
@@ -437,7 +601,10 @@ class BlockCommand : Command {
                     copyBlock(block, transmitsLight = transmits)
                 }
                 "walksound" -> {
-                    val sound = value.toUByteOrNull()?.let { WalkSound.from(it.toByte()) } ?: return null
+                    val sound =
+                        value.toUByteOrNull()?.let {
+                            WalkSound.from(it.toByte())
+                        } ?: return null
                     copyBlock(block, walkSound = sound)
                 }
                 "fullbright" -> {
@@ -449,7 +616,10 @@ class BlockCommand : Command {
                     copyBlock(block, shape = shape)
                 }
                 "blockdraw" -> {
-                    val draw = value.toUByteOrNull()?.let { BlockDraw.from(it.toByte()) } ?: return null
+                    val draw =
+                        value.toUByteOrNull()?.let {
+                            BlockDraw.from(it.toByte())
+                        } ?: return null
                     copyBlock(block, blockDraw = draw)
                 }
                 "fogdensity" -> {
@@ -527,12 +697,20 @@ class BlockCommand : Command {
         minZ: Byte = block.minDepth,
         maxX: Byte = block.maxWidth,
         maxY: Byte = block.maxHeight,
-        maxZ: Byte = block.maxDepth
+        maxZ: Byte = block.maxDepth,
     ): JsonBlock {
-        val hasCustomBounds = minX != 0.toByte() || minY != 0.toByte() || minZ != 0.toByte() ||
-                             maxX != 16.toByte() || maxY != 16.toByte() || maxZ != 16.toByte()
-        val hasDifferentSideTextures = leftTextureId != topTextureId || rightTextureId != topTextureId ||
-                                     frontTextureId != topTextureId || backTextureId != topTextureId
+        val hasCustomBounds =
+            minX != 0.toByte() ||
+                minY != 0.toByte() ||
+                minZ != 0.toByte() ||
+                maxX != 16.toByte() ||
+                maxY != 16.toByte() ||
+                maxZ != 16.toByte()
+        val hasDifferentSideTextures =
+            leftTextureId != topTextureId ||
+                rightTextureId != topTextureId ||
+                frontTextureId != topTextureId ||
+                backTextureId != topTextureId
         val isExtended = hasCustomBounds || hasDifferentSideTextures
 
         return JsonBlock(
@@ -563,8 +741,7 @@ class BlockCommand : Command {
             minDepth = minZ,
             maxWidth = maxX,
             maxHeight = maxY,
-            maxDepth = maxZ
+            maxDepth = maxZ,
         )
     }
-
 }

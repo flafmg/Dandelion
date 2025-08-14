@@ -1,9 +1,7 @@
 package org.dandelion.classic.network.packets.classic.server
 
-import io.netty.channel.Channel
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
-import org.dandelion.classic.server.Server
 import org.dandelion.classic.server.ServerInfo
 
 class ServerIdentification(
@@ -11,9 +9,9 @@ class ServerIdentification(
     val serverMotd: String = ServerInfo.motd,
     val userType: Byte = 0x00,
     val protocolVersion: Byte = 0x07,
-
-): Packet() {
+) : Packet() {
     override val id: Byte = 0x00
+
     override fun encode(): ByteArray {
         val writer = PacketWriter()
 

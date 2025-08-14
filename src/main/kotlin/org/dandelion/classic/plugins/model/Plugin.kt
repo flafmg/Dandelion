@@ -1,13 +1,15 @@
 package org.dandelion.classic.plugins.model
 
-import org.dandelion.classic.plugins.manager.PluginRegistry
 import java.io.*
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import org.dandelion.classic.plugins.manager.PluginRegistry
 
 abstract class Plugin {
     var info: PluginInfo = PluginInfo.empty()
+
     abstract fun init()
+
     abstract fun shutdown()
 
     fun getDataDir(): File {
@@ -20,14 +22,21 @@ abstract class Plugin {
     }
 
     fun copyResource(resourcePath: String, targetPath: String) {
-        val loadedPlugin = PluginRegistry.getPlugin(info.name)
-            ?: throw IllegalStateException("Plugin ${info.name} is not loaded in registry")
+        val loadedPlugin =
+            PluginRegistry.getPlugin(info.name)
+                ?: throw IllegalStateException(
+                    "Plugin ${info.name} is not loaded in registry"
+                )
 
         var input: InputStream? = null
         var output: FileOutputStream? = null
         try {
             val jarFile = JarFile(loadedPlugin.jarFile)
-            val jarEntry: JarEntry = jarFile.getJarEntry(resourcePath) ?: throw IllegalArgumentException("Resource not found in JAR: $resourcePath")
+            val jarEntry: JarEntry =
+                jarFile.getJarEntry(resourcePath)
+                    ?: throw IllegalArgumentException(
+                        "Resource not found in JAR: $resourcePath"
+                    )
 
             input = jarFile.getInputStream(jarEntry)
             val targetFile = File(targetPath)
@@ -41,7 +50,10 @@ abstract class Plugin {
             }
             output.flush()
         } catch (e: IOException) {
-            throw RuntimeException("Failed to copy resource $resourcePath from JAR to $targetPath", e)
+            throw RuntimeException(
+                "Failed to copy resource $resourcePath from JAR to $targetPath",
+                e,
+            )
         } finally {
             try {
                 input?.close()
@@ -51,14 +63,14 @@ abstract class Plugin {
             try {
                 output?.close()
             } catch (e: IOException) {
-                System.err.println("Could not close output stream: ${e.message}")
+                System.err.println(
+                    "Could not close output stream: ${e.message}"
+                )
             }
         }
     }
 
-    /**
-     * copies resource only if it doesnt exist in target path
-     */
+    /** copies resource only if it doesnt exist in target path */
     fun deployResource(resourcePath: String, targetPath: String) {
         val targetFile = File(targetPath)
         if (targetFile.exists()) {

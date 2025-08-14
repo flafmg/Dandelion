@@ -1,10 +1,10 @@
 package org.dandelion.classic.blocks.model
 
+import kotlin.math.pow
 import org.dandelion.classic.blocks.manager.BlockRegistry
 import org.dandelion.classic.blocks.model.enums.BlockDraw
 import org.dandelion.classic.blocks.model.enums.BlockSolidity
 import org.dandelion.classic.blocks.model.enums.WalkSound
-import kotlin.math.pow
 
 abstract class Block {
     abstract val id: Byte
@@ -48,25 +48,26 @@ abstract class Block {
     open val maxHeight: Byte = 16
     open val maxDepth: Byte = 16
 
-
-
     fun getSpeedRatio(): Double {
         return 2.0.pow((movementSpeed.toInt() - 128) / 64.0)
     }
 
     fun getFogDensity(): Float {
-        return if (fogDensity == 0.toByte()) 0f else (fogDensity.toInt() + 1) / 128f
+        return if (fogDensity == 0.toByte()) 0f
+        else (fogDensity.toInt() + 1) / 128f
     }
 
     fun isSprite(): Boolean = shape == 0.toByte()
 
     fun getHeight(): Int = if (isSprite()) 0 else shape.toInt()
 
-    fun isSolid(): Boolean = solidity == BlockSolidity.SOLID ||
+    fun isSolid(): Boolean =
+        solidity == BlockSolidity.SOLID ||
             solidity == BlockSolidity.PARTIALLY_SLIPPERY ||
             solidity == BlockSolidity.FULLY_SLIPPERY
 
-    fun isLiquid(): Boolean = solidity == BlockSolidity.WATER || solidity == BlockSolidity.LAVA
+    fun isLiquid(): Boolean =
+        solidity == BlockSolidity.WATER || solidity == BlockSolidity.LAVA
 
     override fun toString(): String {
         val sb = StringBuilder()
@@ -78,7 +79,9 @@ abstract class Block {
         sb.append("movementSpeed=$movementSpeed, ")
         sb.append("textures=[top=$topTextureId, ")
         if (extendedBlock) {
-            sb.append("left=$leftTextureId, right=$rightTextureId, front=$frontTextureId, back=$backTextureId, ")
+            sb.append(
+                "left=$leftTextureId, right=$rightTextureId, front=$frontTextureId, back=$backTextureId, "
+            )
         } else {
             sb.append("side=$sideTextureId, ")
         }
@@ -87,7 +90,9 @@ abstract class Block {
         sb.append("walkSound=$walkSound, ")
         sb.append("fullBright=$fullBright, ")
         if (extendedBlock) {
-            sb.append("bounds=[min=($minWidth,$minHeight,$minDepth), max=($maxWidth,$maxHeight,$maxDepth)], ")
+            sb.append(
+                "bounds=[min=($minWidth,$minHeight,$minDepth), max=($maxWidth,$maxHeight,$maxDepth)], "
+            )
         } else {
             sb.append("shape=$shape, ")
         }
@@ -98,7 +103,8 @@ abstract class Block {
         sb.append(")")
         return sb.toString()
     }
-    companion object{
+
+    companion object {
         /**
          * Retrieves a block by its id.
          *
@@ -133,6 +139,7 @@ abstract class Block {
 
         /**
          * Gets all registered blocks.
+         *
          * @return Collection of all registered blocks.
          */
         fun getAll(): Collection<Block> = BlockRegistry.getAll()
@@ -159,8 +166,8 @@ abstract class Block {
         fun size(): Int = BlockRegistry.size()
 
         /**
-         * Clears all registered blocks.
-         * Warning: This will remove all blocks including vanilla ones (except AIR).
+         * Clears all registered blocks. Warning: This will remove all blocks
+         * including vanilla ones (except AIR).
          */
         fun clear() = BlockRegistry.clear()
     }

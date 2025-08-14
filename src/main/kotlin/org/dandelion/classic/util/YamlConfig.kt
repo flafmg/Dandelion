@@ -1,10 +1,10 @@
 package org.dandelion.classic.util
 
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
 
 class YamlConfig {
     var root: MutableMap<String, Any> = mutableMapOf()
@@ -27,7 +27,9 @@ class YamlConfig {
         val keys = path.split('.')
         var currentMap: MutableMap<String, Any> = root
         for (key in keys) {
-            currentMap = currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+            currentMap =
+                currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() }
+                    as MutableMap<String, Any>
         }
         return currentMap
     }
@@ -126,7 +128,10 @@ class YamlConfig {
                     currentMap = newMap
                 }
             } else {
-                currentMap = currentMap.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+                currentMap =
+                    currentMap.computeIfAbsent(key) {
+                        mutableMapOf<String, Any>()
+                    } as MutableMap<String, Any>
             }
         }
         val config = YamlConfig()
@@ -144,17 +149,22 @@ class YamlConfig {
         val map = if (mapPath.isEmpty()) root else getOrCreateMap(mapPath)
         map[key] = value
     }
+
     fun setLiteralKey(parentPath: String, literalKey: String, value: Any) {
         val map = if (parentPath.isEmpty()) root else getOrCreateMap(parentPath)
         map[literalKey] = value
     }
 
-
     fun setString(path: String, value: String) = set(path, value)
+
     fun setInt(path: String, value: Int) = set(path, value)
+
     fun setLong(path: String, value: Long) = set(path, value)
+
     fun setDouble(path: String, value: Double) = set(path, value)
+
     fun setBoolean(path: String, value: Boolean) = set(path, value)
+
     fun setStringList(path: String, value: List<String>) = set(path, value)
 
     fun save(file: File) {
@@ -167,7 +177,11 @@ class YamlConfig {
     }
 
     fun save() {
-        val fileToSave = originFile ?: throw IllegalStateException("config was not loaded from a file, it cant be saved without a path!")
+        val fileToSave =
+            originFile
+                ?: throw IllegalStateException(
+                    "config was not loaded from a file, it cant be saved without a path!"
+                )
         save(fileToSave)
     }
 
@@ -175,14 +189,13 @@ class YamlConfig {
         fun load(path: String): YamlConfig {
             return load(File(path))
         }
+
         fun load(file: File): YamlConfig {
-            if(!file.exists()){
+            if (!file.exists()) {
                 file.parentFile?.mkdirs()
                 file.createNewFile()
             }
-            return load(FileInputStream(file)).apply {
-                this.originFile = file
-            }
+            return load(FileInputStream(file)).apply { this.originFile = file }
         }
 
         fun load(inputStream: InputStream): YamlConfig {
@@ -191,7 +204,9 @@ class YamlConfig {
             inputStream.use {
                 try {
                     val loadedData: Any? = yaml.load(it)
-                    config.root = (loadedData as? Map<String, Any>)?.toMutableMap() ?: mutableMapOf()
+                    config.root =
+                        (loadedData as? Map<String, Any>)?.toMutableMap()
+                            ?: mutableMapOf()
                 } catch (e: Exception) {
                     config.root = mutableMapOf()
                 }

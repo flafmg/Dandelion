@@ -16,7 +16,8 @@ class JsonConfig {
         var currentElement: JsonElement = root
         for (key in keys) {
             if (currentElement.isJsonObject) {
-                currentElement = currentElement.asJsonObject.get(key) ?: return null
+                currentElement =
+                    currentElement.asJsonObject.get(key) ?: return null
             } else {
                 return null
             }
@@ -30,13 +31,14 @@ class JsonConfig {
         var currentObject: JsonObject = root
         for (key in keys) {
             val nextElement = currentObject.get(key)
-            currentObject = if (nextElement?.isJsonObject == true) {
-                nextElement.asJsonObject
-            } else {
-                val newObject = JsonObject()
-                currentObject.add(key, newObject)
-                newObject
-            }
+            currentObject =
+                if (nextElement?.isJsonObject == true) {
+                    nextElement.asJsonObject
+                } else {
+                    val newObject = JsonObject()
+                    currentObject.add(key, newObject)
+                    newObject
+                }
         }
         return currentObject
     }
@@ -76,7 +78,9 @@ class JsonConfig {
 
     fun getString(path: String): String? {
         val element = getElement(path)
-        return if (element?.isJsonPrimitive == true && element.asJsonPrimitive.isString) {
+        return if (
+            element?.isJsonPrimitive == true && element.asJsonPrimitive.isString
+        ) {
             element.asString
         } else null
     }
@@ -87,7 +91,9 @@ class JsonConfig {
 
     fun getInt(path: String): Int? {
         val element = getElement(path)
-        return if (element?.isJsonPrimitive == true && element.asJsonPrimitive.isNumber) {
+        return if (
+            element?.isJsonPrimitive == true && element.asJsonPrimitive.isNumber
+        ) {
             element.asInt
         } else null
     }
@@ -98,7 +104,9 @@ class JsonConfig {
 
     fun getLong(path: String): Long? {
         val element = getElement(path)
-        return if (element?.isJsonPrimitive == true && element.asJsonPrimitive.isNumber) {
+        return if (
+            element?.isJsonPrimitive == true && element.asJsonPrimitive.isNumber
+        ) {
             element.asLong
         } else null
     }
@@ -109,7 +117,9 @@ class JsonConfig {
 
     fun getDouble(path: String): Double? {
         val element = getElement(path)
-        return if (element?.isJsonPrimitive == true && element.asJsonPrimitive.isNumber) {
+        return if (
+            element?.isJsonPrimitive == true && element.asJsonPrimitive.isNumber
+        ) {
             element.asDouble
         } else null
     }
@@ -120,7 +130,10 @@ class JsonConfig {
 
     fun getBoolean(path: String): Boolean? {
         val element = getElement(path)
-        return if (element?.isJsonPrimitive == true && element.asJsonPrimitive.isBoolean) {
+        return if (
+            element?.isJsonPrimitive == true &&
+                element.asJsonPrimitive.isBoolean
+        ) {
             element.asBoolean
         } else null
     }
@@ -133,7 +146,10 @@ class JsonConfig {
         val element = getElement(path)
         return if (element?.isJsonArray == true) {
             element.asJsonArray.mapNotNull { arrayElement ->
-                if (arrayElement.isJsonPrimitive && arrayElement.asJsonPrimitive.isString) {
+                if (
+                    arrayElement.isJsonPrimitive &&
+                        arrayElement.asJsonPrimitive.isString
+                ) {
                     arrayElement.asString
                 } else null
             }
@@ -183,7 +199,8 @@ class JsonConfig {
         val keys = path.split('.')
         val key = keys.last()
         val parentPath = keys.dropLast(1).joinToString(".")
-        val parentObject = if (parentPath.isEmpty()) root else getOrCreateObject(parentPath)
+        val parentObject =
+            if (parentPath.isEmpty()) root else getOrCreateObject(parentPath)
 
         when (value) {
             is String -> parentObject.addProperty(key, value)
@@ -211,24 +228,31 @@ class JsonConfig {
     }
 
     fun setString(path: String, value: String) = set(path, value)
+
     fun setInt(path: String, value: Int) = set(path, value)
+
     fun setLong(path: String, value: Long) = set(path, value)
+
     fun setDouble(path: String, value: Double) = set(path, value)
+
     fun setBoolean(path: String, value: Boolean) = set(path, value)
+
     fun setStringList(path: String, value: List<String>) = set(path, value)
 
     fun save(file: File) {
         try {
-            FileWriter(file).use { writer ->
-                gson.toJson(root, writer)
-            }
+            FileWriter(file).use { writer -> gson.toJson(root, writer) }
         } catch (e: Exception) {
             throw RuntimeException("Failed to save JSON file: ${file.path}", e)
         }
     }
 
     fun save() {
-        val fileToSave = originFile ?: throw IllegalStateException("Config was not loaded from a file, it cannot be saved without a path!")
+        val fileToSave =
+            originFile
+                ?: throw IllegalStateException(
+                    "Config was not loaded from a file, it cannot be saved without a path!"
+                )
         save(fileToSave)
     }
 
@@ -241,7 +265,7 @@ class JsonConfig {
             if (!file.exists()) {
                 file.parentFile?.mkdirs()
                 file.createNewFile()
-                file.writeText("{}") //create empty JSON object
+                file.writeText("{}") // create empty JSON object
             }
 
             val config = JsonConfig()
@@ -250,7 +274,9 @@ class JsonConfig {
             try {
                 FileReader(file).use { reader ->
                     val element = JsonParser.parseReader(reader)
-                    config.root = if (element.isJsonObject) element.asJsonObject else JsonObject()
+                    config.root =
+                        if (element.isJsonObject) element.asJsonObject
+                        else JsonObject()
                 }
             } catch (e: Exception) {
                 config.root = JsonObject()

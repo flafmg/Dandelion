@@ -1,6 +1,5 @@
 package org.dandelion.classic.blocks.model.enums
 
-
 enum class BlockDraw(val value: Byte) {
     OPAQUE(0),
     TRANSPARENT(1),

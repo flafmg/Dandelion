@@ -5,8 +5,8 @@ import org.dandelion.classic.blocks.model.enums.BlockSolidity
 import org.dandelion.classic.blocks.model.enums.WalkSound
 
 /**
- * Dynamic block implementation loaded from JSON configuration files.
- * This class allows creating custom blocks without hardcoding them.
+ * Dynamic block implementation loaded from JSON configuration files. This class
+ * allows creating custom blocks without hardcoding them.
  */
 class JsonBlock(
     override val id: Byte,
@@ -36,7 +36,7 @@ class JsonBlock(
     override val minDepth: Byte,
     override val maxWidth: Byte,
     override val maxHeight: Byte,
-    override val maxDepth: Byte
+    override val maxDepth: Byte,
 ) : Block() {
 
     companion object {
@@ -47,10 +47,15 @@ class JsonBlock(
          * @return JsonBlock instance created from the configuration
          */
         fun fromJson(blockData: Map<String, Any?>): JsonBlock? {
-            val blockId = (blockData["BlockID"] as? Number)?.toByte()?.takeIf { ((blockData["BlockID"] as? Number)?.toInt() ?: 1) <= 256 } ?: return null
+            val blockId =
+                (blockData["BlockID"] as? Number)?.toByte()?.takeIf {
+                    ((blockData["BlockID"] as? Number)?.toInt() ?: 1) <= 256
+                } ?: return null
             val name = blockData["Name"] as? String ?: "Custom Block"
-            val speed = (blockData["Speed"] as? Number)?.toByte() ?: 128.toByte()
-            val collideType = (blockData["CollideType"] as? Number)?.toByte() ?: 2
+            val speed =
+                (blockData["Speed"] as? Number)?.toByte() ?: 128.toByte()
+            val collideType =
+                (blockData["CollideType"] as? Number)?.toByte() ?: 2
             val topTex = (blockData["TopTex"] as? Number)?.toByte() ?: 0
             val bottomTex = (blockData["BottomTex"] as? Number)?.toByte() ?: 0
             val blocksLight = blockData["BlocksLight"] as? Boolean ?: false
@@ -58,14 +63,15 @@ class JsonBlock(
             val fullBright = blockData["FullBright"] as? Boolean ?: false
             val shape = (blockData["Shape"] as? Number)?.toByte() ?: 16
             val blockDraw = (blockData["BlockDraw"] as? Number)?.toByte() ?: 0
-            val fallBack = (blockData["FallBack"] as? Number)?.toByte() ?: blockId
+            val fallBack =
+                (blockData["FallBack"] as? Number)?.toByte() ?: blockId
             val fogDensity = (blockData["FogDensity"] as? Number)?.toByte() ?: 0
 
             val fogR = (blockData["FogR"] as? Number)?.toByte() ?: 0
             val fogG = (blockData["FogG"] as? Number)?.toByte() ?: 0
             val fogB = (blockData["FogB"] as? Number)?.toByte() ?: 0
 
-            //Max and Min z actually mean Height instead of depth, y means depth
+            // Max and Min z actually mean Height instead of depth, y means depth
             val minX = (blockData["MinX"] as? Number)?.toByte() ?: 0
             val minY = (blockData["MinZ"] as? Number)?.toByte() ?: 0
             val minZ = (blockData["MinY"] as? Number)?.toByte() ?: 0
@@ -74,14 +80,24 @@ class JsonBlock(
             val maxZ = (blockData["MaxY"] as? Number)?.toByte() ?: 16
 
             val leftTex = (blockData["LeftTex"] as? Number)?.toByte() ?: topTex
-            val rightTex = (blockData["RightTex"] as? Number)?.toByte() ?: topTex
-            val frontTex = (blockData["FrontTex"] as? Number)?.toByte() ?: topTex
+            val rightTex =
+                (blockData["RightTex"] as? Number)?.toByte() ?: topTex
+            val frontTex =
+                (blockData["FrontTex"] as? Number)?.toByte() ?: topTex
             val backTex = (blockData["BackTex"] as? Number)?.toByte() ?: topTex
 
-            val hasCustomBounds = minX != 0.toByte() || minY != 0.toByte() || minZ != 0.toByte() ||
-                                 maxX != 16.toByte() || maxY != 16.toByte() || maxZ != 16.toByte()
-            val hasDifferentSideTextures = leftTex != topTex || rightTex != topTex ||
-                                         frontTex != topTex || backTex != topTex
+            val hasCustomBounds =
+                minX != 0.toByte() ||
+                    minY != 0.toByte() ||
+                    minZ != 0.toByte() ||
+                    maxX != 16.toByte() ||
+                    maxY != 16.toByte() ||
+                    maxZ != 16.toByte()
+            val hasDifferentSideTextures =
+                leftTex != topTex ||
+                    rightTex != topTex ||
+                    frontTex != topTex ||
+                    backTex != topTex
             val isExtended = hasCustomBounds || hasDifferentSideTextures
 
             return JsonBlock(
@@ -112,7 +128,7 @@ class JsonBlock(
                 minDepth = minZ,
                 maxWidth = maxX,
                 maxHeight = maxY,
-                maxDepth = maxZ
+                maxDepth = maxZ,
             )
         }
     }

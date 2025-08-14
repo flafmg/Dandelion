@@ -3,9 +3,7 @@ package org.dandelion.classic.network.packets.cpe.server
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
-class ServerEnvWeatherType(
-    val weatherType: Byte
-) : Packet() {
+class ServerEnvWeatherType(val weatherType: Byte) : Packet() {
     override val id: Byte = 0x1F
     override val isCpe: Boolean = true
 

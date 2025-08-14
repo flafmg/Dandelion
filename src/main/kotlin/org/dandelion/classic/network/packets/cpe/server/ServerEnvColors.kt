@@ -18,7 +18,7 @@ class ServerEnvColors(
         writer.writeByte(variable)
         writer.writeShort(red)
         writer.writeShort(green)
-        writer.writeShort(blue )
+        writer.writeShort(blue)
         return writer.toByteArray()
     }
 }

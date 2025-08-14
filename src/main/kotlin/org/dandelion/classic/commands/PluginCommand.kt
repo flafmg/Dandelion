@@ -6,18 +6,22 @@ import org.dandelion.classic.commands.annotations.OnSubCommand
 import org.dandelion.classic.commands.annotations.RequirePermission
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
-import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.plugins.manager.PluginRegistry
+import org.dandelion.classic.server.MessageRegistry
 
 @CommandDef(
     name = "plugin",
     description = "Manage server plugins.",
     usage = "/plugin <subcommand>",
-    aliases = ["pl"]
+    aliases = ["pl"],
 )
 class PluginCommand : Command {
 
-    @OnSubCommand(name = "list", description = "List all loaded plugins", usage = "/plugin list")
+    @OnSubCommand(
+        name = "list",
+        description = "List all loaded plugins",
+        usage = "/plugin list",
+    )
     @RequirePermission("dandelion.plugin.list")
     fun listPlugins(executor: CommandExecutor, args: Array<String>) {
         val plugins = PluginRegistry.getAllPlugins()
@@ -27,11 +31,20 @@ class PluginCommand : Command {
         }
         MessageRegistry.Commands.Plugin.List.sendHeader(executor)
         plugins.values.forEach {
-            MessageRegistry.Commands.Plugin.List.sendPlugin(executor, it.info.name, it.info.version, it.info.description)
+            MessageRegistry.Commands.Plugin.List.sendPlugin(
+                executor,
+                it.info.name,
+                it.info.version,
+                it.info.description,
+            )
         }
     }
 
-    @OnSubCommand(name = "info", description = "Show plugin info", usage = "/plugin info <name>")
+    @OnSubCommand(
+        name = "info",
+        description = "Show plugin info",
+        usage = "/plugin info <name>",
+    )
     @RequirePermission("dandelion.plugin.manage")
     fun pluginInfo(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
@@ -46,15 +59,31 @@ class PluginCommand : Command {
         val info = plugin.info
         MessageRegistry.Commands.Plugin.Info.sendHeader(executor, info.name)
         MessageRegistry.Commands.Plugin.Info.sendVersion(executor, info.version)
-        MessageRegistry.Commands.Plugin.Info.sendDescription(executor, info.description)
-        MessageRegistry.Commands.Plugin.Info.sendAuthors(executor, info.authors.joinToString(", "))
+        MessageRegistry.Commands.Plugin.Info.sendDescription(
+            executor,
+            info.description,
+        )
+        MessageRegistry.Commands.Plugin.Info.sendAuthors(
+            executor,
+            info.authors.joinToString(", "),
+        )
         if (info.dependencies.isNotEmpty()) {
-            val deps = info.dependencies.joinToString(", ") { it.first + (it.second?.let { v -> " (v$v)" } ?: "") }
-            MessageRegistry.Commands.Plugin.Info.sendDependencies(executor, deps)
+            val deps =
+                info.dependencies.joinToString(", ") {
+                    it.first + (it.second?.let { v -> " (v$v)" } ?: "")
+                }
+            MessageRegistry.Commands.Plugin.Info.sendDependencies(
+                executor,
+                deps,
+            )
         }
     }
 
-    @OnSubCommand(name = "load", description = "Load a plugin", usage = "/plugin load <name>")
+    @OnSubCommand(
+        name = "load",
+        description = "Load a plugin",
+        usage = "/plugin load <name>",
+    )
     @RequirePermission("dandelion.plugin.manage")
     fun loadPlugin(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
@@ -70,7 +99,11 @@ class PluginCommand : Command {
         }
     }
 
-    @OnSubCommand(name = "unload", description = "Unload a plugin", usage = "/plugin unload <name>")
+    @OnSubCommand(
+        name = "unload",
+        description = "Unload a plugin",
+        usage = "/plugin unload <name>",
+    )
     @RequirePermission("dandelion.plugin.manage")
     fun unloadPlugin(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
@@ -86,7 +119,11 @@ class PluginCommand : Command {
         }
     }
 
-    @OnSubCommand(name = "reload", description = "Reload a plugin or all plugins", usage = "/plugin reload <name|all>")
+    @OnSubCommand(
+        name = "reload",
+        description = "Reload a plugin or all plugins",
+        usage = "/plugin reload <name|all>",
+    )
     @RequirePermission("dandelion.plugin.manage")
     fun reloadPlugin(executor: CommandExecutor, args: Array<String>) {
         if (args.isEmpty()) {
@@ -101,15 +138,24 @@ class PluginCommand : Command {
         } else {
             val success = PluginRegistry.reloadPluginByName(target)
             if (success) {
-                MessageRegistry.Commands.Plugin.Reload.sendSuccessSingle(executor, target)
+                MessageRegistry.Commands.Plugin.Reload.sendSuccessSingle(
+                    executor,
+                    target,
+                )
             } else {
-                MessageRegistry.Commands.Plugin.Reload.sendFailed(executor, target)
+                MessageRegistry.Commands.Plugin.Reload.sendFailed(
+                    executor,
+                    target,
+                )
             }
         }
     }
 
     @OnExecute
-    fun showAvailableSubCommands(executor: CommandExecutor, args: Array<String>) {
+    fun showAvailableSubCommands(
+        executor: CommandExecutor,
+        args: Array<String>,
+    ) {
         MessageRegistry.Commands.Plugin.sendSubcommandsAvailable(executor)
     }
 }
