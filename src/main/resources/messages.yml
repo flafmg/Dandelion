@@ -22,6 +22,9 @@ server:
     player: "{player}: &7{message}"
     console: "[{level}] {player}: {message}"
     say: "[{sender}] {message}"
+  tab_list:
+    group_name: "On {level}"
+    list_name: "{player_display_name} {group_display_name}"
 
 commands:
   general:

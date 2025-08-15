@@ -58,6 +58,8 @@ object PacketRegistry {
         addCPE("LongerMessages")
         addCPE("BlockDefinitions")
         addCPE("BlockDefinitionsExt", 2)
+        addCPE("ExtPlayerList", 2)
+        addCPE("ChangeModel")
     }
 
     fun registerPacket(id: Byte, factory: () -> Packet) {

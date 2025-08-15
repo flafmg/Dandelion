@@ -7,6 +7,12 @@ import org.dandelion.classic.events.PlayerBlockInteractionEvent
 import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
+import org.dandelion.classic.network.packets.cpe.server.ServerChangeModel
+import org.dandelion.classic.network.packets.cpe.server.ServerExtAddEntity2
+import org.dandelion.classic.network.packets.cpe.server.ServerExtAddPlayerName
+import org.dandelion.classic.network.packets.cpe.server.ServerExtRemovePlayerName
+import org.dandelion.classic.permission.PermissionRepository
+import org.dandelion.classic.types.EntityModel
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.util.toFShort
 
@@ -27,6 +33,54 @@ open class Entity(
     val position: Position = Position(0f, 0f, 0f, 0f, 0f),
 ) {
     var level: Level? = null
+
+    /**
+     * The display name shown for this entity. Setting this will despawn and respawn
+     * the entity for all players to update the visual name.
+     */
+    var displayName: String = name
+        /**
+         * Sets the display name for this entity.
+         *
+         * @param value The new display name to set. Can include color codes and formatting.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                refreshEntityForPlayers()
+            }
+        }
+
+    /**
+     * The skin name used for this entity. Setting this will despawn and respawn
+     * the entity for all players to update the visual skin.
+     */
+    var skin: String = name
+        /**
+         * Sets the skin name for this entity.
+         *
+         * @param value The new skin name to set. Should be a valid Minecraft player name.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                refreshEntityForPlayers()
+            }
+        }
+
+    /**
+     * The model used for this entity.
+     */
+    var model: String = EntityModel.HUMANOID.string
+        /**
+         * Sets the model for this entity.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                broadcastModelChange(value)
+            }
+        }
 
     companion object {
         private const val MAX_RELATIVE_MOVEMENT = 3.96875f
@@ -268,6 +322,25 @@ open class Entity(
 
     // endregion
 
+    // region Model Management
+
+    /**
+     * Broadcasts a model change to all players in the same level.
+     * Sends a ChangeModel packet to update the visual appearance of this entity.
+     *
+     * @param modelName The model name string to broadcast. Can be a predefined model
+     *                  name or a block ID as a string.
+     */
+    protected open fun broadcastModelChange(modelName: String) {
+        getOtherPlayersInLevel().forEach { player ->
+            if (player.supports("ChangeModel")) {
+                ServerChangeModel(entityId, modelName).send(player.channel)
+            }
+        }
+    }
+
+    // endregion
+
     // region Entity Management
 
     /**
@@ -277,7 +350,19 @@ open class Entity(
      */
     open fun spawnFor(target: Entity) {
         (target as? Player)?.let { player ->
-            ServerSpawnPlayer(
+            if (player.supportsCpe && player.supports("ExtPlayerList")) {
+                ServerExtAddEntity2(
+                    entityId,
+                    displayName,
+                    skin,
+                    (position.x * 32).toInt().toShort(),
+                    (position.y * 32).toInt().toShort(),
+                    (position.z * 32).toInt().toShort(),
+                    position.yaw.toInt().toByte(),
+                    position.pitch.toInt().toByte(),
+                ).send(player.channel)
+            } else {
+                ServerSpawnPlayer(
                     entityId,
                     name,
                     position.x,
@@ -285,8 +370,13 @@ open class Entity(
                     position.z,
                     position.yaw.toInt().toByte(),
                     position.pitch.toInt().toByte(),
-                )
-                .send(player.channel)
+                ).send(player.channel)
+            }
+
+            // Send model change packet after spawning to ensure visual consistency
+            if (player.supports("ChangeModel") && model != EntityModel.HUMANOID.string) {
+                ServerChangeModel(entityId, model).send(player.channel)
+            }
         }
     }
 
@@ -491,5 +581,18 @@ open class Entity(
         val distance = sqrt(dx * dx + dy * dy + dz * dz)
         return distance <= distance
     }
+    // endregion
+
+    // region Helper Methods
+
+    /**
+     * Refreshes the entity for all players, causing a despawn and respawn
+     * to update its data (used after changing displayName or skin).
+     */
+    protected open fun refreshEntityForPlayers() {
+        globalDespawn()
+        globalSpawn()
+    }
+
     // endregion
 }

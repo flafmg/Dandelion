@@ -1,29 +1,16 @@
-# Dandelion 0.1.1-dev – Changelog
+# Dandelion 0.1.2-dev – Changelog
 
 ## New Features
-- **Editable Message System** – All server messages are now fully configurable via external files.
-- **Custom Blocks Support** – Now supports custom blocks using the same as *MCGalaxy* JSON definition files.
-- **`/blocks` Command** – Manage and list custom blocks directly in-game.
-- **JsonParser** – Added for improved JSON parsing capabilities.
-- **Improved Disconnection Handling** – Better handling of unexpected exceptions during player connections.
-- **Better CPE Compatibility** – Improved fallback behavior when clients do not support certain CPE extensions.
+- **Display Name** entities can now have a custom display name
+- **Entity Skin** entities can now have a custom skin by player name or URL
+- **Entity Model** entities can have now an model
+- **TabList System** new tablist system
+
+## fixes
+- fixed some mensages refering to wrong path on message registry
 
 ## CPE Extensions
-### Previously Supported
-- EnvColors
-- EnvWeatherType
-- EnvMapAspect
-- CustomBlocks
 
-### Newly Added in 0.1.1-dev
-- ClickDistance
-- BlockPermissions
-- HackControl
-- HeldBlock
-- SetHotbar
-- SetSpawnPoint
-- MessageTypes
-- InstantMOTD
-- LongerMessages
-- BlockDefinitions
-- BlockDefinitionsExt (version 2)
+### Newly Added
+- ExtPlayerList
+- CustomModel

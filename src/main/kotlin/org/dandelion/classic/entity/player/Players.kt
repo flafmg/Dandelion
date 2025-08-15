@@ -16,6 +16,7 @@ import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.tablist.TabList
 
 /**
  * object responsible for managing all connected players. Handles player
@@ -145,6 +146,10 @@ object Players {
 
         player.info.recordJoin()
         player.joinLevel(joinLevel)
+
+        TabList.sendFullTabListTo(player)
+        addPlayerToTabList(player)
+
         notifyJoined(player)
     }
 
@@ -187,7 +192,6 @@ object Players {
             Console.debugLog(
                 "Handling disconnection for player: ${player.name}"
             )
-
             removeConnecting(player)
 
             player.level?.let { level ->
@@ -204,6 +208,7 @@ object Players {
             }
 
             player.info.recordDisconnect()
+            removePlayerFromTabList(player)
             notifyLeft(player)
         } catch (e: Exception) {
             Console.errLog(
@@ -213,17 +218,14 @@ object Players {
         }
     }
 
-    /** Handles disconnection for players who were still connecting */
+
     private fun handleConnectingPlayerDisconnection(connectingPlayer: Player) {
         try {
             Console.debugLog(
                 "Handling disconnection for connecting player: ${connectingPlayer.name}"
             )
-
-            // Remove from connecting players
             removeConnecting(connectingPlayer)
 
-            // Remove from level if they were added
             connectingPlayer.level?.let { level ->
                 try {
                     level.removeEntity(connectingPlayer)
@@ -247,15 +249,11 @@ object Players {
             throw e
         }
     }
-
-    /** Forces cleanup when normal disconnection handling fails */
     private fun forceDisconnectionCleanup(channel: Channel) {
         try {
             Console.warnLog(
                 "Performing force cleanup for channel: ${channel.id().asShortText()}"
             )
-
-            // Force remove from connecting players by channel
             val connectingToRemove =
                 connectingPlayers.entries.find { it.key == channel }
             connectingToRemove?.let {
@@ -265,7 +263,6 @@ object Players {
                 )
             }
 
-            // Try to find and force remove from levels
             getAllPlayers()
                 .find { it.channel == channel }
                 ?.let { player ->
@@ -288,18 +285,10 @@ object Players {
             Console.errLog(
                 "Critical error in force disconnection cleanup: ${e.message}"
             )
-            // At this point, we've exhausted all cleanup options
         }
     }
 
-    /**
-     * Forces player disconnection without sending any packets to the client.
-     * This method should be used when there are connection errors and the
-     * channel may be corrupted. Only removes the player instance and notifies
-     * server-side that the player left.
-     *
-     * @param channel The Netty [Channel] of the player to force disconnect.
-     */
+
     internal fun forceDisconnect(channel: Channel) {
         connectingPlayers[channel]?.let { connectingPlayer ->
             removeConnecting(connectingPlayer)
@@ -320,25 +309,10 @@ object Players {
 
     // region Authentication & Validation
 
-    /**
-     * Validates the client's protocol version
-     *
-     * @param version The protocol version byte sent by the client.
-     * @return `true` if the version is valid, `false` otherwise.
-     */
+
     private fun isValidProtocol(version: Byte): Boolean {
         return version == EXPECTED_PROTOCOL_VERSION
     }
-
-    /**
-     * Authenticates user if server verification is enabled
-     *
-     * @param clientInfo The [ClientIdentification] packet containing client
-     *   information.
-     * @param channel The Netty [Channel] for the connecting client.
-     * @return `true` if authentication succeeds or is disabled, `false`
-     *   otherwise.
-     */
     private fun authenticateUser(
         clientInfo: ClientIdentification,
         channel: Channel,
@@ -357,25 +331,12 @@ object Players {
         return true
     }
 
-    /**
-     * Generates MD5 hash for user verification
-     *
-     * @param userName The username to generate the hash for.
-     * @return The MD5 hash string.
-     */
     private fun generateHash(userName: String): String {
         val messageDigest = MessageDigest.getInstance(MD5_ALGORITHM)
         val hashBytes =
             messageDigest.digest("${ServerInfo.salt}$userName".toByteArray())
         return hashBytes.joinToString("") { HEX_FORMAT.format(it) }
     }
-
-    /**
-     * Validates if a player can connect to the server
-     *
-     * @param player The [Player] to validate.
-     * @return A [ConnectionResult] indicating success or failure with reason.
-     */
     private fun validateConnection(player: Player): ConnectionResult {
         return when {
             player.info.isBanned ->
@@ -393,35 +354,15 @@ object Players {
             else -> ConnectionResult.Success
         }
     }
-
-    /**
-     * Checks if player is already connected by channel or name
-     *
-     * @param player The [Player] to check for existing connections.
-     * @return `true` if the player is already connected, `false` otherwise.
-     */
     private fun isConnected(player: Player): Boolean {
         return find(player.channel) != null ||
-            getAllPlayers().any {
-                it.name.equals(player.name, ignoreCase = true)
-            }
+                getAllPlayers().any {
+                    it.name.equals(player.name, ignoreCase = true)
+                }
     }
 
-    /**
-     * Checks if the server has reached maximum capacity
-     *
-     * @return `true` if the server is full, `false` otherwise.
-     */
     private fun isServerFull(): Boolean = count() >= ServerInfo.maxPlayers
 
-    /**
-     * Creates a Player instance from client identification data
-     *
-     * @param clientInfo The [ClientIdentification] packet containing client
-     *   information.
-     * @param channel The Netty [Channel] for the connecting client.
-     * @return A new [Player] instance.
-     */
     private fun createPlayerFromClientInfo(
         clientInfo: ClientIdentification,
         channel: Channel,
@@ -433,34 +374,16 @@ object Players {
 
     // region broadcasts
 
-    /**
-     * Notifies all players and console when a player joins
-     *
-     * @param player The [Player] who joined.
-     */
     internal fun notifyJoined(player: Player) {
         val message = MessageRegistry.Server.Player.getJoined(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
-
-    /**
-     * Notifies all players and console when a player leaves
-     *
-     * @param player The [Player] who left.
-     */
     internal fun notifyLeft(player: Player) {
         val message = MessageRegistry.Server.Player.getLeft(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
-
-    /**
-     * Notifies all players and console when a player joins a level
-     *
-     * @param player The [Player] who joined the level.
-     * @param level The [Level] the player joined.
-     */
     internal fun notifyJoinedLevel(player: Player, level: Level) {
         val message =
             MessageRegistry.Server.Player.getJoinedLevel(player.name, level.id)
@@ -503,6 +426,18 @@ object Players {
      * @return The total count of connected players.
      */
     fun count(): Int = Levels.getTotalPlayerCount()
+
+    // endregion
+
+    // region Tab List Management
+
+    internal fun addPlayerToTabList(player: Player) {
+        TabList.addPlayer(player)
+    }
+
+    internal fun removePlayerFromTabList(player: Player) {
+        TabList.removePlayer(player)
+    }
 
     // endregion
 
@@ -661,7 +596,6 @@ object Players {
                 }
             }
 
-            // Clean up all connecting players
             connectingPlayers.values.toList().forEach { connectingPlayer ->
                 try {
                     handleConnectingPlayerDisconnection(connectingPlayer)
@@ -671,8 +605,6 @@ object Players {
                     )
                 }
             }
-
-            // Clear all connecting players as final cleanup
             connectingPlayers.clear()
 
             Console.log("Emergency disconnect completed")

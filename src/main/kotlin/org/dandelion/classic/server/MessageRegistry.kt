@@ -152,6 +152,23 @@ internal object MessageRegistry {
                     "message" to message,
                 )
         }
+
+        object TabList {
+            fun getGroupName(level: String): String =
+                getMessage("server.tab_list.group_name", "level" to level)
+
+            fun getListName(
+                groupDisplayName: String,
+                playerDisplayName: String,
+                playerName: String,
+            ): String =
+                getMessage(
+                    "server.tab_list.list_name",
+                    "group_display_name" to groupDisplayName,
+                    "player_display_name" to playerDisplayName,
+                    "player_name" to playerName,
+                )
+        }
     }
 
     object Commands {
@@ -409,7 +426,7 @@ internal object MessageRegistry {
             }
 
             fun formatPlayer(name: String): String =
-                getMessage("online.format_player", "name" to name)
+                getMessage("commands.online.format_player", "name" to name)
         }
 
         object Clients {

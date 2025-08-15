@@ -29,6 +29,7 @@ import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.tablist.TabList
 import org.dandelion.classic.types.MessageType
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.util.toFShort
@@ -57,7 +58,6 @@ class Player(
     position: Position = Position(0f, 0f, 0f, 0f, 0f),
     val info: PlayerInfo = PlayerInfo.getOrCreate(name),
 ) : Entity(name, levelId, entityId, position), CommandExecutor {
-    var displayName: String = name
 
     var supportsCpe: Boolean = false
     private val supportedCPE = mutableListOf<Pair<String, Int>>()
@@ -386,7 +386,10 @@ class Player(
         this.level = level
         if (notifyJoin) Players.notifyJoinedLevel(this, level)
 
-        GlobalScope.launch { transmitLevelData(level) }
+        GlobalScope.launch {
+            transmitLevelData(level)
+            updateTabList()
+        }
     }
 
     /** Initializes the level transfer process */
@@ -848,6 +851,22 @@ class Player(
                 level != null -> joinLevel(level!!, false)
             }
         }
+
+    // region Tab List Management
+
+    fun addToTabList() {
+        TabList.addPlayer(this)
+    }
+
+    fun removeFromTabList() {
+        TabList.removePlayer(this)
+    }
+
+    fun updateTabList() {
+        TabList.updatePlayer(this)
+    }
+
+    // endregion
 
     // region permissions and Groups
 
