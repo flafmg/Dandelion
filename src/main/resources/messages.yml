@@ -201,6 +201,35 @@ commands:
         success: "&aWeather set to '&7{weather}&a' for level '&7{id}&a'."
         invalid: "&cInvalid weather type. Use: sunny, rain, snow"
         usage: "&cUsage: /level env weather <levelId> <sunny|rain|snow>"
+      blocks:
+        success: "&a{type} block set to &7{blockId} &afor level '&7{id}&a'."
+        invalid_type: "&cInvalid block type. Use: side, edge"
+        usage: "&cUsage: /level env blocks <levelId> <side|edge> <blockId>"
+      height:
+        success: "&a{type} height set to &7{height} &afor level '&7{id}&a'."
+        invalid_type: "&cInvalid height type. Use: edge, clouds"
+        usage: "&cUsage: /level env height <levelId> <edge|clouds> <height>"
+      fog:
+        success: "&a{type} set to &7{value} &afor level '&7{id}&a'."
+        invalid_type: "&cInvalid fog type. Use: distance, exponential"
+        invalid_value: "&cInvalid value. For distance use a number, for exponential use true/false"
+        usage: "&cUsage: /level env fog <levelId> <distance|exponential> <value>"
+      speed:
+        success: "&a{type} speed set to &7{speed} &afor level '&7{id}&a'."
+        invalid_type: "&cInvalid speed type. Use: clouds, weather"
+        usage: "&cUsage: /level env speed <levelId> <clouds|weather> <speed>"
+      fade:
+        success: "&aWeather fade set to &7{fade} &afor level '&7{id}&a'."
+        usage: "&cUsage: /level env fade <levelId> <fade>"
+      offset:
+        success: "&aSides offset set to &7{offset} &afor level '&7{id}&a'."
+        usage: "&cUsage: /level env offset <levelId> <offset>"
+      colors:
+        success: "&a{colorType} color set for level '&7{id}&a'."
+        reset: "&a{colorType} color reset for level '&7{id}&a'."
+        invalid_type: "&cInvalid color type. Use: sky, cloud, fog, ambient, diffuse, skybox"
+        invalid_color: "&cInvalid color format. Use #hex, r g b, or reset"
+        usage: "&cUsage: /level env colors <levelId> <sky|cloud|fog|ambient|diffuse|skybox> <#hex|r g b|reset>"
     save:
       success_all: "&aAll levels saved successfully."
       success_single: "&aLevel '&7{id}&a' saved successfully."

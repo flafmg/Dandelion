@@ -8,7 +8,7 @@
 
 ## fixes
 - fixed some mensages refering to wrong path on message registry
-
+- finished refactoring of level command that i forgot
 ## CPE Extensions
 
 ### Newly Added

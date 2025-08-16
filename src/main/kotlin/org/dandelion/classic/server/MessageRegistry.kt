@@ -1257,9 +1257,237 @@ internal object MessageRegistry {
                         )
                     }
                 }
+
+                object Blocks {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        type: String,
+                        blockId: Byte,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.blocks.success",
+                            "type" to type,
+                            "blockId" to blockId,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendInvalidType(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.blocks.invalid_type",
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.blocks.usage",
+                        )
+                    }
+                }
+
+                object Height {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        type: String,
+                        height: Int,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.height.success",
+                            "type" to type,
+                            "height" to height,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendInvalidType(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.height.invalid_type",
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.height.usage",
+                        )
+                    }
+                }
+
+                object Fog {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        type: String,
+                        value: String,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.fog.success",
+                            "type" to type,
+                            "value" to value,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendInvalidType(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.fog.invalid_type",
+                        )
+                    }
+
+                    fun sendInvalidValue(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.fog.invalid_value",
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.fog.usage",
+                        )
+                    }
+                }
+
+                object Speed {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        type: String,
+                        speed: Int,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.speed.success",
+                            "type" to type,
+                            "speed" to speed,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendInvalidType(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.speed.invalid_type",
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.speed.usage",
+                        )
+                    }
+                }
+
+                object Fade {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        fade: Int,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.fade.success",
+                            "fade" to fade,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.fade.usage",
+                        )
+                    }
+                }
+
+                object Offset {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        offset: Int,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.offset.success",
+                            "offset" to offset,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.offset.usage",
+                        )
+                    }
+                }
+
+                object Colors {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        colorType: String,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.colors.success",
+                            "colorType" to colorType,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendReset(
+                        executor: CommandExecutor,
+                        colorType: String,
+                        id: String,
+                    ) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.colors.reset",
+                            "colorType" to colorType,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendInvalidType(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.colors.invalid_type",
+                        )
+                    }
+
+                    fun sendInvalidColor(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.colors.invalid_color",
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.colors.usage",
+                        )
+                    }
+                }
             }
 
             object Save {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.level.save.usage")
+                }
+
                 fun sendSuccessAll(executor: CommandExecutor) {
                     sendMessage(executor, "commands.level.save.success_all")
                 }
@@ -1272,11 +1500,7 @@ internal object MessageRegistry {
                     )
                 }
 
-                fun sendFailed(
-                    executor: CommandExecutor,
-                    id: String,
-                    error: String,
-                ) {
+                fun sendFailed(executor: CommandExecutor, id: String, error: String) {
                     sendMessage(
                         executor,
                         "commands.level.save.failed",
@@ -1284,13 +1508,13 @@ internal object MessageRegistry {
                         "error" to error,
                     )
                 }
-
-                fun sendUsage(executor: CommandExecutor) {
-                    sendMessage(executor, "commands.level.save.usage")
-                }
             }
 
             object Reload {
+                fun sendUsage(executor: CommandExecutor) {
+                    sendMessage(executor, "commands.level.reload.usage")
+                }
+
                 fun sendConfirmMessage(executor: CommandExecutor, id: String) {
                     sendMessage(
                         executor,
@@ -1299,10 +1523,7 @@ internal object MessageRegistry {
                     )
                 }
 
-                fun sendConfirmInstruction(
-                    executor: CommandExecutor,
-                    id: String,
-                ) {
+                fun sendConfirmInstruction(executor: CommandExecutor, id: String) {
                     sendMessage(
                         executor,
                         "commands.level.reload.confirm_instruction",
@@ -1328,10 +1549,6 @@ internal object MessageRegistry {
 
                 fun getKickMessage(): String =
                     getMessage("commands.level.reload.kick_message")
-
-                fun sendUsage(executor: CommandExecutor) {
-                    sendMessage(executor, "commands.level.reload.usage")
-                }
             }
         }
 

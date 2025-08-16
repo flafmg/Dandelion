@@ -844,12 +844,49 @@ class LevelCommand : Command {
         args: Array<String>,
     ) {
         if (args.size < 4) {
-            executor.sendMessage(
-                "&cUsage: /level env blocks <levelId> <side|edge> <blockId>"
-            )
+            MessageRegistry.Commands.Level.Env.Blocks.sendUsage(executor)
             return
         }
-        // Implementation would continue here
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val blockType = args[2].lowercase()
+        val blockId = args[3].toByteOrNull()
+        if (blockId == null) {
+            MessageRegistry.Commands.Level.Env.Blocks.sendUsage(executor)
+            return
+        }
+
+        when (blockType) {
+            "side" -> {
+                level.sideBlock = blockId
+                MessageRegistry.Commands.Level.Env.Blocks.sendSuccess(
+                    executor,
+                    "Side",
+                    blockId,
+                    levelId,
+                )
+            }
+            "edge" -> {
+                level.edgeBlock = blockId
+                MessageRegistry.Commands.Level.Env.Blocks.sendSuccess(
+                    executor,
+                    "Edge",
+                    blockId,
+                    levelId,
+                )
+            }
+            else -> {
+                MessageRegistry.Commands.Level.Env.Blocks.sendInvalidType(
+                    executor
+                )
+            }
+        }
     }
 
     private fun handleHeightProperty(
@@ -857,12 +894,49 @@ class LevelCommand : Command {
         args: Array<String>,
     ) {
         if (args.size < 4) {
-            executor.sendMessage(
-                "&cUsage: /level env height <levelId> <edge|clouds> <height>"
-            )
+            MessageRegistry.Commands.Level.Env.Height.sendUsage(executor)
             return
         }
-        // Implementation would continue here
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val heightType = args[2].lowercase()
+        val height = args[3].toIntOrNull()
+        if (height == null) {
+            MessageRegistry.Commands.Level.Env.Height.sendUsage(executor)
+            return
+        }
+
+        when (heightType) {
+            "edge" -> {
+                level.edgeHeight = height
+                MessageRegistry.Commands.Level.Env.Height.sendSuccess(
+                    executor,
+                    "Edge",
+                    height,
+                    levelId,
+                )
+            }
+            "clouds" -> {
+                level.cloudsHeight = height
+                MessageRegistry.Commands.Level.Env.Height.sendSuccess(
+                    executor,
+                    "Clouds",
+                    height,
+                    levelId,
+                )
+            }
+            else -> {
+                MessageRegistry.Commands.Level.Env.Height.sendInvalidType(
+                    executor
+                )
+            }
+        }
     }
 
     private fun handleFogProperty(
@@ -870,12 +944,70 @@ class LevelCommand : Command {
         args: Array<String>,
     ) {
         if (args.size < 4) {
-            executor.sendMessage(
-                "&cUsage: /level env fog <levelId> <distance|exponential> <value>"
-            )
+            MessageRegistry.Commands.Level.Env.Fog.sendUsage(executor)
             return
         }
-        // Implementation would continue here
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val fogType = args[2].lowercase()
+        val value = args[3]
+
+        when (fogType) {
+            "distance" -> {
+                val distance = value.toIntOrNull()
+                if (distance == null) {
+                    MessageRegistry.Commands.Level.Env.Fog.sendInvalidValue(
+                        executor
+                    )
+                    return
+                }
+                level.maxFogDistance = distance
+                MessageRegistry.Commands.Level.Env.Fog.sendSuccess(
+                    executor,
+                    "Max fog distance",
+                    value,
+                    levelId,
+                )
+            }
+            "exponential" -> {
+                when (value.lowercase()) {
+                    "true", "on", "yes" -> {
+                        level.exponentialFog = true
+                        MessageRegistry.Commands.Level.Env.Fog.sendSuccess(
+                            executor,
+                            "Exponential fog",
+                            "enabled",
+                            levelId,
+                        )
+                    }
+                    "false", "off", "no" -> {
+                        level.exponentialFog = false
+                        MessageRegistry.Commands.Level.Env.Fog.sendSuccess(
+                            executor,
+                            "Exponential fog",
+                            "disabled",
+                            levelId,
+                        )
+                    }
+                    else -> {
+                        MessageRegistry.Commands.Level.Env.Fog.sendInvalidValue(
+                            executor
+                        )
+                    }
+                }
+            }
+            else -> {
+                MessageRegistry.Commands.Level.Env.Fog.sendInvalidType(
+                    executor
+                )
+            }
+        }
     }
 
     private fun handleSpeedProperty(
@@ -883,12 +1015,49 @@ class LevelCommand : Command {
         args: Array<String>,
     ) {
         if (args.size < 4) {
-            executor.sendMessage(
-                "&cUsage: /level env speed <levelId> <clouds|weather> <speed>"
-            )
+            MessageRegistry.Commands.Level.Env.Speed.sendUsage(executor)
             return
         }
-        // Implementation would continue here
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val speedType = args[2].lowercase()
+        val speed = args[3].toIntOrNull()
+        if (speed == null) {
+            MessageRegistry.Commands.Level.Env.Speed.sendUsage(executor)
+            return
+        }
+
+        when (speedType) {
+            "clouds" -> {
+                level.cloudsSpeed = speed
+                MessageRegistry.Commands.Level.Env.Speed.sendSuccess(
+                    executor,
+                    "Clouds",
+                    speed,
+                    levelId,
+                )
+            }
+            "weather" -> {
+                level.weatherSpeed = speed
+                MessageRegistry.Commands.Level.Env.Speed.sendSuccess(
+                    executor,
+                    "Weather",
+                    speed,
+                    levelId,
+                )
+            }
+            else -> {
+                MessageRegistry.Commands.Level.Env.Speed.sendInvalidType(
+                    executor
+                )
+            }
+        }
     }
 
     private fun handleFadeProperty(
@@ -896,10 +1065,29 @@ class LevelCommand : Command {
         args: Array<String>,
     ) {
         if (args.size < 3) {
-            executor.sendMessage("&cUsage: /level env fade <levelId> <fade>")
+            MessageRegistry.Commands.Level.Env.Fade.sendUsage(executor)
             return
         }
-        // Implementation would continue here
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val fade = args[2].toIntOrNull()
+        if (fade == null) {
+            MessageRegistry.Commands.Level.Env.Fade.sendUsage(executor)
+            return
+        }
+
+        level.weatherFade = fade
+        MessageRegistry.Commands.Level.Env.Fade.sendSuccess(
+            executor,
+            fade,
+            levelId,
+        )
     }
 
     private fun handleOffsetProperty(
@@ -907,25 +1095,203 @@ class LevelCommand : Command {
         args: Array<String>,
     ) {
         if (args.size < 3) {
-            executor.sendMessage(
-                "&cUsage: /level env offset <levelId> <offset>"
-            )
+            MessageRegistry.Commands.Level.Env.Offset.sendUsage(executor)
             return
         }
-        // Implementation would continue here
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val offset = args[2].toIntOrNull()
+        if (offset == null) {
+            MessageRegistry.Commands.Level.Env.Offset.sendUsage(executor)
+            return
+        }
+
+        level.sidesOffset = offset
+        MessageRegistry.Commands.Level.Env.Offset.sendSuccess(
+            executor,
+            offset,
+            levelId,
+        )
     }
 
     private fun handleColorsProperty(
         executor: CommandExecutor,
         args: Array<String>,
     ) {
-        if (args.size < 3) {
-            executor.sendMessage(
-                "&cUsage: /level env colors <levelId> <colorType> <#hex|r g b|reset>"
+        if (args.size < 4) {
+            MessageRegistry.Commands.Level.Env.Colors.sendUsage(executor)
+            return
+        }
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val colorType = args[2].lowercase()
+        val colorValue = args[3]
+
+        if (colorValue.lowercase() == "reset") {
+            when (colorType) {
+                "sky" -> {
+                    level.skyColor = null
+                    MessageRegistry.Commands.Level.Env.Colors.sendReset(
+                        executor,
+                        "Sky",
+                        levelId,
+                    )
+                }
+                "cloud" -> {
+                    level.cloudColor = null
+                    MessageRegistry.Commands.Level.Env.Colors.sendReset(
+                        executor,
+                        "Cloud",
+                        levelId,
+                    )
+                }
+                "fog" -> {
+                    level.fogColor = null
+                    MessageRegistry.Commands.Level.Env.Colors.sendReset(
+                        executor,
+                        "Fog",
+                        levelId,
+                    )
+                }
+                "ambient" -> {
+                    level.ambientLightColor = null
+                    MessageRegistry.Commands.Level.Env.Colors.sendReset(
+                        executor,
+                        "Ambient light",
+                        levelId,
+                    )
+                }
+                "diffuse" -> {
+                    level.diffuseLightColor = null
+                    MessageRegistry.Commands.Level.Env.Colors.sendReset(
+                        executor,
+                        "Diffuse light",
+                        levelId,
+                    )
+                }
+                "skybox" -> {
+                    level.skyboxColor = null
+                    MessageRegistry.Commands.Level.Env.Colors.sendReset(
+                        executor,
+                        "Skybox",
+                        levelId,
+                    )
+                }
+                else -> {
+                    MessageRegistry.Commands.Level.Env.Colors.sendInvalidType(
+                        executor
+                    )
+                }
+            }
+            return
+        }
+
+        val color = parseColor(colorValue, args.drop(4))
+        if (color == null) {
+            MessageRegistry.Commands.Level.Env.Colors.sendInvalidColor(
+                executor
             )
             return
         }
-        // Implementation would continue here
+
+        when (colorType) {
+            "sky" -> {
+                level.skyColor = color
+                MessageRegistry.Commands.Level.Env.Colors.sendSuccess(
+                    executor,
+                    "Sky",
+                    levelId,
+                )
+            }
+            "cloud" -> {
+                level.cloudColor = color
+                MessageRegistry.Commands.Level.Env.Colors.sendSuccess(
+                    executor,
+                    "Cloud",
+                    levelId,
+                )
+            }
+            "fog" -> {
+                level.fogColor = color
+                MessageRegistry.Commands.Level.Env.Colors.sendSuccess(
+                    executor,
+                    "Fog",
+                    levelId,
+                )
+            }
+            "ambient" -> {
+                level.ambientLightColor = color
+                MessageRegistry.Commands.Level.Env.Colors.sendSuccess(
+                    executor,
+                    "Ambient light",
+                    levelId,
+                )
+            }
+            "diffuse" -> {
+                level.diffuseLightColor = color
+                MessageRegistry.Commands.Level.Env.Colors.sendSuccess(
+                    executor,
+                    "Diffuse light",
+                    levelId,
+                )
+            }
+            "skybox" -> {
+                level.skyboxColor = color
+                MessageRegistry.Commands.Level.Env.Colors.sendSuccess(
+                    executor,
+                    "Skybox",
+                    levelId,
+                )
+            }
+            else -> {
+                MessageRegistry.Commands.Level.Env.Colors.sendInvalidType(
+                    executor
+                )
+            }
+        }
+    }
+
+    private fun parseColor(
+        colorValue: String,
+        additionalArgs: List<String>,
+    ): org.dandelion.classic.types.Color? {
+        if (colorValue.startsWith("#")) {
+            val hex = colorValue.substring(1)
+            if (hex.length == 6) {
+                try {
+                    val r = hex.substring(0, 2).toInt(16).toShort()
+                    val g = hex.substring(2, 4).toInt(16).toShort()
+                    val b = hex.substring(4, 6).toInt(16).toShort()
+                    return org.dandelion.classic.types.Color(r, g, b)
+                } catch (e: NumberFormatException) {
+                    return null
+                }
+            }
+        } else if (additionalArgs.size >= 2) {
+            try {
+                val r = colorValue.toInt()
+                val g = additionalArgs[0].toInt()
+                val b = additionalArgs[1].toInt()
+                if (r in 0..255 && g in 0..255 && b in 0..255) {
+                    return org.dandelion.classic.types.Color(r.toShort(), g.toShort(), b.toShort())
+                }
+            } catch (e: NumberFormatException) {
+                return null
+            }
+        }
+        return null
     }
 
     private fun getWeatherName(weatherType: Byte): String {
