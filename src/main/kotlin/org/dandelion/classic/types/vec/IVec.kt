@@ -1,4 +1,4 @@
-package org.dandelion.classic.types
+package org.dandelion.classic.types.vec
 
 import kotlin.math.sqrt
 

@@ -6,25 +6,26 @@ import java.security.MessageDigest
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import org.dandelion.classic.level.Level
-import org.dandelion.classic.types.Color
 import org.dandelion.classic.types.Position
-import org.dandelion.classic.types.SVec
+import org.dandelion.classic.types.enums.LightingMode
+import org.dandelion.classic.types.extensions.Color
+import org.dandelion.classic.types.vec.SVec
 import org.dandelion.classic.util.BinaryReader
 import org.dandelion.classic.util.BinaryWriter
 
 private const val MAGIC: String = "DLVL"
-private const val VERSION_V1: Byte =
-    1 // i know this is redundant but looks better this way
+private const val VERSION_V1: Byte = 1
 private const val VERSION_V2: Byte = 2
+private const val VERSION_V3: Byte = 3
 
 /**
- * Dandelion Level File Format v2
+ * Dandelion Level File Format v3
  * ==============================
  *
  * The file is structured as follows:
  * 1. HEADER
  *         - Magic (String, 4 bytes, unprefixed)
- *         - Version (Byte) (currently 2)
+ *         - Version (Byte) (currently 3)
  * 2. INFO SECTION
  *         - Level ID (String)
  *         - Author (String)
@@ -42,7 +43,7 @@ private const val VERSION_V2: Byte = 2
  *         - Extra Data (String, JSON)
  *         - Block Array Data (ByteArray, compressed with GZIP)
  *         - MD5 Validation Hash (16 bytes, unprefixed)
- * 4. ENVIRONMENT SECTION (v2 only)
+ * 4. ENVIRONMENT SECTION (v2+)
  *     - 4.1 SetMapEnvUrl Properties:
  *             - Texture Pack URL (String)
  *     - 4.2 SetMapEnvProperty Properties:
@@ -64,6 +65,10 @@ private const val VERSION_V2: Byte = 2
  *             - Red (Short) - only if Has Color = true
  *             - Green (Short) - only if Has Color = true
  *             - Blue (Short) - only if Has Color = true
+ * 5. LIGHTING SECTION (v3+)
+ *     - 5.1 LightingMode Properties:
+ *             - Lighting Mode (Byte)
+ *             - Lighting Mode Locked (Boolean)
  *
  * notes:
  * - All strings are length-prefixed unless otherwise specified.
@@ -71,6 +76,7 @@ private const val VERSION_V2: Byte = 2
  * - The MD5 hash is calculated from the compressed block array for integrity
  *   validation.
  * - v1 files do not contain the Environment Section.
+ * - v2 files do not contain the Lighting Section.
  */
 class DandelionLevelSerializer : LevelSerializer {
     override fun serialize(level: Level, file: File) {
@@ -81,11 +87,12 @@ class DandelionLevelSerializer : LevelSerializer {
         writeInfo(writer, level)
         writeData(writer, level)
         writeEnvironment(writer, level)
+        writeLighting(writer, level)
     }
 
     private fun writeHeader(writer: BinaryWriter) {
         writer.writeString(MAGIC, false)
-        writer.writeByte(VERSION_V2)
+        writer.writeByte(VERSION_V3)
     }
 
     private fun writeInfo(writer: BinaryWriter, level: Level) {
@@ -137,6 +144,11 @@ class DandelionLevelSerializer : LevelSerializer {
         writeColor(writer, level.skyboxColor)
     }
 
+    private fun writeLighting(writer: BinaryWriter, level: Level) {
+        writer.writeByte(level.lightingMode.id)
+        writer.writeBoolean(level.lightingModeLocked)
+    }
+
     private fun writeColor(writer: BinaryWriter, color: Color?) {
         val hasColor = color != null
         writer.writeBoolean(hasColor)
@@ -149,7 +161,9 @@ class DandelionLevelSerializer : LevelSerializer {
 
     private fun getCompressedData(level: Level): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        GZIPOutputStream(byteArrayOutputStream).use { it.write(level.blocks) }
+        GZIPOutputStream(byteArrayOutputStream).use {
+            it.write(level.blockData)
+        }
         return byteArrayOutputStream.toByteArray()
     }
 
@@ -170,6 +184,9 @@ class DandelionLevelDeserializer : LevelDeserializer {
             if (version >= VERSION_V2) {
                 readEnvironment(reader, level)
             }
+            if (version >= VERSION_V3) {
+                readLighting(reader, level)
+            }
             level
         } catch (ex: Exception) {
             null
@@ -181,7 +198,11 @@ class DandelionLevelDeserializer : LevelDeserializer {
         if (magic != MAGIC)
             throw IllegalArgumentException("Invalid magic: $magic")
         val version = reader.readByte()
-        if (version != VERSION_V1 && version != VERSION_V2) {
+        if (
+            version != VERSION_V1 &&
+                version != VERSION_V2 &&
+                version != VERSION_V3
+        ) {
             throw IllegalArgumentException("Unsupported version: $version")
         }
         return version
@@ -231,11 +252,12 @@ class DandelionLevelDeserializer : LevelDeserializer {
                 author = info.author,
                 description = info.description,
                 size = SVec(sizeX, sizeY, sizeZ),
+                blockData = blocks,
                 spawn = Position(spawnX, spawnY, spawnZ, spawnYaw, spawnPitch),
                 extraData = extraData,
                 timeCreated = info.timeCreated,
             )
-        level.blocks = blocks
+
         return level
     }
 
@@ -261,6 +283,13 @@ class DandelionLevelDeserializer : LevelDeserializer {
         level.ambientLightColor = readColor(reader)
         level.diffuseLightColor = readColor(reader)
         level.skyboxColor = readColor(reader)
+    }
+
+    private fun readLighting(reader: BinaryReader, level: Level) {
+        val lightingModeId = reader.readByte()
+        level.lightingMode =
+            LightingMode.fromId(lightingModeId) ?: LightingMode.CLIENT_LOCAL
+        level.lightingModeLocked = reader.readBoolean()
     }
 
     private fun readColor(reader: BinaryReader): Color? {

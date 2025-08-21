@@ -11,7 +11,7 @@ class ClientCustomBlockLevel : Packet() {
 
     var supportLevel: Byte = 0x00
 
-    override fun decode(data: ByteArray) {
+    override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
         supportLevel = reader.readByte()
     }

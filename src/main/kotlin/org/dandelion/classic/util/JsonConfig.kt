@@ -256,6 +256,10 @@ class JsonConfig {
         save(fileToSave)
     }
 
+    fun has(path: String): Boolean {
+        return getElement(path) != null
+    }
+
     companion object {
         fun load(path: String): JsonConfig {
             return load(File(path))

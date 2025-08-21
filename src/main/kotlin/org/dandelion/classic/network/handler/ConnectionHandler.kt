@@ -41,7 +41,8 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
         try {
             while (offset < bufferToProcess.size) {
                 val packetId = bufferToProcess[offset]
-                val expectedSize = PacketRegistry.getPacketSize(packetId)
+                val expectedSize =
+                    PacketRegistry.getPacketSize(packetId, ctx.channel())
 
                 when {
                     expectedSize == -1 -> {

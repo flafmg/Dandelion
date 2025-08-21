@@ -5,6 +5,11 @@
 - **Entity Skin** entities can now have a custom skin by player name or URL
 - **Entity Model** entities can have now an model
 - **TabList System** new tablist system
+- **FastLevel** Support for fast level sending
+
+
+### Dandelion Level Format v3
+- added `lighting Mode` 
 
 ## fixes
 - fixed some mensages refering to wrong path on message registry
@@ -14,3 +19,4 @@
 ### Newly Added
 - ExtPlayerList
 - CustomModel
+- FastLevel

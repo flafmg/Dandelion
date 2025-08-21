@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.2.10"
     id("com.diffplug.spotless") version "7.2.1"
     application
 }
@@ -8,7 +8,7 @@ kotlin {
 }
 
 group = "org.dandelion.classic"
-version = "0.1.2-dev"
+version = "0.1.3-dev"
 
 repositories {
     mavenCentral()

@@ -2,18 +2,20 @@ package org.dandelion.classic.network.packets
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
+import jdk.internal.net.http.common.Log.channel
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.server.Console
 
 abstract class Packet {
     abstract val id: Byte
     open val size: Int = -1
+    open val sizeOverrides: MutableMap<String, Int> = mutableMapOf()
     open val isCpe: Boolean = false
     var data: ByteArray = ByteArray(0)
 
-    open fun decode(data: ByteArray) {}
+    open fun decode(data: ByteArray, channel: Channel) {}
 
-    open fun encode(): ByteArray {
+    open fun encode(channel: Channel): ByteArray {
         return data
     }
 
@@ -24,11 +26,12 @@ abstract class Packet {
     }
 
     fun send(channel: Channel) {
-        val encodedData = encode()
+        val encodedData = encode(channel)
 
-        // buffer vier for debuging
+        // Buffer hex dump for debugging
         /*val buffer = encodedData
-        println("buffer view")
+        val packetName = this::class.simpleName ?: "UnknownPacket"
+        println("=== Buffer view for $packetName (ID: 0x${String.format("%02X", id.toInt() and 0xFF)}(${id.toInt() and 0xFF})) ===")
         buffer.forEachIndexed { index, byte ->
             if (index % 16 == 0) {
                 if (index != 0) {
@@ -53,7 +56,7 @@ abstract class Packet {
                 println()
             }
         }
-        println("size is: ${buffer.size} bytes")*/
+        println("=== End of $packetName - Size: ${buffer.size} bytes ===")*/
 
         if (!channel.isActive || !channel.isOpen) {
             Console.warnLog("Channel is not open, disconnecting client")

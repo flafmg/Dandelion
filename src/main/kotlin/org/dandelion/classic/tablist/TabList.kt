@@ -2,10 +2,10 @@ package org.dandelion.classic.tablist
 
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.entity.player.Players
+import org.dandelion.classic.level.Levels
 import org.dandelion.classic.network.packets.cpe.server.ServerExtAddPlayerName
 import org.dandelion.classic.network.packets.cpe.server.ServerExtRemovePlayerName
 import org.dandelion.classic.permission.PermissionRepository
-import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
 
 object TabList {
@@ -47,21 +47,28 @@ object TabList {
         val levelName = player.level?.id ?: ""
 
         val groupName = MessageRegistry.Server.TabList.getGroupName(levelName)
-        val listName = MessageRegistry.Server.TabList.getListName(
-            group?.displayName ?: highestGroup,
-            player.displayName,
-            player.name
-        )
+        val listName =
+            MessageRegistry.Server.TabList.getListName(
+                group?.displayName ?: highestGroup,
+                player.displayName,
+                player.name,
+            )
 
-        val groupRank = group?.priority ?: 0
+        val groupRank =
+            if (levelName == Levels.getDefaultLevel()?.id) {
+                256
+            } else {
+                group?.priority ?: 0
+            }
 
-        val entry = TabListEntry(
-            nameId = nameId,
-            playerName = player.name,
-            listName = listName,
-            groupName = groupName,
-            groupRank = groupRank
-        )
+        val entry =
+            TabListEntry(
+                nameId = nameId,
+                playerName = player.name,
+                listName = listName,
+                groupName = groupName,
+                groupRank = groupRank,
+            )
 
         nameIdEntries[nameId] = entry
         playerNameIds[player.name] = nameId
@@ -95,19 +102,21 @@ object TabList {
         val levelName = player.level?.id ?: ""
 
         val groupName = MessageRegistry.Server.TabList.getGroupName(levelName)
-        val listName = MessageRegistry.Server.TabList.getListName(
-            group?.displayName ?: highestGroup,
-            player.displayName,
-            player.name
-        )
+        val listName =
+            MessageRegistry.Server.TabList.getListName(
+                group?.displayName ?: highestGroup,
+                player.displayName,
+                player.name,
+            )
 
         val groupRank = group?.priority ?: 0
 
-        val newEntry = oldEntry.copy(
-            listName = listName,
-            groupName = groupName,
-            groupRank = groupRank
-        )
+        val newEntry =
+            oldEntry.copy(
+                listName = listName,
+                groupName = groupName,
+                groupRank = groupRank,
+            )
 
         nameIdEntries[nameId] = newEntry
         broadcastAddEntry(newEntry)
@@ -118,25 +127,27 @@ object TabList {
         if (!player.supportsCpe || !player.supports("ExtPlayerList")) return
 
         nameIdEntries.values.forEach { entry ->
-            val packet = ServerExtAddPlayerName(
-                entry.nameId,
-                entry.playerName,
-                entry.listName,
-                entry.groupName,
-                0
-            )
+            val packet =
+                ServerExtAddPlayerName(
+                    entry.nameId,
+                    entry.playerName,
+                    entry.listName,
+                    entry.groupName,
+                    0,
+                )
             packet.send(player.channel)
         }
     }
 
     private fun broadcastAddEntry(entry: TabListEntry) {
-        val packet = ServerExtAddPlayerName(
-            entry.nameId,
-            entry.playerName,
-            entry.listName,
-            entry.groupName,
-            0
-        )
+        val packet =
+            ServerExtAddPlayerName(
+                entry.nameId,
+                entry.playerName,
+                entry.listName,
+                entry.groupName,
+                0,
+            )
 
         Players.getAllPlayers().forEach { player ->
             if (player.supportsCpe && player.supports("ExtPlayerList")) {
@@ -165,23 +176,20 @@ object TabList {
     }
 
     @JvmStatic
-    fun hasEntry(playerName: String): Boolean = playerNameIds.containsKey(playerName)
+    fun hasEntry(playerName: String): Boolean =
+        playerNameIds.containsKey(playerName)
 
     @JvmStatic
     fun clear() {
         val entriesToRemove = nameIdEntries.keys.toList()
-        entriesToRemove.forEach { nameId ->
-            broadcastRemoveEntry(nameId)
-        }
+        entriesToRemove.forEach { nameId -> broadcastRemoveEntry(nameId) }
 
         nameIdEntries.clear()
         playerNameIds.clear()
         initializeNameIdPool()
     }
 
-    @JvmStatic
-    fun getEntryCount(): Int = nameIdEntries.size
+    @JvmStatic fun getEntryCount(): Int = nameIdEntries.size
 
-    @JvmStatic
-    fun getAvailableSlots(): Int = availableNameIds.size
+    @JvmStatic fun getAvailableSlots(): Int = availableNameIds.size
 }

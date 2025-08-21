@@ -10,7 +10,7 @@ import org.dandelion.classic.level.generator.LevelGenerator
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.ServerInfo
 import org.dandelion.classic.types.Position
-import org.dandelion.classic.types.SVec
+import org.dandelion.classic.types.vec.SVec
 
 /** Manages all loaded levels in the server */
 object Levels {

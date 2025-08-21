@@ -12,15 +12,19 @@ import org.dandelion.classic.level.io.DandelionLevelSerializer
 import org.dandelion.classic.level.io.LevelDeserializer
 import org.dandelion.classic.level.io.LevelSerializer
 import org.dandelion.classic.network.packets.classic.server.ServerDespawnPlayer
+import org.dandelion.classic.network.packets.classic.server.ServerSetBlock
+import org.dandelion.classic.network.packets.cpe.server.ServerBulkBlockUpdate
 import org.dandelion.classic.network.packets.cpe.server.ServerEnvColors
 import org.dandelion.classic.network.packets.cpe.server.ServerEnvWeatherType
+import org.dandelion.classic.network.packets.cpe.server.ServerLightingMode
 import org.dandelion.classic.network.packets.cpe.server.ServerSetMapEnvProperty
 import org.dandelion.classic.network.packets.cpe.server.ServerSetMapEnvUrl
 import org.dandelion.classic.server.Console
-import org.dandelion.classic.types.Color
-import org.dandelion.classic.types.IVec
 import org.dandelion.classic.types.Position
-import org.dandelion.classic.types.SVec
+import org.dandelion.classic.types.enums.LightingMode
+import org.dandelion.classic.types.extensions.Color
+import org.dandelion.classic.types.vec.IVec
+import org.dandelion.classic.types.vec.SVec
 
 /**
  * Represents a game level containing blocks and entities
@@ -41,14 +45,15 @@ class Level(
     val author: String,
     var description: String,
     val size: SVec,
-    var spawn: Position,
+    val blockData: ByteArray = ByteArray(size.x * size.y * size.z) { 0x00 },
+    var blockData2: ByteArray? = null,
+    var spawn: Position = Position(size.x / 2, (size.y / 2) + 1, size.z / 2),
     var extraData: String = "",
     val timeCreated: Long = System.currentTimeMillis(),
     var autoSave: Boolean = true,
 ) {
     private val MAX_ENTITIES = 255
-    internal var blocks: ByteArray =
-        ByteArray(size.x * size.y * size.z) { 0x00 }
+
     internal val availableEntityIds = ArrayDeque<Byte>(MAX_ENTITIES)
     internal val entities = HashMap<Byte, Entity>(MAX_ENTITIES)
 
@@ -340,6 +345,35 @@ class Level(
                 .send(getPlayers().filter { it.supports("EnvColors") })
         }
 
+    /** The lighting mode for this level (from LightingMode) */
+    var lightingMode: LightingMode = LightingMode.CLIENT_LOCAL
+        set(value) {
+            field = value
+            ServerLightingMode(value, lightingModeLocked)
+                .send(getPlayers().filter { it.supports("LightingMode") })
+        }
+
+    /** Whether the lighting mode is locked to prevent client changes */
+    var lightingModeLocked: Boolean = true
+        set(value) {
+            field = value
+            ServerLightingMode(lightingMode, value)
+                .send(getPlayers().filter { it.supports("LightingMode") })
+        }
+
+    /**
+     * Sets the lighting mode for this level
+     *
+     * @param mode The lighting mode to set
+     * @param locked Whether to prevent clients from changing the lighting mode
+     */
+    fun setLightingMode(mode: LightingMode, locked: Boolean = true) {
+        lightingMode = mode
+        lightingModeLocked = locked
+        ServerLightingMode(mode, locked)
+            .send(getPlayers().filter { it.supports("LightingMode") })
+    }
+
     // endregion
 
     /**
@@ -357,7 +391,7 @@ class Level(
      * @param blockId The ID of the block to unregister from this level
      * @return true if the block was removed, false otherwise
      */
-    fun unregisterBlockDef(blockId: Byte): Boolean {
+    fun unregisterBlockDef(blockId: UShort): Boolean {
         return BlockRegistry.unregister(this, blockId)
     }
 
@@ -368,7 +402,7 @@ class Level(
      * @param blockId The ID of the block to retrieve
      * @return The block instance, or null if not found
      */
-    fun getBlockDef(blockId: Byte): Block? {
+    fun getBlockDef(blockId: UShort): Block? {
         return BlockRegistry.get(this, blockId)
     }
 
@@ -381,6 +415,11 @@ class Level(
         if (player.supports("EnvWeatherType")) {
             ServerEnvWeatherType(weatherType).send(player)
         }
+
+        if (player.supports("LightingMode")) {
+            ServerLightingMode(lightingMode, lightingModeLocked).send(player)
+        }
+
         listOf(
                 0 to skyColor,
                 1 to cloudColor,
@@ -591,12 +630,23 @@ class Level(
     }
 
     /**
+     * Gets an non player entity by its ID
+     *
+     * @param entityId The [Byte] ID of the entity to find.
+     * @return The [Entity] instance if found, `null` otherwise.
+     */
+    fun getNonPlayerEntity(entityId: Byte): Entity? {
+        val entity = entities[entityId]
+        return if (entity !is Player) entity else null
+    }
+
+    /**
      * Gets an entity by its ID
      *
      * @param entityId The [Byte] ID of the entity to find.
      * @return The [Entity] instance if found, `null` otherwise.
      */
-    fun findEntityById(entityId: Byte): Entity? {
+    fun getEntity(entityId: Byte): Entity? {
         return entities[entityId]
     }
 
@@ -606,7 +656,7 @@ class Level(
      * @param entityId The [Byte] ID of the player entity to find.
      * @return The [Player] instance if found, `null` otherwise.
      */
-    fun findPlayerById(entityId: Byte): Player? {
+    fun getPlayer(entityId: Byte): Player? {
         val entity = entities[entityId]
         return if (entity is Player) entity else null
     }
@@ -632,6 +682,142 @@ class Level(
     }
 
     /**
+     * Sets multiple blocks at specified positions and notifies all players
+     *
+     * @param positions A list of [Position] coordinates where blocks should be
+     *   set.
+     * @param blockTypes A list of [UShort] block type IDs corresponding to each
+     *   position.
+     */
+    fun setBlocks(positions: List<Position>, blockTypes: List<Byte>) {
+        if (positions.size != blockTypes.size) {
+            Console.warnLog(
+                "Positions and block types lists must have the same size"
+            )
+            return
+        }
+
+        val validUpdates =
+            positions.zip(blockTypes).filter { (position, _) ->
+                isValidBlockPosition(
+                    position.x.toInt(),
+                    position.y.toInt(),
+                    position.z.toInt(),
+                )
+            }
+        if (validUpdates.isEmpty()) return
+        validUpdates.forEach { (position, blockType) ->
+            val blockIndex =
+                calculateBlockIndex(
+                    position.x.toInt(),
+                    position.y.toInt(),
+                    position.z.toInt(),
+                )
+            blockData[blockIndex] = blockType
+        }
+
+        val players = getPlayers()
+
+        val bulkExtPlayers =
+            players.filter {
+                it.supports("BulkBlockUpdate") && it.supports("ExtendedBlocks")
+            }
+        val bulkOnlyPlayers =
+            players.filter {
+                it.supports("BulkBlockUpdate") && !it.supports("ExtendedBlocks")
+            }
+        val extOnlyPlayers =
+            players.filter {
+                !it.supports("BulkBlockUpdate") && it.supports("ExtendedBlocks")
+            }
+        val classicPlayers =
+            players.filter {
+                !it.supports("BulkBlockUpdate") &&
+                    !it.supports("ExtendedBlocks")
+            }
+
+        if (bulkExtPlayers.isNotEmpty()) {
+            validUpdates.chunked(256).forEach { chunk ->
+                val indices =
+                    IntArray(chunk.size) { i ->
+                        val position = chunk[i].first
+                        calculateBlockIndex(
+                            position.x.toInt(),
+                            position.y.toInt(),
+                            position.z.toInt(),
+                        )
+                    }
+                val blocksUShort =
+                    UShortArray(chunk.size) { i ->
+                        getBlock(
+                            chunk[i].first.x.toInt(),
+                            chunk[i].first.y.toInt(),
+                            chunk[i].first.z.toInt(),
+                        )
+                    }
+                val bulkPacket = ServerBulkBlockUpdate(indices, blocksUShort)
+                bulkExtPlayers.forEach { bulkPacket.send(it) }
+            }
+        }
+        if (bulkOnlyPlayers.isNotEmpty()) {
+            validUpdates.chunked(256).forEach { chunk ->
+                val indices =
+                    IntArray(chunk.size) { i ->
+                        val position = chunk[i].first
+                        calculateBlockIndex(
+                            position.x.toInt(),
+                            position.y.toInt(),
+                            position.z.toInt(),
+                        )
+                    }
+                val blocksUShort =
+                    UShortArray(chunk.size) { i -> chunk[i].second.toUShort() }
+                val bulkPacket = ServerBulkBlockUpdate(indices, blocksUShort)
+                bulkOnlyPlayers.forEach { bulkPacket.send(it) }
+            }
+        }
+        if (extOnlyPlayers.isNotEmpty()) {
+            validUpdates.forEach { (position, blockType) ->
+                val packet =
+                    ServerSetBlock(
+                        position.x.toInt().toShort(),
+                        position.y.toInt().toShort(),
+                        position.z.toInt().toShort(),
+                        blockType.toUShort(),
+                        useExtendedBlocks = true,
+                    )
+                extOnlyPlayers.forEach { packet.send(it) }
+            }
+        }
+        if (classicPlayers.isNotEmpty()) {
+            validUpdates.forEach { (position, blockType) ->
+                val packet =
+                    ServerSetBlock(
+                        position.x.toInt().toShort(),
+                        position.y.toInt().toShort(),
+                        position.z.toInt().toShort(),
+                        blockType.toUShort(),
+                        useExtendedBlocks = false,
+                    )
+                classicPlayers.forEach { packet.send(it) }
+            }
+        }
+    }
+
+    /**
+     * Sets multiple blocks at specified positions to the same block type using
+     * Position coordinates
+     *
+     * @param positions A list of [Position] coordinates where blocks should be
+     *   set.
+     * @param blockType The [Byte] block type ID to set at all positions.
+     */
+    fun setBlocks(positions: List<Position>, blockType: Byte) {
+        val blockTypes = List(positions.size) { blockType }
+        setBlocks(positions, blockTypes)
+    }
+
+    /**
      * Sets a block at the specified position using Position object
      *
      * @param position The [Position] where the block should be set.
@@ -653,7 +839,7 @@ class Level(
      * @param position The [Position] where the block should be set.
      * @param blockType The [Byte] block type ID to set.
      */
-    fun setBlock(position: Position, blockType: Byte) {
+    fun setBlock(position: Position, blockType: UShort) {
         setBlock(
             position.x.toInt(),
             position.y.toInt(),
@@ -678,7 +864,7 @@ class Level(
      * @param position The [IVec] coordinates where the block should be set.
      * @param blockType The [Byte] block type ID to set.
      */
-    fun setBlock(position: IVec, blockType: Byte) {
+    fun setBlock(position: IVec, blockType: UShort) {
         setBlock(position.x, position.y, position.z, blockType)
     }
 
@@ -704,7 +890,7 @@ class Level(
      * @param z The Z coordinate (Short) where the block should be set.
      * @param blockType The [Byte] block type ID to set.
      */
-    fun setBlock(x: Short, y: Short, z: Short, blockType: Byte) {
+    fun setBlock(x: Short, y: Short, z: Short, blockType: UShort) {
         setBlock(x.toInt(), y.toInt(), z.toInt(), blockType)
     }
 
@@ -728,7 +914,7 @@ class Level(
      * @param z The Z coordinate (Int) where the block should be set.
      * @param blockType The [Byte] block type ID to set.
      */
-    fun setBlock(x: Int, y: Int, z: Int, blockType: Byte) {
+    fun setBlock(x: Int, y: Int, z: Int, blockType: UShort) {
         if (!isValidBlockPosition(x, y, z)) {
             Console.warnLog(
                 "Attempted to set block at invalid position ($x, $y, $z) in level '$id'"
@@ -737,7 +923,19 @@ class Level(
         }
 
         val blockIndex = calculateBlockIndex(x, y, z)
-        blocks[blockIndex] = blockType
+
+        blockData[blockIndex] = (blockType.toInt() and 0xFF).toByte()
+
+        val high = (blockType.toInt() ushr 8) and 0xFF
+        if (high > 0) {
+            if (blockData2 == null) {
+                blockData2 = ByteArray(size.x * size.y * size.z) { 0x00 }
+            }
+            blockData2!![blockIndex] = high.toByte()
+        } else {
+            blockData2?.set(blockIndex, 0)
+        }
+
         broadcastBlockChange(x.toShort(), y.toShort(), z.toShort(), blockType)
     }
 
@@ -761,13 +959,13 @@ class Level(
     }
 
     /**
-     * Fills a rectangular area with the specified block type using byte value
+     * Fills a rectangular area with the specified block type
      *
      * @param start The starting [Position] of the area to fill.
      * @param end The ending [Position] of the area to fill.
-     * @param blockType The [Byte] block type ID to fill the area with.
+     * @param blockType The [UShort] block type ID to fill the area with.
      */
-    fun fillBlocks(start: Position, end: Position, blockType: Byte) {
+    fun fillBlocks(start: Position, end: Position, blockType: UShort) {
         fillBlocks(
             start.x.toInt(),
             start.y.toInt(),
@@ -793,13 +991,13 @@ class Level(
 
     /**
      * Fills a rectangular area with the specified block type using IVec
-     * positions and byte value
+     * positions and UShort value
      *
      * @param start The starting [IVec] coordinates of the area to fill.
      * @param end The ending [IVec] coordinates of the area to fill.
-     * @param blockType The [Byte] block type ID to fill the area with.
+     * @param blockType The [UShort] block type ID to fill the area with.
      */
-    fun fillBlocks(start: IVec, end: IVec, blockType: Byte) {
+    fun fillBlocks(start: IVec, end: IVec, blockType: UShort) {
         fillBlocks(start.x, start.y, start.z, end.x, end.y, end.z, blockType)
     }
 
@@ -836,7 +1034,7 @@ class Level(
      * @param endX The ending X coordinate (Int) of the area to fill.
      * @param endY The ending Y coordinate (Int) of the area to fill.
      * @param endZ The ending Z coordinate (Int) of the area to fill.
-     * @param blockType The [Byte] block type ID to fill the area with.
+     * @param blockType The [UShort] block type ID to fill the area with.
      */
     fun fillBlocks(
         startX: Int,
@@ -845,7 +1043,7 @@ class Level(
         endX: Int,
         endY: Int,
         endZ: Int,
-        blockType: Byte,
+        blockType: UShort,
     ) {
         val minX = minOf(startX, endX)
         val maxX = maxOf(startX, endX)
@@ -865,17 +1063,6 @@ class Level(
         notifyPlayersOfAreaChange(minX, minY, minZ, maxX, maxY, maxZ)
     }
 
-    /**
-     * Performs the actual block filling operation
-     *
-     * @param minX The minimum X coordinate of the area to fill.
-     * @param minY The minimum Y coordinate of the area to fill.
-     * @param minZ The minimum Z coordinate of the area to fill.
-     * @param maxX The maximum X coordinate of the area to fill.
-     * @param maxY The maximum Y coordinate of the area to fill.
-     * @param maxZ The maximum Z coordinate of the area to fill.
-     * @param blockType The [Byte] block type ID to fill the area with.
-     */
     private fun performBlockFill(
         minX: Int,
         minY: Int,
@@ -883,15 +1070,27 @@ class Level(
         maxX: Int,
         maxY: Int,
         maxZ: Int,
-        blockType: Byte,
+        blockType: UShort,
     ) {
+        val lowByte = (blockType.toInt() and 0xFF).toByte()
+        val highByte = ((blockType.toInt() ushr 8) and 0xFF).toByte()
+        val hasHighByte = highByte != 0.toByte()
+        if (hasHighByte && blockData2 == null) {
+            blockData2 = ByteArray(size.x * size.y * size.z) { 0x00 }
+        }
         for (y in minY..maxY) {
             val yOffset = y * size.x * size.z
             for (z in minZ..maxZ) {
                 val zOffset = z * size.x
                 for (x in minX..maxX) {
                     val index = x + zOffset + yOffset
-                    blocks[index] = blockType
+
+                    blockData[index] = lowByte
+                    if (hasHighByte) {
+                        blockData2!![index] = highByte
+                    } else {
+                        blockData2?.set(index, 0)
+                    }
                 }
             }
         }
@@ -904,7 +1103,7 @@ class Level(
      * @return The [Byte] block type ID at the specified position, or 0x00 if
      *   the position is invalid.
      */
-    fun getBlock(position: Position): Byte {
+    fun getBlock(position: Position): UShort {
         return getBlock(
             position.x.toInt(),
             position.y.toInt(),
@@ -919,7 +1118,7 @@ class Level(
      * @return The [Byte] block type ID at the specified position, or 0x00 if
      *   the position is invalid.
      */
-    fun getBlock(position: IVec): Byte {
+    fun getBlock(position: IVec): UShort {
         return getBlock(position.x, position.y, position.z)
     }
 
@@ -932,7 +1131,7 @@ class Level(
      * @return The [Byte] block type ID at the specified position, or 0x00 if
      *   the position is invalid.
      */
-    fun getBlock(x: Short, y: Short, z: Short): Byte {
+    fun getBlock(x: Short, y: Short, z: Short): UShort {
         return getBlock(x.toInt(), y.toInt(), z.toInt())
     }
 
@@ -942,14 +1141,16 @@ class Level(
      * @param x The X coordinate (Int) to get the block from.
      * @param y The Y coordinate (Int) to get the block from.
      * @param z The Z coordinate (Int) to get the block from.
-     * @return The [Byte] block type ID at the specified position, or 0x00 if
+     * @return The [UShort] block type ID at the specified position, or 0x00 if
      *   the position is invalid.
      */
-    fun getBlock(x: Int, y: Int, z: Int): Byte {
-        if (!isValidBlockPosition(x, y, z)) return 0x00
+    fun getBlock(x: Int, y: Int, z: Int): UShort {
+        if (!isValidBlockPosition(x, y, z)) return 0u
 
         val blockIndex = calculateBlockIndex(x, y, z)
-        return blocks[blockIndex]
+        val low = blockData[blockIndex].toInt() and 0xFF
+        val high = blockData2?.get(blockIndex)?.toInt()?.and(0xFF) ?: 0
+        return (low or (high shl 8)).toUShort()
     }
 
     /**
@@ -1137,7 +1338,7 @@ class Level(
         x: Short,
         y: Short,
         z: Short,
-        blockType: Byte,
+        blockType: UShort,
     ) {
         getPlayers().forEach { player ->
             player.updateBlock(x, y, z, blockType)

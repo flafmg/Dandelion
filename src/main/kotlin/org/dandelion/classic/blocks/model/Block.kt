@@ -7,7 +7,7 @@ import org.dandelion.classic.blocks.model.enums.BlockSolidity
 import org.dandelion.classic.blocks.model.enums.WalkSound
 
 abstract class Block {
-    abstract val id: Byte
+    abstract val id: UShort
     open val fallback: Byte = 0
     abstract val name: String
 
@@ -17,9 +17,9 @@ abstract class Block {
 
     open val movementSpeed: Byte = 128.toByte()
 
-    open val topTextureId: Byte = 0
-    open val sideTextureId: Byte = 0
-    open val bottomTextureId: Byte = 0
+    open val topTextureId: UShort = 0u
+    open val sideTextureId: UShort = 0u
+    open val bottomTextureId: UShort = 0u
 
     open val transmitsLight: Boolean = false
     open val fullBright: Boolean = false
@@ -36,10 +36,10 @@ abstract class Block {
 
     open val extendedBlock: Boolean = false
 
-    open val leftTextureId: Byte = 0
-    open val rightTextureId: Byte = 0
-    open val frontTextureId: Byte = 0
-    open val backTextureId: Byte = 0
+    open val leftTextureId: UShort = 0u
+    open val rightTextureId: UShort = 0u
+    open val frontTextureId: UShort = 0u
+    open val backTextureId: UShort = 0u
 
     open val minWidth: Byte = 0
     open val minHeight: Byte = 0
@@ -47,6 +47,10 @@ abstract class Block {
     open val maxWidth: Byte = 16
     open val maxHeight: Byte = 16
     open val maxDepth: Byte = 16
+
+    open val slot: UShort = UShort.MAX_VALUE
+
+    internal fun hasCustomSlot(): Boolean = slot != UShort.MAX_VALUE
 
     fun getSpeedRatio(): Double {
         return 2.0.pow((movementSpeed.toInt() - 128) / 64.0)
@@ -111,7 +115,7 @@ abstract class Block {
          * @param id The id of the block to retrieve.
          * @return The block instance, or null if not found.
          */
-        fun get(id: Byte): Block? = BlockRegistry.get(id)
+        fun get(id: UShort): Block? = BlockRegistry.get(id)
 
         /**
          * Retrieves a block by its name.
@@ -127,7 +131,7 @@ abstract class Block {
          * @param id The id to check.
          * @return true if the block exists, false otherwise.
          */
-        fun has(id: Byte): Boolean = BlockRegistry.has(id)
+        fun has(id: UShort): Boolean = BlockRegistry.has(id)
 
         /**
          * Checks if a block with the given name is registered.
@@ -149,7 +153,7 @@ abstract class Block {
          *
          * @return Set of all registered block IDs.
          */
-        fun getAllIds(): Set<Byte> = BlockRegistry.getAllIds()
+        fun getAllIds(): Set<UShort> = BlockRegistry.getAllIds()
 
         /**
          * Gets all registered block names.

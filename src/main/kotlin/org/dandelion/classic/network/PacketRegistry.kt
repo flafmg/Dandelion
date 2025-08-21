@@ -13,6 +13,9 @@ import org.dandelion.classic.network.packets.classic.client.ClientSetBlock
 import org.dandelion.classic.network.packets.cpe.client.ClientCustomBlockLevel
 import org.dandelion.classic.network.packets.cpe.client.ClientExtEntry
 import org.dandelion.classic.network.packets.cpe.client.ClientExtInfo
+import org.dandelion.classic.network.packets.cpe.client.ClientNotifyAction
+import org.dandelion.classic.network.packets.cpe.client.ClientNotifyPositionAction
+import org.dandelion.classic.network.packets.cpe.client.ClientPlayerClick
 import org.dandelion.classic.network.packets.cpe.server.ServerCustomBlockLevel
 import org.dandelion.classic.network.packets.cpe.server.ServerExtEntry
 import org.dandelion.classic.network.packets.cpe.server.ServerExtInfo
@@ -40,6 +43,9 @@ object PacketRegistry {
         registerPacket(0x10, ::ClientExtInfo)
         registerPacket(0x11, ::ClientExtEntry)
         registerPacket(0x13, ::ClientCustomBlockLevel)
+        registerPacket(0x39, ::ClientNotifyAction)
+        registerPacket(0x3A, ::ClientNotifyPositionAction)
+        registerPacket(0x22, ::ClientPlayerClick)
     }
 
     private fun registerSupportedCPE() {
@@ -60,6 +66,22 @@ object PacketRegistry {
         addCPE("BlockDefinitionsExt", 2)
         addCPE("ExtPlayerList", 2)
         addCPE("ChangeModel")
+        addCPE("VelocityControl")
+        addCPE("InventoryOrder")
+        addCPE("SelectionCuboid")
+        addCPE("EntityProperty")
+        addCPE("BulkBlockUpdate")
+        addCPE("NotifyAction")
+        addCPE("LightingMode")
+        addCPE("CinematicGUI")
+        addCPE("ToggleBlockList")
+        addCPE("FastMap")
+        addCPE("ExtendedTextures")
+        addCPE("ExtendedBlocks")
+        addCPE("PlayerClick")
+        addCPE("FullCPE437")
+        addCPE("ExtEntityPositions")
+        addCPE("ExtEntityTeleport")
     }
 
     fun registerPacket(id: Byte, factory: () -> Packet) {
@@ -88,9 +110,19 @@ object PacketRegistry {
         return packetFactory[id]?.invoke()
     }
 
-    fun getPacketSize(id: Byte): Int {
+    fun getPacketSize(id: Byte, channel: Channel): Int {
         val packet = createPacket(id)
-        return packet?.size ?: -1
+        var packetSize = -1
+        if (packet != null) {
+            val player = Players.find(channel)
+            packetSize = packet.size
+            packet.sizeOverrides.forEach { (ext, value) ->
+                if (player?.supports(ext) == true) {
+                    packetSize += value
+                }
+            }
+        }
+        return packetSize
     }
 
     internal fun handlePacket(ctx: ChannelHandlerContext, data: ByteArray) {
@@ -111,10 +143,10 @@ object PacketRegistry {
         }
 
         try {
-            packet.decode(data)
+            packet.decode(data, ctx.channel())
             packet.resolve(ctx.channel())
         } catch (ex: Exception) {
-            Console.errLog("Error processing packet ${ex.message}")
+            Console.errLog("Error processing packet $packetId: ${ex.message} ${ex.stackTraceToString()}")
             ctx.close()
         }
     }

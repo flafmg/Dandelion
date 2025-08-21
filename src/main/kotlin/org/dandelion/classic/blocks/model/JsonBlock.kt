@@ -9,14 +9,14 @@ import org.dandelion.classic.blocks.model.enums.WalkSound
  * allows creating custom blocks without hardcoding them.
  */
 class JsonBlock(
-    override val id: Byte,
+    override val id: UShort,
     override val name: String,
     override val fallback: Byte,
     override val solidity: BlockSolidity,
     override val movementSpeed: Byte,
-    override val topTextureId: Byte,
-    override val sideTextureId: Byte,
-    override val bottomTextureId: Byte,
+    override val topTextureId: UShort,
+    override val sideTextureId: UShort,
+    override val bottomTextureId: UShort,
     override val transmitsLight: Boolean,
     override val walkSound: WalkSound,
     override val fullBright: Boolean,
@@ -27,16 +27,17 @@ class JsonBlock(
     override val fogG: Byte,
     override val fogB: Byte,
     override val extendedBlock: Boolean,
-    override val leftTextureId: Byte,
-    override val rightTextureId: Byte,
-    override val frontTextureId: Byte,
-    override val backTextureId: Byte,
+    override val leftTextureId: UShort,
+    override val rightTextureId: UShort,
+    override val frontTextureId: UShort,
+    override val backTextureId: UShort,
     override val minWidth: Byte,
     override val minHeight: Byte,
     override val minDepth: Byte,
     override val maxWidth: Byte,
     override val maxHeight: Byte,
     override val maxDepth: Byte,
+    override val slot: UShort = id,
 ) : Block() {
 
     companion object {
@@ -48,30 +49,32 @@ class JsonBlock(
          */
         fun fromJson(blockData: Map<String, Any?>): JsonBlock? {
             val blockId =
-                (blockData["BlockID"] as? Number)?.toByte()?.takeIf {
-                    ((blockData["BlockID"] as? Number)?.toInt() ?: 1) <= 256
+                (blockData["BlockID"] as? Number)?.toInt()?.toUShort()?.takeIf {
+                    ((blockData["BlockID"] as? Number)?.toInt() ?: 1) <= 768
                 } ?: return null
             val name = blockData["Name"] as? String ?: "Custom Block"
             val speed =
                 (blockData["Speed"] as? Number)?.toByte() ?: 128.toByte()
             val collideType =
                 (blockData["CollideType"] as? Number)?.toByte() ?: 2
-            val topTex = (blockData["TopTex"] as? Number)?.toByte() ?: 0
-            val bottomTex = (blockData["BottomTex"] as? Number)?.toByte() ?: 0
+            val topTex =
+                (blockData["TopTex"] as? Number)?.toInt()?.coerceIn(0, 65535)
+                    ?: 0
+            val bottomTex =
+                (blockData["BottomTex"] as? Number)?.toInt()?.coerceIn(0, 65535)
+                    ?: 0
             val blocksLight = blockData["BlocksLight"] as? Boolean ?: false
             val walkSound = (blockData["WalkSound"] as? Number)?.toByte() ?: 4
             val fullBright = blockData["FullBright"] as? Boolean ?: false
             val shape = (blockData["Shape"] as? Number)?.toByte() ?: 16
             val blockDraw = (blockData["BlockDraw"] as? Number)?.toByte() ?: 0
-            val fallBack =
-                (blockData["FallBack"] as? Number)?.toByte() ?: blockId
+            val fallBack = (blockData["FallBack"] as? Number)?.toByte() ?: 1
             val fogDensity = (blockData["FogDensity"] as? Number)?.toByte() ?: 0
 
             val fogR = (blockData["FogR"] as? Number)?.toByte() ?: 0
             val fogG = (blockData["FogG"] as? Number)?.toByte() ?: 0
             val fogB = (blockData["FogB"] as? Number)?.toByte() ?: 0
 
-            // Max and Min z actually mean Height instead of depth, y means depth
             val minX = (blockData["MinX"] as? Number)?.toByte() ?: 0
             val minY = (blockData["MinZ"] as? Number)?.toByte() ?: 0
             val minZ = (blockData["MinY"] as? Number)?.toByte() ?: 0
@@ -79,12 +82,22 @@ class JsonBlock(
             val maxY = (blockData["MaxZ"] as? Number)?.toByte() ?: 16
             val maxZ = (blockData["MaxY"] as? Number)?.toByte() ?: 16
 
-            val leftTex = (blockData["LeftTex"] as? Number)?.toByte() ?: topTex
+            val leftTex =
+                (blockData["LeftTex"] as? Number)?.toInt()?.coerceIn(0, 65535)
+                    ?: topTex
             val rightTex =
-                (blockData["RightTex"] as? Number)?.toByte() ?: topTex
+                (blockData["RightTex"] as? Number)?.toInt()?.coerceIn(0, 65535)
+                    ?: topTex
             val frontTex =
-                (blockData["FrontTex"] as? Number)?.toByte() ?: topTex
-            val backTex = (blockData["BackTex"] as? Number)?.toByte() ?: topTex
+                (blockData["FrontTex"] as? Number)?.toInt()?.coerceIn(0, 65535)
+                    ?: topTex
+            val backTex =
+                (blockData["BackTex"] as? Number)?.toInt()?.coerceIn(0, 65535)
+                    ?: topTex
+
+            val slot =
+                (blockData["InventoryOrder"] as? Number)?.toInt()?.toUShort()
+                    ?: blockId
 
             val hasCustomBounds =
                 minX != 0.toByte() ||
@@ -106,9 +119,9 @@ class JsonBlock(
                 fallback = fallBack,
                 solidity = BlockSolidity.from(collideType),
                 movementSpeed = speed,
-                topTextureId = topTex,
-                sideTextureId = topTex,
-                bottomTextureId = bottomTex,
+                topTextureId = topTex.toUShort(),
+                sideTextureId = topTex.toUShort(),
+                bottomTextureId = bottomTex.toUShort(),
                 transmitsLight = !blocksLight,
                 walkSound = WalkSound.from(walkSound),
                 fullBright = fullBright,
@@ -119,16 +132,17 @@ class JsonBlock(
                 fogG = fogG,
                 fogB = fogB,
                 extendedBlock = isExtended,
-                leftTextureId = leftTex,
-                rightTextureId = rightTex,
-                frontTextureId = frontTex,
-                backTextureId = backTex,
+                leftTextureId = leftTex.toUShort(),
+                rightTextureId = rightTex.toUShort(),
+                frontTextureId = frontTex.toUShort(),
+                backTextureId = backTex.toUShort(),
                 minWidth = minX,
                 minHeight = minY,
                 minDepth = minZ,
                 maxWidth = maxX,
                 maxHeight = maxY,
                 maxDepth = maxZ,
+                slot = slot,
             )
         }
     }

@@ -218,7 +218,6 @@ object Players {
         }
     }
 
-
     private fun handleConnectingPlayerDisconnection(connectingPlayer: Player) {
         try {
             Console.debugLog(
@@ -249,6 +248,7 @@ object Players {
             throw e
         }
     }
+
     private fun forceDisconnectionCleanup(channel: Channel) {
         try {
             Console.warnLog(
@@ -288,7 +288,6 @@ object Players {
         }
     }
 
-
     internal fun forceDisconnect(channel: Channel) {
         connectingPlayers[channel]?.let { connectingPlayer ->
             removeConnecting(connectingPlayer)
@@ -309,10 +308,10 @@ object Players {
 
     // region Authentication & Validation
 
-
     private fun isValidProtocol(version: Byte): Boolean {
         return version == EXPECTED_PROTOCOL_VERSION
     }
+
     private fun authenticateUser(
         clientInfo: ClientIdentification,
         channel: Channel,
@@ -337,6 +336,7 @@ object Players {
             messageDigest.digest("${ServerInfo.salt}$userName".toByteArray())
         return hashBytes.joinToString("") { HEX_FORMAT.format(it) }
     }
+
     private fun validateConnection(player: Player): ConnectionResult {
         return when {
             player.info.isBanned ->
@@ -354,11 +354,12 @@ object Players {
             else -> ConnectionResult.Success
         }
     }
+
     private fun isConnected(player: Player): Boolean {
         return find(player.channel) != null ||
-                getAllPlayers().any {
-                    it.name.equals(player.name, ignoreCase = true)
-                }
+            getAllPlayers().any {
+                it.name.equals(player.name, ignoreCase = true)
+            }
     }
 
     private fun isServerFull(): Boolean = count() >= ServerInfo.maxPlayers
@@ -379,11 +380,13 @@ object Players {
         Console.log(message)
         broadcastMessage(message)
     }
+
     internal fun notifyLeft(player: Player) {
         val message = MessageRegistry.Server.Player.getLeft(player.name)
         Console.log(message)
         broadcastMessage(message)
     }
+
     internal fun notifyJoinedLevel(player: Player, level: Level) {
         val message =
             MessageRegistry.Server.Player.getJoinedLevel(player.name, level.id)
@@ -613,5 +616,15 @@ object Players {
                 "Critical error during emergency disconnect: ${e.message}"
             )
         }
+    }
+
+    // endregion
+
+    fun supports(player: Player, extension: String): Boolean {
+        return player.supports(extension)
+    }
+
+    fun supports(channel: Channel, extension: String): Boolean {
+        return find(channel)?.supports(extension) == true
     }
 }

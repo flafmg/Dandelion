@@ -8,6 +8,7 @@ import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.cpe.server.ServerDefineBlock
 import org.dandelion.classic.network.packets.cpe.server.ServerDefineBlockExt
+import org.dandelion.classic.network.packets.cpe.server.ServerSetInventoryOrder
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.util.JsonConfig
 
@@ -17,8 +18,8 @@ import org.dandelion.classic.util.JsonConfig
  * for global and per-level block registrations.
  */
 object BlockRegistry {
-    private val globalBlocks = mutableMapOf<Byte, Block>()
-    private val levelBlocks = mutableMapOf<String, MutableMap<Byte, Block>>()
+    private val globalBlocks = mutableMapOf<UShort, Block>()
+    private val levelBlocks = mutableMapOf<String, MutableMap<UShort, Block>>()
 
     /** Initializes the registry with all standard Minecraft blocks. */
     internal fun init() {
@@ -105,8 +106,12 @@ object BlockRegistry {
      * @param block The block instance to register globally
      */
     fun register(block: Block) {
-        if (block.id == 0x00.toByte()) {
+        if (block.id == 0.toUShort()) {
             Console.errLog("Cannot replace reserved id 0 (AIR)")
+            return
+        }
+        if(block.id >= 768u){
+            Console.errLog("Maximum block id is 767, you're trying to use ${block.id}")
             return
         }
 
@@ -120,8 +125,12 @@ object BlockRegistry {
      * @param block The block instance to register
      */
     fun register(levelId: String, block: Block) {
-        if (block.id == 0x00.toByte()) {
+        if (block.id == 0x00.toUShort()) {
             Console.errLog("Cannot replace reserved id 0 (AIR)")
+            return
+        }
+        if(block.id >= 768u){
+            Console.errLog("Maximum block id is 767, you're trying to use ${block.id}")
             return
         }
 
@@ -144,9 +153,13 @@ object BlockRegistry {
      *
      * @param id The ID of the block to remove
      */
-    fun unregister(id: Byte): Boolean {
-        if (id == 0x00.toByte()) {
+    fun unregister(id: UShort): Boolean {
+        if (id == 0x00.toUShort()) {
             Console.errLog("Cannot remove reserved id 0 (AIR)")
+            return false
+        }
+        if(id >= 768u){
+            Console.errLog("Maximum block id is 767, you're trying to use $id")
             return false
         }
         return globalBlocks.remove(id) != null
@@ -161,7 +174,7 @@ object BlockRegistry {
     fun unregister(name: String): Block? {
         val block =
             globalBlocks.values.find { it.name.equals(name, ignoreCase = true) }
-        if (block?.id == 0x00.toByte()) {
+        if (block?.id == 0x00.toUShort()) {
             Console.errLog("Cannot remove reserved id 0 (AIR)")
             return null
         }
@@ -175,8 +188,8 @@ object BlockRegistry {
      * @param blockId The ID of the block to remove
      * @return true if the block was removed, false otherwise
      */
-    fun unregister(levelId: String, blockId: Byte): Boolean {
-        if (blockId == 0x00.toByte()) {
+    fun unregister(levelId: String, blockId: UShort): Boolean {
+        if (blockId == 0x00.toUShort()) {
             Console.errLog("Cannot remove reserved id 0 (AIR)")
             return false
         }
@@ -198,9 +211,10 @@ object BlockRegistry {
      * @param blockId The ID of the block to remove
      * @return true if the block was removed, false otherwise
      */
-    fun unregister(level: Level, blockId: Byte): Boolean {
+    fun unregister(level: Level, blockId: UShort): Boolean {
         return unregister(level.id, blockId)
     }
+
 
     /**
      * Retrieves a global block by its ID.
@@ -208,7 +222,7 @@ object BlockRegistry {
      * @param id The ID of the block to retrieve
      * @return The block instance, or null if not found
      */
-    fun get(id: Byte): Block? = globalBlocks[id]
+    fun get(id: UShort): Block? = globalBlocks[id]
 
     /**
      * Retrieves a block by its ID for a specific level, with level blocks
@@ -218,7 +232,7 @@ object BlockRegistry {
      * @param id The ID of the block to retrieve
      * @return The block instance, or null if not found
      */
-    fun get(levelId: String, id: Byte): Block? {
+    fun get(levelId: String, id: UShort): Block? {
         return levelBlocks[levelId]?.get(id) ?: globalBlocks[id]
     }
 
@@ -230,7 +244,7 @@ object BlockRegistry {
      * @param id The ID of the block to retrieve
      * @return The block instance, or null if not found
      */
-    fun get(level: Level, id: Byte): Block? {
+    fun get(level: Level, id: UShort): Block? {
         return get(level.id, id)
     }
 
@@ -249,7 +263,7 @@ object BlockRegistry {
      * @param id The ID to check
      * @return true if the block exists globally, false otherwise
      */
-    fun has(id: Byte): Boolean = globalBlocks.containsKey(id)
+    fun has(id: UShort): Boolean = globalBlocks.containsKey(id)
 
     /**
      * Checks if a block with the given ID is registered for a specific level.
@@ -259,7 +273,7 @@ object BlockRegistry {
      * @return true if the block exists for the level (including global blocks),
      *   false otherwise
      */
-    fun has(levelId: String, id: Byte): Boolean {
+    fun has(levelId: String, id: UShort): Boolean {
         return levelBlocks[levelId]?.containsKey(id) == true ||
             globalBlocks.containsKey(id)
     }
@@ -273,7 +287,7 @@ object BlockRegistry {
      * @return true if the block exists for the level (including global blocks),
      *   false otherwise
      */
-    fun has(level: Level, id: Byte): Boolean {
+    fun has(level: Level, id: UShort): Boolean {
         return has(level.id, id)
     }
 
@@ -322,7 +336,7 @@ object BlockRegistry {
      *
      * @return Set of all global block IDs
      */
-    fun getAllIds(): Set<Byte> = globalBlocks.keys
+    fun getAllIds(): Set<UShort> = globalBlocks.keys
 
     /**
      * Gets all global block names.
@@ -367,7 +381,7 @@ object BlockRegistry {
      */
     fun clear() {
         globalBlocks.keys
-            .filter { it != 0x00.toByte() }
+            .filter { it != 0x00.toUShort() }
             .forEach { globalBlocks.remove(it) }
     }
 
@@ -534,48 +548,35 @@ object BlockRegistry {
         val level = player.level ?: return
 
         if (!player.supports("BlockDefinitions")) {
-            Console.debugLog(
-                "Player ${player.name} does not support BlockDefinitions extension"
-            )
             return
         }
 
+        val supportsExtendedTextures = player.supports("ExtendedTextures")
+        val supportsExtendedBlocks = player.supports("ExtendedBlocks")
         val blocksForLevel = getAll(level)
         val customBlocks = blocksForLevel.filter { !it.isDefault }
 
         if (customBlocks.isEmpty()) {
-            Console.debugLog(
-                "No custom blocks to send to player ${player.name}"
-            )
             return
         }
 
-        val validCustomBlocks =
+        val validCustomBlocks = if (supportsExtendedBlocks) {
+            customBlocks
+        } else {
             customBlocks.filter { block ->
-                val unsignedId = block.id.toInt() and 0xFF
-                if (unsignedId < 1 || unsignedId > 255) {
-                    false
-                } else {
-                    true
-                }
+                val unsignedId = block.id.toInt() and 0xFFFF
+                unsignedId in 1..255
             }
+        }
 
         if (validCustomBlocks.isEmpty()) {
-            Console.debugLog(
-                "No valid custom blocks to send to player ${player.name}"
-            )
             return
         }
-
-        Console.debugLog(
-            "Sending ${validCustomBlocks.size} block definitions to player ${player.name}"
-        )
 
         validCustomBlocks.forEach { block ->
             try {
                 when {
-                    block.extendedBlock &&
-                        player.supports("BlockDefinitionsExt") -> {
+                    block.extendedBlock && player.supports("BlockDefinitionsExt") -> {
                         val packet =
                             ServerDefineBlockExt(
                                 blockId = block.id,
@@ -603,9 +604,6 @@ object BlockRegistry {
                                 fogG = block.fogG,
                                 fogB = block.fogB,
                             )
-                        Console.debugLog(
-                            "Sending DefineBlockExt for ${block.name} (ID: ${block.id})"
-                        )
                         packet.send(player)
                     }
                     else -> {
@@ -628,9 +626,6 @@ object BlockRegistry {
                                 fogG = block.fogG,
                                 fogB = block.fogB,
                             )
-                        Console.debugLog(
-                            "Sending DefineBlock for ${block.name} (ID: ${block.id})"
-                        )
                         packet.send(player)
                     }
                 }
@@ -641,8 +636,78 @@ object BlockRegistry {
             }
         }
 
-        Console.debugLog(
-            "Completed sending block definitions to player ${player.name}"
-        )
+        if (player.supports("InventoryOrder")) {
+            sendLevelInventoryOrder(player)
+        }
+    }
+
+    private fun hasCustomSlot(block: Block): Boolean = block.slot != UShort.MAX_VALUE
+
+    private fun sendLevelInventoryOrder(player: Player) {
+        val level = player.level ?: return
+        val allBlocks = getAll(level)
+        val maxRawBlock = if (player.supports("ExtendedBlocks")) 767 else 255
+        val count = maxRawBlock + 1
+        val orderToBlocks = IntArray(768) { -1 }
+        val blockToOrders = IntArray(768) { -1 }
+
+        val defs = arrayOfNulls<Block>(768)
+        for (block in allBlocks) {
+            val blockId = block.id.toInt()
+            if (blockId < 768) {
+                defs[blockId] = block
+            }
+        }
+
+        for (i in defs.indices) {
+            val def = defs[i] ?: continue
+            if (def.id.toInt() > maxRawBlock || !hasCustomSlot(def)) continue
+
+            val inventoryOrder = def.slot.toInt()
+            if (inventoryOrder > maxRawBlock || inventoryOrder < 0) continue
+
+            if (inventoryOrder != 0 && orderToBlocks[inventoryOrder] == -1) {
+                orderToBlocks[inventoryOrder] = def.id.toInt()
+            }
+            blockToOrders[def.id.toInt()] = inventoryOrder
+        }
+
+        for (i in 0 until count) {
+            val def = if (i < defs.size) defs[i] else null
+            val raw = def?.id?.toInt() ?: i
+            if (raw > maxRawBlock || (def == null && raw >= 66)) continue
+
+            if (def != null && hasCustomSlot(def)) continue
+            if (orderToBlocks[raw] == -1) {
+                orderToBlocks[raw] = raw
+                blockToOrders[raw] = raw
+            }
+        }
+
+        for (i in (count - 1) downTo 0) {
+            val def = if (i < defs.size) defs[i] else null
+            val raw = def?.id?.toInt() ?: i
+            if (raw > maxRawBlock || (def == null && raw >= 66)) continue
+
+            if (blockToOrders[raw] != -1) continue
+            for (slot in (count - 1) downTo 1) {
+                if (orderToBlocks[slot] != -1) continue
+
+                blockToOrders[raw] = slot
+                orderToBlocks[slot] = raw
+                break
+            }
+        }
+
+        for (raw in 0 until count) {
+            var order = blockToOrders[raw]
+            if (order == -1) order = 0
+
+            val def = if (raw < defs.size) defs[raw] else null
+            if (def == null && raw >= 66) continue
+            if (raw == 255 && (def == null || !hasCustomSlot(def))) continue
+
+            ServerSetInventoryOrder(raw.toUShort(), order.toUShort()).send(player)
+        }
     }
 }

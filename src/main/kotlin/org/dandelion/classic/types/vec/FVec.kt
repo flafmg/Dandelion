@@ -1,11 +1,13 @@
-package org.dandelion.classic.types
+package org.dandelion.classic.types.vec
+
+import kotlin.math.sqrt
 
 data class FVec(var x: Float, var y: Float, var z: Float) {
     fun distanceTo(other: FVec): Float {
         val dx = x - other.x
         val dy = y - other.y
         val dz = z - other.z
-        return kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
+        return sqrt(dx * dx + dy * dy + dz * dz)
     }
 
     operator fun plus(other: FVec): FVec {

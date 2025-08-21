@@ -12,7 +12,7 @@ class ClientMessage : Packet() {
     var messageType: Byte = 0x00
     var message: String = ""
 
-    override fun decode(data: ByteArray) {
+    override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
 
         messageType = reader.readByte()

@@ -1,4 +1,4 @@
-package org.dandelion.classic.types
+package org.dandelion.classic.types.enums
 
 enum class EntityModel(val string: String) {
     HUMANOID("humanoid"),

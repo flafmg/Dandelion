@@ -15,7 +15,9 @@ import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.types.Position
-import org.dandelion.classic.types.SVec
+import org.dandelion.classic.types.enums.LightingMode
+import org.dandelion.classic.types.extensions.Color
+import org.dandelion.classic.types.vec.SVec
 
 @CommandDef(
     name = "level",
@@ -495,6 +497,7 @@ class LevelCommand : Command {
             "fade" -> handleFadeProperty(executor, args)
             "offset" -> handleOffsetProperty(executor, args)
             "colors" -> handleColorsProperty(executor, args)
+            "lightingmode" -> handleLightingModeProperty(executor, args)
             else -> {
                 MessageRegistry.Commands.Level.Env.sendUnknownProperty(
                     executor,
@@ -977,7 +980,9 @@ class LevelCommand : Command {
             }
             "exponential" -> {
                 when (value.lowercase()) {
-                    "true", "on", "yes" -> {
+                    "true",
+                    "on",
+                    "yes" -> {
                         level.exponentialFog = true
                         MessageRegistry.Commands.Level.Env.Fog.sendSuccess(
                             executor,
@@ -986,7 +991,9 @@ class LevelCommand : Command {
                             levelId,
                         )
                     }
-                    "false", "off", "no" -> {
+                    "false",
+                    "off",
+                    "no" -> {
                         level.exponentialFog = false
                         MessageRegistry.Commands.Level.Env.Fog.sendSuccess(
                             executor,
@@ -1003,9 +1010,7 @@ class LevelCommand : Command {
                 }
             }
             else -> {
-                MessageRegistry.Commands.Level.Env.Fog.sendInvalidType(
-                    executor
-                )
+                MessageRegistry.Commands.Level.Env.Fog.sendInvalidType(executor)
             }
         }
     }
@@ -1200,9 +1205,7 @@ class LevelCommand : Command {
 
         val color = parseColor(colorValue, args.drop(4))
         if (color == null) {
-            MessageRegistry.Commands.Level.Env.Colors.sendInvalidColor(
-                executor
-            )
+            MessageRegistry.Commands.Level.Env.Colors.sendInvalidColor(executor)
             return
         }
 
@@ -1266,7 +1269,7 @@ class LevelCommand : Command {
     private fun parseColor(
         colorValue: String,
         additionalArgs: List<String>,
-    ): org.dandelion.classic.types.Color? {
+    ): Color? {
         if (colorValue.startsWith("#")) {
             val hex = colorValue.substring(1)
             if (hex.length == 6) {
@@ -1274,7 +1277,7 @@ class LevelCommand : Command {
                     val r = hex.substring(0, 2).toInt(16).toShort()
                     val g = hex.substring(2, 4).toInt(16).toShort()
                     val b = hex.substring(4, 6).toInt(16).toShort()
-                    return org.dandelion.classic.types.Color(r, g, b)
+                    return Color(r, g, b)
                 } catch (e: NumberFormatException) {
                     return null
                 }
@@ -1285,13 +1288,82 @@ class LevelCommand : Command {
                 val g = additionalArgs[0].toInt()
                 val b = additionalArgs[1].toInt()
                 if (r in 0..255 && g in 0..255 && b in 0..255) {
-                    return org.dandelion.classic.types.Color(r.toShort(), g.toShort(), b.toShort())
+                    return Color(r.toShort(), g.toShort(), b.toShort())
                 }
             } catch (e: NumberFormatException) {
                 return null
             }
         }
         return null
+    }
+
+    private fun handleLightingModeProperty(
+        executor: CommandExecutor,
+        args: Array<String>,
+    ) {
+        if (args.size < 3) {
+            MessageRegistry.Commands.Level.Env.LightingMode.sendUsage(executor)
+            MessageRegistry.Commands.Level.Env.LightingMode.sendModesHelp(
+                executor
+            )
+            return
+        }
+
+        val levelId = args[1]
+        val level = Levels.getLevel(levelId)
+        if (level == null) {
+            MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
+            return
+        }
+
+        val value = args[2].lowercase()
+
+        when (value) {
+            "lock" -> {
+                level.setLightingMode(level.lightingMode, true)
+                MessageRegistry.Commands.Level.Env.LightingMode.sendLocked(
+                    executor,
+                    levelId,
+                )
+            }
+            "unlock" -> {
+                level.setLightingMode(level.lightingMode, false)
+                MessageRegistry.Commands.Level.Env.LightingMode.sendUnlocked(
+                    executor,
+                    levelId,
+                )
+            }
+            else -> {
+                val lightingMode =
+                    when (value) {
+                        "0",
+                        "client",
+                        "client_local" -> LightingMode.CLIENT_LOCAL
+                        "1",
+                        "classic" -> LightingMode.CLASSIC
+                        "2",
+                        "fancy" -> LightingMode.FANCY
+                        else -> {
+                            MessageRegistry.Commands.Level.Env.LightingMode
+                                .sendInvalidMode(executor)
+                            return
+                        }
+                    }
+
+                level.setLightingMode(lightingMode, level.lightingModeLocked)
+                val modeName =
+                    when (lightingMode) {
+                        LightingMode.CLIENT_LOCAL -> "Client Local"
+                        LightingMode.CLASSIC -> "Classic"
+                        LightingMode.FANCY -> "Fancy"
+                    }
+                MessageRegistry.Commands.Level.Env.LightingMode.sendSuccess(
+                    executor,
+                    modeName,
+                    levelId,
+                )
+            }
+        }
     }
 
     private fun getWeatherName(weatherType: Byte): String {

@@ -5,5 +5,5 @@ data class TabListEntry(
     val playerName: String,
     val listName: String,
     val groupName: String,
-    val groupRank: Int
+    val groupRank: Int,
 )

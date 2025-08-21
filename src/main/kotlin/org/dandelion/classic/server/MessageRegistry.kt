@@ -301,7 +301,8 @@ internal object MessageRegistry {
 
                 fun sendPublic(executor: CommandExecutor, isPublic: Boolean) {
                     val status =
-                        if (isPublic) getMessage("server.info.public_yes")
+                        if (isPublic)
+                            getMessage("commands.server.info.public_yes")
                         else getMessage("commands.server.info.public_no")
                     sendMessage(
                         executor,
@@ -381,7 +382,8 @@ internal object MessageRegistry {
                     isOnline: Boolean = false,
                 ) {
                     val displayTime =
-                        if (isOnline) getMessage("player.info.last_seen_now")
+                        if (isOnline)
+                            getMessage("commands.player.info.last_seen_now")
                         else time
                     sendMessage(
                         executor,
@@ -1282,10 +1284,7 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
-                        sendMessage(
-                            executor,
-                            "commands.level.env.blocks.usage",
-                        )
+                        sendMessage(executor, "commands.level.env.blocks.usage")
                     }
                 }
 
@@ -1313,10 +1312,7 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
-                        sendMessage(
-                            executor,
-                            "commands.level.env.height.usage",
-                        )
+                        sendMessage(executor, "commands.level.env.height.usage")
                     }
                 }
 
@@ -1351,10 +1347,7 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
-                        sendMessage(
-                            executor,
-                            "commands.level.env.fog.usage",
-                        )
+                        sendMessage(executor, "commands.level.env.fog.usage")
                     }
                 }
 
@@ -1382,10 +1375,7 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
-                        sendMessage(
-                            executor,
-                            "commands.level.env.speed.usage",
-                        )
+                        sendMessage(executor, "commands.level.env.speed.usage")
                     }
                 }
 
@@ -1404,10 +1394,7 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
-                        sendMessage(
-                            executor,
-                            "commands.level.env.fade.usage",
-                        )
+                        sendMessage(executor, "commands.level.env.fade.usage")
                     }
                 }
 
@@ -1426,10 +1413,7 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
-                        sendMessage(
-                            executor,
-                            "commands.level.env.offset.usage",
-                        )
+                        sendMessage(executor, "commands.level.env.offset.usage")
                     }
                 }
 
@@ -1475,9 +1459,58 @@ internal object MessageRegistry {
                     }
 
                     fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(executor, "commands.level.env.colors.usage")
+                    }
+                }
+
+                object LightingMode {
+                    fun sendSuccess(
+                        executor: CommandExecutor,
+                        mode: String,
+                        id: String,
+                    ) {
                         sendMessage(
                             executor,
-                            "commands.level.env.colors.usage",
+                            "commands.level.env.lightingmode.success",
+                            "mode" to mode,
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendLocked(executor: CommandExecutor, id: String) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.lightingmode.locked",
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendUnlocked(executor: CommandExecutor, id: String) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.lightingmode.unlocked",
+                            "id" to id,
+                        )
+                    }
+
+                    fun sendInvalidMode(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.lightingmode.invalid_mode",
+                        )
+                    }
+
+                    fun sendUsage(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.lightingmode.usage",
+                        )
+                    }
+
+                    fun sendModesHelp(executor: CommandExecutor) {
+                        sendMessage(
+                            executor,
+                            "commands.level.env.lightingmode.modes_help",
                         )
                     }
                 }
@@ -1500,7 +1533,11 @@ internal object MessageRegistry {
                     )
                 }
 
-                fun sendFailed(executor: CommandExecutor, id: String, error: String) {
+                fun sendFailed(
+                    executor: CommandExecutor,
+                    id: String,
+                    error: String,
+                ) {
                     sendMessage(
                         executor,
                         "commands.level.save.failed",
@@ -1523,7 +1560,10 @@ internal object MessageRegistry {
                     )
                 }
 
-                fun sendConfirmInstruction(executor: CommandExecutor, id: String) {
+                fun sendConfirmInstruction(
+                    executor: CommandExecutor,
+                    id: String,
+                ) {
                     sendMessage(
                         executor,
                         "commands.level.reload.confirm_instruction",
@@ -2923,7 +2963,7 @@ internal object MessageRegistry {
                 )
             }
 
-            fun sendBlockNotFound(executor: CommandExecutor, id: Byte) {
+            fun sendBlockNotFound(executor: CommandExecutor, id: UShort) {
                 sendMessage(
                     executor,
                     "commands.block.block_not_found",
@@ -2946,7 +2986,7 @@ internal object MessageRegistry {
                 sendMessage(executor, "commands.block.invalid_id")
             }
 
-            fun sendIdAlreadyExists(executor: CommandExecutor, id: Byte) {
+            fun sendIdAlreadyExists(executor: CommandExecutor, id: UShort) {
                 sendMessage(
                     executor,
                     "commands.block.id_already_exists",
@@ -2959,7 +2999,7 @@ internal object MessageRegistry {
                     sendMessage(executor, "commands.block.info.usage")
                 }
 
-                fun sendHeader(executor: CommandExecutor, id: Byte) {
+                fun sendHeader(executor: CommandExecutor, id: UShort) {
                     sendMessage(
                         executor,
                         "commands.block.info.header",
@@ -3001,9 +3041,9 @@ internal object MessageRegistry {
 
                 fun sendTextures(
                     executor: CommandExecutor,
-                    top: Byte,
-                    side: Byte,
-                    bottom: Byte,
+                    top: UShort,
+                    side: UShort,
+                    bottom: UShort,
                 ) {
                     sendMessage(
                         executor,
@@ -3016,12 +3056,12 @@ internal object MessageRegistry {
 
                 fun sendExtendedTextures(
                     executor: CommandExecutor,
-                    top: Byte,
-                    left: Byte,
-                    right: Byte,
-                    front: Byte,
-                    back: Byte,
-                    bottom: Byte,
+                    top: UShort,
+                    left: UShort,
+                    right: UShort,
+                    front: UShort,
+                    back: UShort,
+                    bottom: UShort,
                 ) {
                     sendMessage(
                         executor,
@@ -3136,7 +3176,7 @@ internal object MessageRegistry {
 
                 fun sendSuccess(
                     executor: CommandExecutor,
-                    id: Byte,
+                    id: UShort,
                     name: String,
                     property: String,
                     value: String,
@@ -3153,8 +3193,8 @@ internal object MessageRegistry {
 
                 fun sendSuccessIdChanged(
                     executor: CommandExecutor,
-                    oldId: Byte,
-                    newId: Byte,
+                    oldId: UShort,
+                    newId: UShort,
                     name: String,
                     property: String,
                     value: String,
@@ -3178,7 +3218,7 @@ internal object MessageRegistry {
 
                 fun sendSuccess(
                     executor: CommandExecutor,
-                    id: Byte,
+                    id: UShort,
                     name: String,
                 ) {
                     sendMessage(
@@ -3197,7 +3237,7 @@ internal object MessageRegistry {
 
                 fun sendSuccess(
                     executor: CommandExecutor,
-                    id: Byte,
+                    id: UShort,
                     name: String,
                 ) {
                     sendMessage(
@@ -3232,7 +3272,7 @@ internal object MessageRegistry {
 
                 fun sendFormat(
                     executor: CommandExecutor,
-                    id: Byte,
+                    id: UShort,
                     name: String,
                 ) {
                     sendMessage(

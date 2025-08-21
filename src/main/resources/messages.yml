@@ -191,7 +191,7 @@ commands:
         usage: "&cUsage: /level set description <levelId> <description>"
     env:
       usage: "&cUsage: /level env <property> <levelId> <value>"
-      properties: "&eProperties: &7texture, weather, blocks, height, fog, speed, fade, offset, colors"
+      properties: "&eProperties: &7texture, weather, blocks, height, fog, speed, fade, offset, colors, lightingmode"
       unknown_property: "&cUnknown environment property '&7{property}&c'."
       texture:
         success: "&aTexture pack URL set for level '&7{id}&a'."
@@ -230,6 +230,13 @@ commands:
         invalid_type: "&cInvalid color type. Use: sky, cloud, fog, ambient, diffuse, skybox"
         invalid_color: "&cInvalid color format. Use #hex, r g b, or reset"
         usage: "&cUsage: /level env colors <levelId> <sky|cloud|fog|ambient|diffuse|skybox> <#hex|r g b|reset>"
+      lightingmode:
+        success: "&aLighting mode set to '&7{mode}&a' for level '&7{id}&a'."
+        locked: "&aLighting mode locked for level '&7{id}&a'."
+        unlocked: "&aLighting mode unlocked for level '&7{id}&a'."
+        invalid_mode: "&cInvalid lighting mode. Use: 0/client, 1/classic, 2/fancy, lock, or unlock"
+        usage: "&cUsage: /level env lightingmode <levelId> <mode|lock/unlock>"
+        modes_help: "&7Modes: 0/client, 1/classic, 2/fancy"
     save:
       success_all: "&aAll levels saved successfully."
       success_single: "&aLevel '&7{id}&a' saved successfully."

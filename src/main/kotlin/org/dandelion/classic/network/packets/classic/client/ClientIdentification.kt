@@ -14,7 +14,7 @@ class ClientIdentification : Packet() {
     var verificationKey: String = ""
     var unused: Byte = 0x0
 
-    override fun decode(data: ByteArray) {
+    override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
 
         protocolVersion = reader.readByte()
