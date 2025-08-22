@@ -15,7 +15,7 @@ import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
 
 object ServerInfo {
-    const val dandelionVersion = "0.1.1-Dev"
+    const val dandelionVersion = "0.1.2-Dev"
     const val serverSoftware = "Dandelion $dandelionVersion"
 
     var isPublic = true
