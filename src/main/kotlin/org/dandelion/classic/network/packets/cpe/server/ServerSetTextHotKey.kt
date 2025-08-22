@@ -1,7 +1,6 @@
 package org.dandelion.classic.network.packets.cpe.server
 
 import io.netty.channel.Channel
-import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
@@ -25,6 +24,7 @@ class ServerSetTextHotKey(
         writer.writeByte(getKeyMods())
         return writer.toByteArray()
     }
+
     fun getKeyMods(): Byte {
         var mods = 0
         if (keyAddCtrl) mods = mods or 0x01

@@ -146,7 +146,9 @@ object PacketRegistry {
             packet.decode(data, ctx.channel())
             packet.resolve(ctx.channel())
         } catch (ex: Exception) {
-            Console.errLog("Error processing packet $packetId: ${ex.message} ${ex.stackTraceToString()}")
+            Console.errLog(
+                "Error processing packet $packetId: ${ex.message} ${ex.stackTraceToString()}"
+            )
             ctx.close()
         }
     }

@@ -110,8 +110,10 @@ object BlockRegistry {
             Console.errLog("Cannot replace reserved id 0 (AIR)")
             return
         }
-        if(block.id >= 768u){
-            Console.errLog("Maximum block id is 767, you're trying to use ${block.id}")
+        if (block.id >= 768u) {
+            Console.errLog(
+                "Maximum block id is 767, you're trying to use ${block.id}"
+            )
             return
         }
 
@@ -129,8 +131,10 @@ object BlockRegistry {
             Console.errLog("Cannot replace reserved id 0 (AIR)")
             return
         }
-        if(block.id >= 768u){
-            Console.errLog("Maximum block id is 767, you're trying to use ${block.id}")
+        if (block.id >= 768u) {
+            Console.errLog(
+                "Maximum block id is 767, you're trying to use ${block.id}"
+            )
             return
         }
 
@@ -158,7 +162,7 @@ object BlockRegistry {
             Console.errLog("Cannot remove reserved id 0 (AIR)")
             return false
         }
-        if(id >= 768u){
+        if (id >= 768u) {
             Console.errLog("Maximum block id is 767, you're trying to use $id")
             return false
         }
@@ -214,7 +218,6 @@ object BlockRegistry {
     fun unregister(level: Level, blockId: UShort): Boolean {
         return unregister(level.id, blockId)
     }
-
 
     /**
      * Retrieves a global block by its ID.
@@ -560,14 +563,15 @@ object BlockRegistry {
             return
         }
 
-        val validCustomBlocks = if (supportsExtendedBlocks) {
-            customBlocks
-        } else {
-            customBlocks.filter { block ->
-                val unsignedId = block.id.toInt() and 0xFFFF
-                unsignedId in 1..255
+        val validCustomBlocks =
+            if (supportsExtendedBlocks) {
+                customBlocks
+            } else {
+                customBlocks.filter { block ->
+                    val unsignedId = block.id.toInt() and 0xFFFF
+                    unsignedId in 1..255
+                }
             }
-        }
 
         if (validCustomBlocks.isEmpty()) {
             return
@@ -576,7 +580,8 @@ object BlockRegistry {
         validCustomBlocks.forEach { block ->
             try {
                 when {
-                    block.extendedBlock && player.supports("BlockDefinitionsExt") -> {
+                    block.extendedBlock &&
+                        player.supports("BlockDefinitionsExt") -> {
                         val packet =
                             ServerDefineBlockExt(
                                 blockId = block.id,
@@ -641,7 +646,8 @@ object BlockRegistry {
         }
     }
 
-    private fun hasCustomSlot(block: Block): Boolean = block.slot != UShort.MAX_VALUE
+    private fun hasCustomSlot(block: Block): Boolean =
+        block.slot != UShort.MAX_VALUE
 
     private fun sendLevelInventoryOrder(player: Player) {
         val level = player.level ?: return
@@ -707,7 +713,8 @@ object BlockRegistry {
             if (def == null && raw >= 66) continue
             if (raw == 255 && (def == null || !hasCustomSlot(def))) continue
 
-            ServerSetInventoryOrder(raw.toUShort(), order.toUShort()).send(player)
+            ServerSetInventoryOrder(raw.toUShort(), order.toUShort())
+                .send(player)
         }
     }
 }

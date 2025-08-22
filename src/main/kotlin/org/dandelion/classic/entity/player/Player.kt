@@ -776,18 +776,19 @@ class Player(
 
         teleportTo(level.spawn)
         setSpawnPoint(level.spawn)
-        ServerLevelFinalize(level.size.x, level.size.y, level.size.z).send(channel)
+        ServerLevelFinalize(level.size.x, level.size.y, level.size.z)
+            .send(channel)
         ServerSetPositionAndOrientation(
-            -1,
-            spawnPosition.x,
-            spawnPosition.y,
-            spawnPosition.z,
-            spawnPosition.yaw.toInt().toByte(),
-            spawnPosition.pitch.toInt().toByte(),
-        ).send(channel)
+                -1,
+                spawnPosition.x,
+                spawnPosition.y,
+                spawnPosition.z,
+                spawnPosition.yaw.toInt().toByte(),
+                spawnPosition.pitch.toInt().toByte(),
+            )
+            .send(channel)
 
         level.sendAllCustomData(this)
-
     }
 
     // endregion
@@ -1070,13 +1071,7 @@ class Player(
          * @param position The [Position] to set as the spawn point.
          */
         set(value) {
-            setSpawnPoint(
-                value.x,
-                value.y,
-                value.z ,
-                value.yaw,
-                value.pitch,
-            )
+            setSpawnPoint(value.x, value.y, value.z, value.yaw, value.pitch)
             field = value
         }
 
@@ -1408,9 +1403,7 @@ class Player(
      *
      * @param packet The [ClientPlayerClick] packet containing click information
      */
-    internal fun handleClickEvent(
-        packet: ClientPlayerClick
-    ) {
+    internal fun handleClickEvent(packet: ClientPlayerClick) {
         val highPrecisionYaw = packet.yaw / 32.0f
         val highPrecisionPitch = packet.pitch / 32.0f
 
@@ -1733,24 +1726,32 @@ class Player(
     }
 
     // endregion
-    
+
     // region misc
 
-    /**
-     * sets a hotkey for a player
-     */
-    fun setHotKey( label: String,
-                   action: String,
-                   keyCode: Int,
-                   keyAddCtrl: Boolean,
-                   keyAddShift: Boolean,
-                   keyAddAlt: Boolean, ){
-        if(!supports("TextHotKey")) return;
+    /** sets a hotkey for a player */
+    fun setHotKey(
+        label: String,
+        action: String,
+        keyCode: Int,
+        keyAddCtrl: Boolean,
+        keyAddShift: Boolean,
+        keyAddAlt: Boolean,
+    ) {
+        if (!supports("TextHotKey")) return
 
-        ServerSetTextHotKey(label, action, keyCode, keyAddCtrl, keyAddShift, keyAddAlt).send(channel)
+        ServerSetTextHotKey(
+                label,
+                action,
+                keyCode,
+                keyAddCtrl,
+                keyAddShift,
+                keyAddAlt,
+            )
+            .send(channel)
     }
-    
-    //endRegion
+
+    // endRegion
 
     companion object {
         /**
