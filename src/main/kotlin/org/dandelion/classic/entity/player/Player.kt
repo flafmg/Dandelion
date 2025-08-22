@@ -37,6 +37,7 @@ import org.dandelion.classic.network.packets.classic.client.ClientMessage
 import org.dandelion.classic.network.packets.classic.server.*
 import org.dandelion.classic.network.packets.cpe.client.ClientNotifyAction
 import org.dandelion.classic.network.packets.cpe.client.ClientNotifyPositionAction
+import org.dandelion.classic.network.packets.cpe.client.ClientPlayerClick
 import org.dandelion.classic.network.packets.cpe.server.ServerCinematicGui
 import org.dandelion.classic.network.packets.cpe.server.ServerClickDistance
 import org.dandelion.classic.network.packets.cpe.server.ServerExtEntityTeleport
@@ -47,6 +48,7 @@ import org.dandelion.classic.network.packets.cpe.server.ServerRemoveSelection
 import org.dandelion.classic.network.packets.cpe.server.ServerSetBlockPermission
 import org.dandelion.classic.network.packets.cpe.server.ServerSetHotbar
 import org.dandelion.classic.network.packets.cpe.server.ServerSetSpawnpoint
+import org.dandelion.classic.network.packets.cpe.server.ServerSetTextHotKey
 import org.dandelion.classic.network.packets.cpe.server.ServerToggleBlockList
 import org.dandelion.classic.network.packets.cpe.server.ServerVelocityControl
 import org.dandelion.classic.permission.PermissionRepository
@@ -64,17 +66,6 @@ import org.dandelion.classic.util.toFShort
 /**
  * Represents a connected player in the game world. Extends Entity with
  * player-specific functionality
- *
- * @property channel The Netty [Channel] used for network communication with
- *   this player.
- * @property client The client software identifier string.
- * @property name The name of the player.
- * @property levelId The ID of the level the player is associated with.
- * @property entityId The unique byte identifier for this player within its
- *   level.
- * @property position The current [Position] of the player.
- * @property info The [PlayerInfo] object containing persistent player data.
- * @property permissions The list of permission strings granted to this player.
  */
 class Player(
     val channel: Channel,
@@ -298,6 +289,8 @@ class Player(
      * @param z The new Z coordinate (Float).
      * @param yaw The new yaw rotation (Float).
      * @param pitch The new pitch rotation (Float).
+     * @param moveMode the [MoveMode] to the teleport.
+     * @param interpolateOrientation if orientation should be interpolated.
      */
     override fun teleportTo(
         x: Float,
@@ -1416,8 +1409,7 @@ class Player(
      * @param packet The [ClientPlayerClick] packet containing click information
      */
     internal fun handleClickEvent(
-        packet:
-            org.dandelion.classic.network.packets.cpe.client.ClientPlayerClick
+        packet: ClientPlayerClick
     ) {
         val highPrecisionYaw = packet.yaw / 32.0f
         val highPrecisionPitch = packet.pitch / 32.0f
@@ -1741,6 +1733,24 @@ class Player(
     }
 
     // endregion
+    
+    // region misc
+
+    /**
+     * sets a hotkey for a player
+     */
+    fun setHotKey( label: String,
+                   action: String,
+                   keyCode: Int,
+                   keyAddCtrl: Boolean,
+                   keyAddShift: Boolean,
+                   keyAddAlt: Boolean, ){
+        if(!supports("TextHotKey")) return;
+
+        ServerSetTextHotKey(label, action, keyCode, keyAddCtrl, keyAddShift, keyAddAlt).send(channel)
+    }
+    
+    //endRegion
 
     companion object {
         /**
