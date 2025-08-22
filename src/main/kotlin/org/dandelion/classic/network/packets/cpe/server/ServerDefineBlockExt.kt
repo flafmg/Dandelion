@@ -1,19 +1,21 @@
 package org.dandelion.classic.network.packets.cpe.server
 
+import io.netty.channel.Channel
+import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
 class ServerDefineBlockExt(
-    val blockId: Byte,
+    val blockId: UShort,
     val name: String,
     val solidity: Byte,
     val movementSpeed: Byte,
-    val topTextureId: Byte,
-    val leftTextureId: Byte,
-    val rightTextureId: Byte,
-    val frontTextureId: Byte,
-    val backTextureId: Byte,
-    val bottomTextureId: Byte,
+    val topTextureId: UShort,
+    val leftTextureId: UShort,
+    val rightTextureId: UShort,
+    val frontTextureId: UShort,
+    val backTextureId: UShort,
+    val bottomTextureId: UShort,
     val transmitsLight: Boolean,
     val walkSound: Byte,
     val fullBright: Boolean,
@@ -32,22 +34,35 @@ class ServerDefineBlockExt(
     override val id: Byte = 0x25
     override val isCpe: Boolean = true
 
-    override fun encode(): ByteArray {
+    override fun encode(channel: Channel): ByteArray {
         val writer = PacketWriter()
         writer.writeByte(id)
-
-        writer.writeByte(blockId)
+        if (Players.supports(channel, "ExtendedBlocks")) {
+            writer.writeUShort(blockId)
+        } else {
+            writer.writeByte((blockId and 0xFFu).toByte())
+        }
         writer.writeString(name)
 
         writer.writeByte(solidity)
 
         writer.writeByte(movementSpeed)
-        writer.writeByte(topTextureId)
-        writer.writeByte(leftTextureId)
-        writer.writeByte(rightTextureId)
-        writer.writeByte(frontTextureId)
-        writer.writeByte(backTextureId)
-        writer.writeByte(bottomTextureId)
+
+        if (Players.supports(channel, "ExtendedTextures")) {
+            writer.writeUShort(topTextureId)
+            writer.writeUShort(leftTextureId)
+            writer.writeUShort(rightTextureId)
+            writer.writeUShort(frontTextureId)
+            writer.writeUShort(backTextureId)
+            writer.writeUShort(bottomTextureId)
+        } else {
+            writer.writeByte((topTextureId and 0xFFu).toByte())
+            writer.writeByte((leftTextureId and 0xFFu).toByte())
+            writer.writeByte((rightTextureId and 0xFFu).toByte())
+            writer.writeByte((frontTextureId and 0xFFu).toByte())
+            writer.writeByte((backTextureId and 0xFFu).toByte())
+            writer.writeByte((bottomTextureId and 0xFFu).toByte())
+        }
 
         writer.writeBoolean(transmitsLight)
         writer.writeByte(walkSound)

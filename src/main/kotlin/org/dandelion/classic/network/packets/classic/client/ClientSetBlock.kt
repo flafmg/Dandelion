@@ -8,21 +8,27 @@ import org.dandelion.classic.network.packets.stream.PacketReader
 class ClientSetBlock : Packet() {
     override val id: Byte = 0x05
     override val size: Int = 9
+    override val sizeOverrides: MutableMap<String, Int> =
+        mutableMapOf("ExtendedBlocks" to 1)
 
     var x: Short = 0
     var y: Short = 0
     var z: Short = 0
     var mode: Byte = 0x0
-    var blockType: Byte = 0x0
+    var blockType: UShort = 0x0u
 
-    override fun decode(data: ByteArray) {
+    override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
 
         x = reader.readShort()
         y = reader.readShort()
         z = reader.readShort()
         mode = reader.readByte()
-        blockType = reader.readByte()
+        if (Players.supports(channel, "ExtendedBlocks")) {
+            blockType = reader.readUShort()
+        } else {
+            blockType = reader.readByte().toUShort()
+        }
     }
 
     override fun resolve(channel: Channel) {

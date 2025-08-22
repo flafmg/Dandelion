@@ -1,4 +1,4 @@
-package org.dandelion.classic.types
+package org.dandelion.classic.types.extensions
 /**
  * Represents a RGB color with values from 0 to 255
  *

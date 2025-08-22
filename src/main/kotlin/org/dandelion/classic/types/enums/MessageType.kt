@@ -1,4 +1,4 @@
-package org.dandelion.classic.types
+package org.dandelion.classic.types.enums
 
 enum class MessageType(val code: Int) {
     Chat(0),

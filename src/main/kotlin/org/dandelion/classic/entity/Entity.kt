@@ -7,8 +7,13 @@ import org.dandelion.classic.events.PlayerBlockInteractionEvent
 import org.dandelion.classic.events.manager.EventDispatcher
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.classic.server.*
+import org.dandelion.classic.network.packets.cpe.server.ServerChangeModel
+import org.dandelion.classic.network.packets.cpe.server.ServerExtAddEntity2
+import org.dandelion.classic.network.packets.cpe.server.ServerExtEntityTeleport
+import org.dandelion.classic.network.packets.cpe.server.ServerSetEntityProperty
 import org.dandelion.classic.types.Position
-import org.dandelion.classic.util.toFShort
+import org.dandelion.classic.types.enums.EntityModel
+import org.dandelion.classic.types.enums.MoveMode
 
 /**
  * Base entity class representing any interactive object in the game world.
@@ -27,6 +32,94 @@ open class Entity(
     val position: Position = Position(0f, 0f, 0f, 0f, 0f),
 ) {
     var level: Level? = null
+
+    /**
+     * The display name shown for this entity. Setting this will despawn and
+     * respawn the entity for all players to update the visual name.
+     */
+    var displayName: String = name
+        /**
+         * Sets the display name for this entity.
+         *
+         * @param value The new display name to set. Can include color codes and
+         *   formatting.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                refreshEntityForPlayers()
+            }
+        }
+
+    /**
+     * The skin name used for this entity. Setting this will despawn and respawn
+     * the entity for all players to update the visual skin.
+     */
+    var skin: String = name
+        /**
+         * Sets the skin name for this entity.
+         *
+         * @param value The new skin name to set. Should be a valid Minecraft
+         *   player name.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                refreshEntityForPlayers()
+            }
+        }
+
+    /** The model used for this entity. */
+    var model: String = EntityModel.HUMANOID.string
+        /** Sets the model for this entity. */
+        set(value) {
+            if (field != value) {
+                field = value
+                broadcastModelChange(value)
+            }
+        }
+
+    /** The X rotation of the model in degrees */
+    var modelRotationX: Int = 0
+        /**
+         * Sets the X rotation for this entity's model.
+         *
+         * @param value The new X rotation in degrees.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                broadcastEntityProperty(0, value)
+            }
+        }
+
+    /** The Y rotation (yaw) of the model in degrees */
+    var modelRotationY: Int = 0
+        /**
+         * Sets the Y rotation (yaw) for this entity's model.
+         *
+         * @param value The new Y rotation in degrees.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                broadcastEntityProperty(1, value)
+            }
+        }
+
+    /** The Z rotation of the model in degrees */
+    var modelRotationZ: Int = 0
+        /**
+         * Sets the Z rotation for this entity's model.
+         *
+         * @param value The new Z rotation in degrees.
+         */
+        set(value) {
+            if (field != value) {
+                field = value
+                broadcastEntityProperty(2, value)
+            }
+        }
 
     companion object {
         private const val MAX_RELATIVE_MOVEMENT = 3.96875f
@@ -95,14 +188,25 @@ open class Entity(
         z: Float,
         yaw: Float,
         pitch: Float,
+        moveMode: MoveMode = MoveMode.INSTANT,
+        interpolateOrientation: Boolean = false,
     ) {
+        val actualUsePosition =
+            x != this.position.x || y != this.position.y || z != this.position.z
+        val actualUseOrientation =
+            yaw != this.position.yaw || pitch != this.position.pitch
+
         position.set(x, y, z, yaw, pitch)
-        broadcastAbsolutePositionUpdate(
+        broadcastPositionUpdate(
             x,
-            y - toFShort(22) /*fixes weird half block step*/,
+            y,
             z,
-            yaw.toInt().toByte(),
-            pitch.toInt().toByte(),
+            yaw,
+            pitch,
+            moveMode,
+            actualUsePosition,
+            actualUseOrientation,
+            interpolateOrientation,
         )
     }
 
@@ -191,16 +295,6 @@ open class Entity(
 
     // region Network Broadcasting
 
-    /**
-     * Broadcasts absolute position and orientation to all players in the same
-     * level
-     *
-     * @param x The X coordinate (Float) to broadcast.
-     * @param y The Y coordinate (Float) to broadcast.
-     * @param z The Z coordinate (Float) to broadcast.
-     * @param yaw The yaw rotation (Byte) to broadcast.
-     * @param pitch The pitch rotation (Byte) to broadcast.
-     */
     protected open fun broadcastAbsolutePositionUpdate(
         x: Float,
         y: Float,
@@ -211,6 +305,70 @@ open class Entity(
         getOtherPlayersInLevel().forEach { player ->
             ServerSetPositionAndOrientation(entityId, x, y, z, yaw, pitch)
                 .send(player.channel)
+        }
+    }
+
+    protected open fun broadcastPositionUpdate(
+        x: Float,
+        y: Float,
+        z: Float,
+        yaw: Float,
+        pitch: Float,
+        moveMode: MoveMode,
+        usePosition: Boolean,
+        useOrientation: Boolean,
+        interpolateOrientation: Boolean,
+    ) {
+        getOtherPlayersInLevel().forEach { player ->
+            if (player.supports("ExtEntityTeleport")) {
+                ServerExtEntityTeleport(
+                        entityId = entityId,
+                        usePosition = usePosition,
+                        moveMode = moveMode,
+                        useOrientation = useOrientation,
+                        interpolateOrientation = interpolateOrientation,
+                        x = x,
+                        y = y,
+                        z = z,
+                        yaw = yaw,
+                        pitch = pitch,
+                    )
+                    .send(player.channel)
+            } else {
+                if (
+                    moveMode == MoveMode.RELATIVE_SMOOTH ||
+                        moveMode == MoveMode.RELATIVE_SEAMLESS
+                ) {
+                    ServerSetPositionAndOrientation(
+                            this.entityId,
+                            if (usePosition) this.position.x + x
+                            else this.position.x,
+                            if (usePosition) this.position.y + y
+                            else this.position.y,
+                            if (usePosition) this.position.z + z
+                            else this.position.z,
+                            if (useOrientation)
+                                (this.position.yaw + yaw).toInt().toByte()
+                            else this.position.yaw.toInt().toByte(),
+                            if (useOrientation)
+                                (this.position.pitch + pitch).toInt().toByte()
+                            else this.position.pitch.toInt().toByte(),
+                        )
+                        .send(player.channel)
+                } else {
+                    ServerSetPositionAndOrientation(
+                            this.entityId,
+                            if (usePosition) x else this.position.x,
+                            if (usePosition) y else this.position.y,
+                            if (usePosition) z else this.position.z,
+                            if (useOrientation) yaw.toInt().toByte()
+                            else this.position.yaw.toInt().toByte(),
+                            if (useOrientation) pitch.toInt().toByte()
+                            else this.position.pitch.toInt().toByte(),
+                        )
+                        .send(player.channel)
+                }
+            }
         }
     }
 
@@ -268,6 +426,54 @@ open class Entity(
 
     // endregion
 
+    // region Model Management
+
+    /**
+     * Broadcasts a model change to all players in the same level. Sends a
+     * ChangeModel packet to update the visual appearance of this entity.
+     *
+     * @param modelName The model name string to broadcast. Can be a predefined
+     *   model name or a block ID as a string.
+     */
+    protected open fun broadcastModelChange(modelName: String) {
+        getOtherPlayersInLevel().forEach { player ->
+            if (player.supports("ChangeModel")) {
+                ServerChangeModel(entityId, modelName).send(player.channel)
+            }
+        }
+    }
+
+    protected open fun broadcastEntityProperty(
+        propertyType: Byte,
+        propertyValue: Int,
+    ) {
+        getOtherPlayersInLevel().forEach { player ->
+            if (player.supports("EntityProperty")) {
+                ServerSetEntityProperty(entityId, propertyType, propertyValue)
+                    .send(player.channel)
+            }
+        }
+    }
+
+    protected open fun sendEntityPropertiesTo(player: Player) {
+        if (player.supports("EntityProperty")) {
+            if (modelRotationX != 0) {
+                ServerSetEntityProperty(entityId, 0, modelRotationX)
+                    .send(player.channel)
+            }
+            if (modelRotationY != 0) {
+                ServerSetEntityProperty(entityId, 1, modelRotationY)
+                    .send(player.channel)
+            }
+            if (modelRotationZ != 0) {
+                ServerSetEntityProperty(entityId, 2, modelRotationZ)
+                    .send(player.channel)
+            }
+        }
+    }
+
+    // endregion
+
     // region Entity Management
 
     /**
@@ -277,16 +483,41 @@ open class Entity(
      */
     open fun spawnFor(target: Entity) {
         (target as? Player)?.let { player ->
-            ServerSpawnPlayer(
-                    entityId,
-                    name,
-                    position.x,
-                    position.y,
-                    position.z,
-                    position.yaw.toInt().toByte(),
-                    position.pitch.toInt().toByte(),
-                )
-                .send(player.channel)
+            if (player.supportsCpe && player.supports("ExtPlayerList")) {
+                ServerExtAddEntity2(
+                        entityId,
+                        displayName,
+                        skin,
+                        position.x,
+                        position.y,
+                        position.z,
+                        position.yaw.toInt().toByte(),
+                        position.pitch.toInt().toByte(),
+                    )
+                    .send(player.channel)
+            } else {
+                ServerSpawnPlayer(
+                        entityId,
+                        name,
+                        position.x,
+                        position.y,
+                        position.z,
+                        position.yaw.toInt().toByte(),
+                        position.pitch.toInt().toByte(),
+                    )
+                    .send(player.channel)
+            }
+
+            // Send model change packet after spawning to ensure visual consistency
+            if (
+                player.supports("ChangeModel") &&
+                    model != EntityModel.HUMANOID.string
+            ) {
+                ServerChangeModel(entityId, model).send(player.channel)
+            }
+
+            // Send entity properties to the player
+            sendEntityPropertiesTo(player)
         }
     }
 
@@ -388,7 +619,7 @@ open class Entity(
         x: Short,
         y: Short,
         z: Short,
-        blockType: Byte,
+        blockType: UShort,
         isDestroying: Boolean,
     ) {
         val currentLevel = level ?: return
@@ -397,7 +628,8 @@ open class Entity(
             return
 
         val finalBlockType =
-            if (isDestroying) Block.get(0)?.id ?: 0 else blockType
+            if (isDestroying) Block.get(0.toUShort())?.id ?: 0.toUShort()
+            else blockType
         val blockAtPos = Block.get(currentLevel.getBlock(x, y, z)) ?: return
 
         if (Block.get(finalBlockType) == null) return
@@ -414,7 +646,14 @@ open class Entity(
             EventDispatcher.dispatch(event)
 
             if (event.isCancelled) {
-                ServerSetBlock(x, y, z, blockAtPos.id).send(this)
+                ServerSetBlock(
+                        x,
+                        y,
+                        z,
+                        blockAtPos.id,
+                        this.supports("ExtendedBlocks"),
+                    )
+                    .send(this)
                 return
             }
         }
@@ -432,7 +671,7 @@ open class Entity(
      * @param z The Z coordinate (Short) of the block to update.
      * @param block The new [Byte] block type ID.
      */
-    open fun updateBlock(x: Short, y: Short, z: Short, block: Byte) {
+    open fun updateBlock(x: Short, y: Short, z: Short, block: UShort) {
         // Default implementation does nothing - override in Player class
     }
 
@@ -448,7 +687,7 @@ open class Entity(
         x: Short,
         y: Short,
         z: Short,
-        block: Byte,
+        block: UShort,
     ) {
         level?.getPlayers()?.forEach { player ->
             player.updateBlock(x, y, z, block)
@@ -491,5 +730,19 @@ open class Entity(
         val distance = sqrt(dx * dx + dy * dy + dz * dz)
         return distance <= distance
     }
+
+    // endregion
+
+    // region Helper Methods
+
+    /**
+     * Refreshes the entity for all players, causing a despawn and respawn to
+     * update its data (used after changing displayName or skin).
+     */
+    protected open fun refreshEntityForPlayers() {
+        globalDespawn()
+        globalSpawn()
+    }
+
     // endregion
 }

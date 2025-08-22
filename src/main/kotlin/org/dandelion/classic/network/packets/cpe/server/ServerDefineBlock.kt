@@ -1,16 +1,18 @@
 package org.dandelion.classic.network.packets.cpe.server
 
+import io.netty.channel.Channel
+import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
 class ServerDefineBlock(
-    val blockId: Byte,
+    val blockId: UShort,
     val name: String,
     val solidity: Byte,
     val movementSpeed: Byte,
-    val topTextureId: Byte,
-    val sideTextureId: Byte,
-    val bottomTextureId: Byte,
+    val topTextureId: UShort,
+    val sideTextureId: UShort,
+    val bottomTextureId: UShort,
     val transmitsLight: Boolean,
     val walkSound: Byte,
     val fullBright: Boolean,
@@ -24,18 +26,28 @@ class ServerDefineBlock(
     override val id: Byte = 0x23
     override val isCpe: Boolean = true
 
-    override fun encode(): ByteArray {
+    override fun encode(channel: Channel): ByteArray {
         val writer = PacketWriter()
         writer.writeByte(id)
-        writer.writeByte(blockId)
+        if (Players.supports(channel, "ExtendedBlocks")) {
+            writer.writeUShort(blockId)
+        } else {
+            writer.writeByte((blockId and 0xFFu).toByte())
+        }
         writer.writeString(name)
 
         writer.writeByte(solidity)
         writer.writeByte(movementSpeed)
 
-        writer.writeByte(topTextureId)
-        writer.writeByte(sideTextureId)
-        writer.writeByte(bottomTextureId)
+        if (Players.supports(channel, "ExtendedTextures")) {
+            writer.writeUShort(topTextureId)
+            writer.writeUShort(sideTextureId)
+            writer.writeUShort(bottomTextureId)
+        } else {
+            writer.writeByte((topTextureId and 0xFFu).toByte())
+            writer.writeByte((sideTextureId and 0xFFu).toByte())
+            writer.writeByte((bottomTextureId and 0xFFu).toByte())
+        }
 
         writer.writeBoolean(transmitsLight)
         writer.writeByte(walkSound)

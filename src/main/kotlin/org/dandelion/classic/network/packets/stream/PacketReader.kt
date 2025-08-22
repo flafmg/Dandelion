@@ -36,6 +36,13 @@ internal class PacketReader(private val data: ByteArray) {
         return ((high shl 8) or low).toShort()
     }
 
+    fun readUShort(): UShort {
+        val high = data[index].toInt() and 0xFF
+        val low = data[index + 1].toInt() and 0xFF
+        index += 2
+        return ((high shl 8) or low).toUShort()
+    }
+
     fun readFShort(): Float {
         val high = data[index].toInt() and 0xFF
         val low = data[index + 1].toInt() and 0xFF
@@ -63,10 +70,16 @@ internal class PacketReader(private val data: ByteArray) {
         return strBytes.toString(StandardCharsets.UTF_8).trimEnd(' ')
     }
 
-    fun readLevelData(length: Int = 1024): ByteArray {
+    fun readByteArray(length: Int = 1024): ByteArray {
         val arr = data.copyOfRange(index, index + length)
         index += length
         return arr
+    }
+
+    fun readFloat(): Float {
+        val value = ByteBuffer.wrap(data, index, 4).int
+        index += 4
+        return value / 32.0f
     }
 
     fun getIndex(): Int {

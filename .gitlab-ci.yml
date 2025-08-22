@@ -16,7 +16,7 @@ build:
   stage: build
   image: openjdk:21-jdk
   script:
-    - ./gradlew clean build
+    - ./gradlew clean
     - ./gradlew jar
     - ls -la build/libs/
   artifacts:
@@ -30,7 +30,7 @@ build_for_release:
   stage: build
   image: openjdk:21-jdk
   script:
-    - ./gradlew clean build
+    - ./gradlew clean
     - ./gradlew jar
     - ls -la build/libs/
     - |

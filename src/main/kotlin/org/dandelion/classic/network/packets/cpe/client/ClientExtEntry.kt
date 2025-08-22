@@ -13,7 +13,7 @@ class ClientExtEntry : Packet() {
     var extName: String = ""
     var version: Int = 0
 
-    override fun decode(data: ByteArray) {
+    override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
         extName = reader.readString()
         version = reader.readInt()

@@ -1,20 +1,26 @@
 package org.dandelion.classic.network.packets.cpe.server
 
+import io.netty.channel.Channel
+import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
 class ServerSetBlockPermission(
-    val blockType: Byte,
+    val blockType: UShort,
     val allowPlacement: Boolean,
     val allowDeletion: Boolean,
 ) : Packet() {
-    override val id: Byte = 0x0C
+    override val id: Byte = 0x1C
     override val isCpe: Boolean = true
 
-    override fun encode(): ByteArray {
+    override fun encode(channel: Channel): ByteArray {
         val writer = PacketWriter()
         writer.writeByte(id)
-        writer.writeByte(blockType)
+        if (Players.supports(channel, "ExtendedBlocks")) {
+            writer.writeUShort(blockType)
+        } else {
+            writer.writeByte((blockType and 0xFFu).toByte())
+        }
         writer.writeBoolean(allowPlacement)
         writer.writeBoolean(allowDeletion)
         return writer.toByteArray()

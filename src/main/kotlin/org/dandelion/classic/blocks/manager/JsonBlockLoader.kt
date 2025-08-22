@@ -135,8 +135,9 @@ internal object JsonBlockLoader {
         blockData["Speed"] = normalizedSpeed
 
         blockData["CollideType"] = config.getInt("CollideType", 2)
-        blockData["TopTex"] = config.getInt("TopTex", 0)
-        blockData["BottomTex"] = config.getInt("BottomTex", 0)
+        blockData["TopTex"] = config.getInt("TopTex", 0).coerceIn(0, 65535)
+        blockData["BottomTex"] =
+            config.getInt("BottomTex", 0).coerceIn(0, 65535)
         blockData["BlocksLight"] = config.getBoolean("BlocksLight", true)
         blockData["WalkSound"] = config.getInt("WalkSound", 4)
         blockData["FullBright"] = config.getBoolean("FullBright", false)
@@ -169,13 +170,18 @@ internal object JsonBlockLoader {
         blockData["MaxY"] = config.getInt("MaxY", 16).coerceIn(1, 16)
         blockData["MaxZ"] = config.getInt("MaxZ", 16).coerceIn(1, 16)
 
-        val topTex = config.getInt("TopTex", 0).coerceIn(0, 255)
-        blockData["LeftTex"] = config.getInt("LeftTex", topTex).coerceIn(0, 255)
+        val topTex = config.getInt("TopTex", 0).coerceIn(0, 65535)
+        blockData["LeftTex"] =
+            config.getInt("LeftTex", topTex).coerceIn(0, 65535)
         blockData["RightTex"] =
-            config.getInt("RightTex", topTex).coerceIn(0, 255)
+            config.getInt("RightTex", topTex).coerceIn(0, 65535)
         blockData["FrontTex"] =
-            config.getInt("FrontTex", topTex).coerceIn(0, 255)
-        blockData["BackTex"] = config.getInt("BackTex", topTex).coerceIn(0, 255)
+            config.getInt("FrontTex", topTex).coerceIn(0, 65535)
+        blockData["BackTex"] =
+            config.getInt("BackTex", topTex).coerceIn(0, 65535)
+        config.getInt("InventoryOrder")?.let {
+            blockData["InventoryOrder"] = it
+        }
     }
 
     fun reloadBlockDefinitions() {

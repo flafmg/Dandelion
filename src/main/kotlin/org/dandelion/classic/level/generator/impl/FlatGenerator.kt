@@ -6,7 +6,7 @@ import org.dandelion.classic.blocks.Stone
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.level.generator.LevelGenerator
 
-data class Layer(val id: Byte, val count: Int)
+data class Layer(val id: UShort, val count: Int)
 
 data class FlatGeneratorParams(val layers: List<Layer>?)
 

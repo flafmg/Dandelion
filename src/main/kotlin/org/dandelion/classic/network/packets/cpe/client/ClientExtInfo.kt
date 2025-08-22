@@ -13,7 +13,7 @@ class ClientExtInfo : Packet() {
     var appName: String = ""
     var extensionCount: Short = 0
 
-    override fun decode(data: ByteArray) {
+    override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
 
         appName = reader.readString()

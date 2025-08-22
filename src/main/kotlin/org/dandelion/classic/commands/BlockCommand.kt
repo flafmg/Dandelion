@@ -75,7 +75,7 @@ class BlockCommand : Command {
     @ArgRange(min = 2, max = 2)
     fun blockInfo(executor: CommandExecutor, args: Array<String>) {
         val target = args[0].lowercase()
-        val blockId = args[1].toUByteOrNull()?.toByte()
+        val blockId = args[1].toUShortOrNull()
 
         if (blockId == null) {
             MessageRegistry.Commands.Block.sendInvalidId(executor)
@@ -116,7 +116,7 @@ class BlockCommand : Command {
     @ArgRange(min = 4, max = 4)
     fun editBlock(executor: CommandExecutor, args: Array<String>) {
         val target = args[0].lowercase()
-        val blockId = args[1].toUByteOrNull()?.toByte()
+        val blockId = args[1].toUShortOrNull()
         val property = args[2].lowercase()
         val value = args[3]
 
@@ -125,7 +125,7 @@ class BlockCommand : Command {
             return
         }
 
-        if (blockId == 0.toByte()) {
+        if (blockId == 0u.toUShort()) {
             MessageRegistry.Commands.Block.sendAirNotEditable(executor)
             return
         }
@@ -232,18 +232,19 @@ class BlockCommand : Command {
     @ArgRange(min = 2, max = 4)
     fun addBlock(executor: CommandExecutor, args: Array<String>) {
         val target = args[0].lowercase()
-        val blockId = args[1].toUByteOrNull()?.toByte()
+        val blockId = args[1].toUShortOrNull()
         val name = if (args.size > 2) args[2] else "Custom Block"
         val textureId =
-            if (args.size > 3) args[3].toUByteOrNull()?.toByte() ?: 1.toByte()
-            else 1.toByte()
+            if (args.size > 3)
+                args[3].toIntOrNull()?.coerceIn(0, 65535)?.toUShort() ?: 1u
+            else 1u
 
-        if (blockId == null || blockId < 1) {
+        if (blockId == null || blockId < 1u) {
             MessageRegistry.Commands.Block.sendInvalidId(executor)
             return
         }
 
-        if (blockId == 0.toByte()) {
+        if (blockId == 0u.toUShort()) {
             MessageRegistry.Commands.Block.sendAirNotEditable(executor)
             return
         }
@@ -280,7 +281,7 @@ class BlockCommand : Command {
             JsonBlock(
                 id = blockId,
                 name = name,
-                fallback = blockId,
+                fallback = blockId.toByte(),
                 solidity = BlockSolidity.SOLID,
                 movementSpeed = 128.toByte(),
                 topTextureId = textureId,
@@ -327,14 +328,14 @@ class BlockCommand : Command {
     @ArgRange(min = 2, max = 2)
     fun deleteBlock(executor: CommandExecutor, args: Array<String>) {
         val target = args[0].lowercase()
-        val blockId = args[1].toUByteOrNull()?.toByte()
+        val blockId = args[1].toUShortOrNull()
 
         if (blockId == null) {
             MessageRegistry.Commands.Block.sendInvalidId(executor)
             return
         }
 
-        if (blockId == 0.toByte()) {
+        if (blockId == 0u.toUShort()) {
             MessageRegistry.Commands.Block.sendAirNotEditable(executor)
             return
         }
@@ -547,8 +548,8 @@ class BlockCommand : Command {
         return try {
             when (property) {
                 "id" -> {
-                    val newId = value.toUByteOrNull()?.toByte()
-                    if (newId == null || newId < 1) return null
+                    val newId = value.toUShortOrNull()
+                    if (newId == null || newId < 1u) return null
                     copyBlock(block, id = newId)
                 }
                 "name" -> copyBlock(block, name = value)
@@ -569,31 +570,45 @@ class BlockCommand : Command {
                     copyBlock(block, movementSpeed = speed)
                 }
                 "toptex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, topTextureId = tex)
                 }
                 "sidetex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, sideTextureId = tex)
                 }
                 "bottomtex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, bottomTextureId = tex)
                 }
                 "lefttex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, leftTextureId = tex)
                 }
                 "righttex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, rightTextureId = tex)
                 }
                 "fronttex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, frontTextureId = tex)
                 }
                 "backtex" -> {
-                    val tex = value.toUByteOrNull()?.toByte() ?: return null
+                    val tex =
+                        value.toIntOrNull()?.coerceIn(0, 65535)?.toUShort()
+                            ?: return null
                     copyBlock(block, backTextureId = tex)
                 }
                 "transmitslight" -> {
@@ -662,6 +677,10 @@ class BlockCommand : Command {
                     val max = value.toUByteOrNull()?.toByte() ?: return null
                     copyBlock(block, maxZ = max)
                 }
+                "slot" -> {
+                    val slot = value.toUShortOrNull() ?: return null
+                    copyBlock(block, slot = slot)
+                }
                 else -> null
             }
         } catch (_: Exception) {
@@ -671,14 +690,14 @@ class BlockCommand : Command {
 
     private fun copyBlock(
         block: Block,
-        id: Byte = block.id,
+        id: UShort = block.id,
         name: String = block.name,
         fallback: Byte = block.fallback,
         solidity: BlockSolidity = block.solidity,
         movementSpeed: Byte = block.movementSpeed,
-        topTextureId: Byte = block.topTextureId,
-        sideTextureId: Byte = block.sideTextureId,
-        bottomTextureId: Byte = block.bottomTextureId,
+        topTextureId: UShort = block.topTextureId,
+        sideTextureId: UShort = block.sideTextureId,
+        bottomTextureId: UShort = block.bottomTextureId,
         transmitsLight: Boolean = block.transmitsLight,
         walkSound: WalkSound = block.walkSound,
         fullBright: Boolean = block.fullBright,
@@ -688,16 +707,17 @@ class BlockCommand : Command {
         fogR: Byte = block.fogR,
         fogG: Byte = block.fogG,
         fogB: Byte = block.fogB,
-        leftTextureId: Byte = block.leftTextureId,
-        rightTextureId: Byte = block.rightTextureId,
-        frontTextureId: Byte = block.frontTextureId,
-        backTextureId: Byte = block.backTextureId,
+        leftTextureId: UShort = block.leftTextureId,
+        rightTextureId: UShort = block.rightTextureId,
+        frontTextureId: UShort = block.frontTextureId,
+        backTextureId: UShort = block.backTextureId,
         minX: Byte = block.minWidth,
         minY: Byte = block.minHeight,
         minZ: Byte = block.minDepth,
         maxX: Byte = block.maxWidth,
         maxY: Byte = block.maxHeight,
         maxZ: Byte = block.maxDepth,
+        slot: UShort = block.slot,
     ): JsonBlock {
         val hasCustomBounds =
             minX != 0.toByte() ||
@@ -742,6 +762,7 @@ class BlockCommand : Command {
             maxWidth = maxX,
             maxHeight = maxY,
             maxDepth = maxZ,
+            slot = slot,
         )
     }
 }

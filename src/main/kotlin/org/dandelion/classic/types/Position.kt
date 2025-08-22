@@ -10,6 +10,14 @@ data class Position(
     var yaw: Float = 0f,
     var pitch: Float = 0f,
 ) {
+    constructor(
+        x: Number,
+        y: Number,
+        z: Number,
+        yaw: Float = 0f,
+        pitch: Float = 0f,
+    ) : this(x.toFloat(), y.toFloat(), z.toFloat(), yaw, pitch)
+
     fun set(x: Float, y: Float, z: Float, yaw: Float, pitch: Float) {
         this.x = x
         this.y = y

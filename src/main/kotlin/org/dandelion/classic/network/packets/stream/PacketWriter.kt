@@ -29,6 +29,11 @@ internal class PacketWriter {
         output.write(value.toInt() and 0xFF)
     }
 
+    fun writeUShort(value: UShort) {
+        output.write((value.toInt() shr 8) and 0xFF)
+        output.write(value.toInt() and 0xFF)
+    }
+
     fun writeFShort(value: Float) {
         val fixed = (value * 32.0f).toInt().coerceIn(-32768, 32767)
         output.write((fixed shr 8) and 0xFF)
@@ -50,10 +55,15 @@ internal class PacketWriter {
         output.write(padded)
     }
 
-    fun writeLevelData(data: ByteArray, length: Int = 1024) {
+    fun writeByteArray(data: ByteArray, length: Int = 1024) {
         val padded = ByteArray(length) { 0x00 }
         System.arraycopy(data, 0, padded, 0, data.size.coerceAtMost(length))
         output.write(padded)
+    }
+
+    fun writeFloat(value: Float) {
+        val fixed = (value * 32.0f).toInt()
+        output.write(ByteBuffer.allocate(4).putInt(fixed).array())
     }
 
     fun toByteArray(): ByteArray {
