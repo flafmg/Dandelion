@@ -87,7 +87,7 @@ object Console : CommandExecutor {
 
     @JvmStatic
     fun debugLog(message: String) {
-        if (ServerInfo.debugMode) {
+        if (ServerConfig.debugMode) {
             val formattedMessage =
                 "${timestamp()}$GRAY[DEBUG] ${processColorCodes(message)}$RESET"
             lineReader?.printAbove(formattedMessage)

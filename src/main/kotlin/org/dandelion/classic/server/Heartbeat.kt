@@ -28,16 +28,16 @@ object Heartbeat {
         return data
             .replace(
                 "{server-name}",
-                URLEncoder.encode(ServerInfo.name, "UTF-8"),
+                URLEncoder.encode(ServerConfig.name, "UTF-8"),
             )
-            .replace("{server-port}", ServerInfo.port.toString())
+            .replace("{server-port}", ServerConfig.port.toString())
             .replace("{players-online}", Players.count().toString())
-            .replace("{players-max}", ServerInfo.maxPlayers.toString())
-            .replace("{server-public}", ServerInfo.isPublic.toString())
+            .replace("{players-max}", ServerConfig.maxPlayers.toString())
+            .replace("{server-public}", ServerConfig.isPublic.toString())
             .replace("{server-salt}", Salt.get())
             .replace(
                 "{server-software}",
-                URLEncoder.encode(ServerInfo.serverSoftware, "UTF-8"),
+                URLEncoder.encode(ServerConfig.serverSoftware, "UTF-8"),
             )
     }
 
@@ -45,7 +45,7 @@ object Heartbeat {
         sendLoopJob =
             CoroutineScope(Dispatchers.Default).launch {
                 while (isActive) {
-                    delay(ServerInfo.heartbeatInterval.inWholeMilliseconds)
+                    delay(ServerConfig.heartbeatInterval.inWholeMilliseconds)
                     sendHeartbeat()
                 }
             }
@@ -53,7 +53,7 @@ object Heartbeat {
 
     private fun sendHeartbeat() {
         var processedHeartbeatString =
-            processHeartbeatPlaceholders(ServerInfo.heartbeatData)
+            processHeartbeatPlaceholders(ServerConfig.heartbeatData)
         val event = HeartbeatSendEvent(processedHeartbeatString)
         EventDispatcher.dispatch(event)
         if (event.isCancelled) {
@@ -63,7 +63,7 @@ object Heartbeat {
 
         try {
             val processedData = processedHeartbeatString
-            val finalUrl = "${ServerInfo.heartbeatUrl}?$processedData"
+            val finalUrl = "${ServerConfig.heartbeatUrl}?$processedData"
             val url = URL(finalUrl)
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "GET"

@@ -12,6 +12,7 @@ version = "0.1.2-dev"
 
 repositories {
     mavenCentral()
+    maven("https://repo.viaversion.com")
 }
 
 dependencies {
@@ -23,6 +24,7 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.4")
     implementation("io.netty:netty-all:4.2.2.Final")
     implementation("org.jline:jline:3.30.0")
+    implementation("com.viaversion:nbt:5.0.0")
 }
 
 application {

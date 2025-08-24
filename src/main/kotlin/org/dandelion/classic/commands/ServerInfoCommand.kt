@@ -7,7 +7,7 @@ import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.Server
-import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.ServerConfig
 
 @CommandDef(
     name = "serverinfo",
@@ -31,12 +31,12 @@ class ServerInfoCommand : Command {
         MessageRegistry.Commands.Server.Info.sendHeader(executor)
         MessageRegistry.Commands.Server.Info.sendSoftware(
             executor,
-            ServerInfo.serverSoftware,
+            ServerConfig.serverSoftware,
         )
         MessageRegistry.Commands.Server.Info.sendUptime(executor, uptime)
         MessageRegistry.Commands.Server.Info.sendPublic(
             executor,
-            ServerInfo.isPublic,
+            ServerConfig.isPublic,
         )
     }
 }

@@ -3,13 +3,13 @@ package org.dandelion.classic.network.packets.classic.server
 import io.netty.channel.Channel
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
-import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.ServerConfig
 
 class ServerIdentification(
-    val serverName: String = ServerInfo.name,
-    val serverMotd: String = ServerInfo.motd,
-    val userType: Byte = 0x00,
     val protocolVersion: Byte = 0x07,
+    val serverName: String = ServerConfig.name,
+    val serverMotd: String = ServerConfig.motd,
+    val userType: Byte = 0x64,
 ) : Packet() {
     override val id: Byte = 0x00
 

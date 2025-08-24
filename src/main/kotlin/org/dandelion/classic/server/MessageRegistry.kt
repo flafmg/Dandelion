@@ -12,7 +12,7 @@ import org.dandelion.classic.util.YamlConfig
 internal object MessageRegistry {
     private lateinit var config: YamlConfig
 
-    fun init() {
+    fun reload() {
         val messagesFile = File("messages.yml")
         if (!messagesFile.exists()) {
             val resourceStream =
@@ -1264,7 +1264,7 @@ internal object MessageRegistry {
                     fun sendSuccess(
                         executor: CommandExecutor,
                         type: String,
-                        blockId: Byte,
+                        blockId: Short,
                         id: String,
                     ) {
                         sendMessage(

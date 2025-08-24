@@ -2,27 +2,32 @@ package org.dandelion.classic.level
 
 import java.io.File
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.*
 import org.dandelion.classic.entity.Entity
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.level.generator.LevelGenerator
 import org.dandelion.classic.server.Console
-import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.ServerConfig
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.vec.SVec
 
 /** Manages all loaded levels in the server */
 object Levels {
     private val levels = HashMap<String, Level>()
-    private var defaultLevelId: String = "unknowId"
-    private var autoSaveInterval: Duration = 2.minutes
+    var defaultLevelId: String
+        get() = ServerConfig.defaultLevel
+        set(value) {ServerConfig.defaultLevel = value}
+    var defaultFormat: String
+        get() = ServerConfig.levelFormat
+        set(value) {ServerConfig.levelFormat = value}
+
+    var autoSaveInterval: Duration
+        get() = ServerConfig.autoSaveInterval
+        set(value) {ServerConfig.autoSaveInterval = value}
     private var saveJob: Job? = null
 
     /** Initializes the level manager with server configuration */
     internal fun init() {
-        defaultLevelId = ServerInfo.defaultLevel
-        autoSaveInterval = ServerInfo.autoSaveInterval
         startAutoSaveTask()
         loadAllFromDirectory("levels")
     }
@@ -200,6 +205,7 @@ object Levels {
                 extraData = extraData,
                 timeCreated = timeCreated,
                 autoSave = autoSave,
+                targetFormat = defaultFormat,
             )
 
         return try {
@@ -252,14 +258,8 @@ object Levels {
                     "Default level '$levelId' is not loaded - create or load this level first"
                 )
         }
+        ServerConfig.save()
     }
-
-    /**
-     * Gets the current default level ID
-     *
-     * @return The ID of the currently configured default level.
-     */
-    @JvmStatic fun getDefaultLevelId(): String = defaultLevelId
 
     /**
      * Checks if a level is currently loaded
@@ -371,7 +371,7 @@ object Levels {
 
         val levelFiles =
             directory.listFiles { _, name ->
-                name.endsWith(".dlvl", ignoreCase = true)
+                name.endsWith(".dlvl", ignoreCase = true) || name.endsWith(".cw", true)
             }
 
         if (levelFiles == null) {

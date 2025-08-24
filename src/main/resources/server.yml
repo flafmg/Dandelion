@@ -1,4 +1,4 @@
-# Dandelion configuration file v1
+# Dandelion configuration file v2
 server:
   name: "dandelion dev server"
   motd: "powered by dandelion"
@@ -7,9 +7,12 @@ server:
   public: true
   verify-users: true # This will define if your server allow direct connection
   debug-mode: false # If console should show debug logs
+
 level:
   default-level: "main"
   auto-save-interval: 120
+  format: dlvl # Can be `dlvl` for dandelion level format or `cw` for classic world level format
+
 heartbeat:
   enabled: true
   url: "http://www.classicube.net/server/heartbeat/"

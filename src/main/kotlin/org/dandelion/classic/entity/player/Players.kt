@@ -15,7 +15,7 @@ import org.dandelion.classic.permission.Group
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
-import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.ServerConfig
 import org.dandelion.classic.tablist.TabList
 
 /**
@@ -79,7 +79,7 @@ object Players {
 
         val player =
             createPlayerFromClientInfo(clientInfo, channel).apply {
-                levelId = Levels.getDefaultLevelId()
+                levelId = Levels.defaultLevelId
                 supportsCpe = clientInfo.unused == 0x42.toByte()
             }
 
@@ -316,7 +316,7 @@ object Players {
         clientInfo: ClientIdentification,
         channel: Channel,
     ): Boolean {
-        if (!ServerInfo.verifyUsers) return true
+        if (!ServerConfig.verifyUsers) return true
 
         val expectedHash = generateHash(clientInfo.userName)
         if (clientInfo.verificationKey != expectedHash) {
@@ -333,7 +333,7 @@ object Players {
     private fun generateHash(userName: String): String {
         val messageDigest = MessageDigest.getInstance(MD5_ALGORITHM)
         val hashBytes =
-            messageDigest.digest("${ServerInfo.salt}$userName".toByteArray())
+            messageDigest.digest("${ServerConfig.salt}$userName".toByteArray())
         return hashBytes.joinToString("") { HEX_FORMAT.format(it) }
     }
 
@@ -362,7 +362,7 @@ object Players {
             }
     }
 
-    private fun isServerFull(): Boolean = count() >= ServerInfo.maxPlayers
+    private fun isServerFull(): Boolean = count() >= ServerConfig.maxPlayers
 
     private fun createPlayerFromClientInfo(
         clientInfo: ClientIdentification,
@@ -522,6 +522,17 @@ object Players {
      */
     fun hasPermission(name: String, permission: String): Boolean =
         PermissionRepository.hasPermission(name, permission)
+
+    /**
+     * Checks if a player has a specific permission.
+     *
+     * @param name the player name
+     * @param permission the permission string
+     * @param default the default if permission is not set explicitly
+     * @return true if the player has the permission
+     */
+    fun hasPermission(name: String, permission: String, default: Boolean = false): Boolean =
+        PermissionRepository.hasPermission(name, permission, default)
 
     /**
      * Adds a group to a player.

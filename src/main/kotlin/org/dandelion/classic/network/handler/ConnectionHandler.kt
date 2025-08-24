@@ -75,7 +75,11 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
                                 offset,
                                 bufferToProcess.size,
                             )
-                        channelBuffers[channelKey] = remainingData
+                        if (remainingData.size > 1024) {
+                            channelBuffers.remove(channelKey)
+                        } else {
+                            channelBuffers[channelKey] = remainingData
+                        }
                         return
                     }
                 }

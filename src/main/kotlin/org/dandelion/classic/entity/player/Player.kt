@@ -54,7 +54,7 @@ import org.dandelion.classic.network.packets.cpe.server.ServerVelocityControl
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
-import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.ServerConfig
 import org.dandelion.classic.tablist.TabList
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.enums.MessageType
@@ -1102,7 +1102,7 @@ class Player(
      * The message of the day (MOTD) for this player. It is showed when the
      * player joins a level
      */
-    var motd: String = ServerInfo.motd
+    var motd: String = ServerConfig.motd
         /**
          * Sets the message of the day (MOTD) for this player
          *
@@ -1161,8 +1161,19 @@ class Player(
      * @return true if the player has the permission
      */
     override fun hasPermission(permission: String): Boolean {
-        return if (info.isOperator) true else super.hasPermission(permission)
+        return super.hasPermission(permission)
     }
+    /**
+     * Checks if this player has a specific permission.
+     *
+     * @param permission the permission string
+     * @param default the default permission if its not explicitly set
+     * @return true if the player has the permission
+     */
+    fun hasPermission(permission: String, default: Boolean = false): Boolean {
+        return Players.hasPermission(name, permission, default)
+    }
+
 
     /**
      * Adds a group to this player.
@@ -1808,6 +1819,17 @@ class Player(
          */
         fun hasPermission(name: String, permission: String): Boolean =
             Players.hasPermission(name, permission)
+
+        /**
+         * Checks if a player has a specific permission by name.
+         *
+         * @param name the player name
+         * @param permission the permission string
+         * @param default the default to send if not explicitly set
+         * @return true if the player has the permission
+         */
+        fun hasPermission(name: String, permission: String, default: Boolean = false): Boolean =
+            Players.hasPermission(name, permission, default)
 
         /**
          * Adds a group to a player by name.

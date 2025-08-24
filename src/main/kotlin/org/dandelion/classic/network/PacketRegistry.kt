@@ -164,10 +164,6 @@ object PacketRegistry {
         if (player == null) {
             return
         }
-        if (info.extensionCount < count) {
-            player.kick("Mismatching CPE support count")
-            return
-        }
 
         player.supportedCpeCount = info.extensionCount
         player.client = info.appName

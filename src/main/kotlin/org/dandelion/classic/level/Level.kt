@@ -7,6 +7,8 @@ import org.dandelion.classic.blocks.model.Block
 import org.dandelion.classic.entity.Entity
 import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.level.generator.LevelGenerator
+import org.dandelion.classic.level.io.ClassicWorldLevelDeserializer
+import org.dandelion.classic.level.io.ClassicWorldLevelSerializer
 import org.dandelion.classic.level.io.DandelionLevelDeserializer
 import org.dandelion.classic.level.io.DandelionLevelSerializer
 import org.dandelion.classic.level.io.LevelDeserializer
@@ -45,6 +47,7 @@ class Level(
     val author: String,
     var description: String,
     val size: SVec,
+    val targetFormat: String = "dlvl",
     val blockData: ByteArray = ByteArray(size.x * size.y * size.z) { 0x00 },
     var blockData2: ByteArray? = null,
     var spawn: Position = Position(size.x / 2, (size.y / 2) + 1, size.z / 2),
@@ -79,26 +82,38 @@ class Level(
         }
 
     /** The block ID used for map sides (from SetMapEnvProperty) */
-    var sideBlock: Byte = 7
+    var sideBlock: Short = 7
         /**
          * Sets the map sides block ID
          *
          * @param value The block ID for map sides
          */
         set(value) {
+            if (value >= 768) {
+                Console.errLog(
+                    "Invalid block ID for sideBlock: $value."
+                )
+                return
+            }
             field = value
             ServerSetMapEnvProperty(0, value.toInt())
                 .send(getPlayers().filter { it.supports("EnvMapAspect") })
         }
 
     /** The block ID used for map edge/horizon (from SetMapEnvProperty) */
-    var edgeBlock: Byte = 8
+    var edgeBlock: Short = 8
         /**
          * Sets the map edge/horizon block ID
          *
          * @param value The block ID for map edge
          */
         set(value) {
+            if (value >= 768) {
+                Console.errLog(
+                    "Invalid block ID for edgeBlock: $value"
+                )
+                return
+            }
             field = value
             ServerSetMapEnvProperty(1, value.toInt())
                 .send(getPlayers().filter { it.supports("EnvMapAspect") })
@@ -1243,7 +1258,7 @@ class Level(
      * @param serializer The [LevelSerializer] to use for saving.
      */
     fun save(serializer: LevelSerializer) {
-        save(serializer, File("levels/$id.dlvl"))
+        save(serializer, File("levels/$id.$targetFormat"))
     }
 
     /**
@@ -1266,7 +1281,8 @@ class Level(
 
     /** Saves the level using the default serializer to the default location */
     fun save() {
-        save(DandelionLevelSerializer())
+        val serializer = if(targetFormat.equals("cw", true)) ClassicWorldLevelSerializer() else DandelionLevelSerializer()
+        save(serializer)
     }
 
     /**
@@ -1408,9 +1424,14 @@ class Level(
          * @param file The [File] to load the level from.
          * @return The loaded [Level] instance if successful, `null` otherwise.
          */
-        fun load(file: File): Level? =
-            DandelionLevelDeserializer().deserialize(file)
+        fun load(file: File): Level? {
+            if(file.extension == "dlvl")
+                return DandelionLevelDeserializer().deserialize(file)
+            if(file.extension == "cw")
+                return ClassicWorldLevelDeserializer().deserialize(file)
 
+            return null
+        }
         /**
          * Loads a level using the default deserializer
          * ([DandelionLevelDeserializer]) and specified path

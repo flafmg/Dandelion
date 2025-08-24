@@ -28,9 +28,6 @@ object CommandRegistry {
     private val commands = mutableMapOf<String, CommandInfo>()
 
     internal fun init() {
-        // Initialize the message system first
-        MessageRegistry.init()
-
         register(KickCommand())
         register(BanCommand())
         register(UnbanCommand())

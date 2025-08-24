@@ -8,6 +8,7 @@ import org.dandelion.classic.entity.player.Player
 import org.dandelion.classic.level.Level
 import org.dandelion.classic.network.packets.cpe.server.ServerDefineBlock
 import org.dandelion.classic.network.packets.cpe.server.ServerDefineBlockExt
+import org.dandelion.classic.network.packets.cpe.server.ServerSetBlockPermission
 import org.dandelion.classic.network.packets.cpe.server.ServerSetInventoryOrder
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.util.JsonConfig
@@ -634,6 +635,7 @@ object BlockRegistry {
                         packet.send(player)
                     }
                 }
+                sendBlockPermission(player, block, level)
             } catch (e: Exception) {
                 Console.errLog(
                     "Failed to send block definition for ${block.name} (ID: ${block.id}): ${e.message}"
@@ -646,6 +648,11 @@ object BlockRegistry {
         }
     }
 
+    private fun sendBlockPermission(player: Player, block: Block, level: Level){
+        val canPlace = player.hasPermission("dandelion.blocks.${level.id}.${block.id}.place", true)
+        val canBreak = player.hasPermission("dandelion.blocks.${level.id}.${block.id}.break", true)
+        ServerSetBlockPermission(block.id, canPlace, canBreak).send(player)
+    }
     private fun hasCustomSlot(block: Block): Boolean =
         block.slot != UShort.MAX_VALUE
 

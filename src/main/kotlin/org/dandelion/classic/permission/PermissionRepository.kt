@@ -233,8 +233,8 @@ object PermissionRepository {
     }
 
     /** Check if a player has a specific permission. */
-    fun hasPermission(playerName: String, permission: String): Boolean {
-        return getPlayerPermissions(playerName)[permission] ?: false
+    fun hasPermission(playerName: String, permission: String, default: Boolean = false): Boolean {
+        return getPlayerPermissions(playerName)[permission] ?: default
     }
 
     /** Get the highest priority group for a player. */

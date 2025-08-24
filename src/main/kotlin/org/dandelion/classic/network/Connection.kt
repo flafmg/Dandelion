@@ -12,7 +12,7 @@ import org.dandelion.classic.network.handler.ConnectionHandler
 import org.dandelion.classic.network.handler.DisconnectHandler
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.Server
-import org.dandelion.classic.server.ServerInfo
+import org.dandelion.classic.server.ServerConfig
 
 internal object Connection {
     private var isRunning = false
@@ -26,7 +26,7 @@ internal object Connection {
         isRunning = true
 
         Console.log(
-            "Initializing connection manager on port ${ServerInfo.port}"
+            "Initializing connection manager on port ${ServerConfig.port}"
         )
 
         bossGroup =
@@ -67,10 +67,10 @@ internal object Connection {
 
             val channelFuture =
                 serverBootstrap
-                    .bind(ServerInfo.port)
+                    .bind(ServerConfig.port)
                     .sync() // starts connection on the port
             channel = channelFuture.channel()
-            Console.log("connection manager active on port ${ServerInfo.port}")
+            Console.log("connection manager active on port ${ServerConfig.port}")
         } catch (ex: Exception) {
             Console.errLog(
                 "Exception occured while trying to enable connection manager: ${ex.message}"

@@ -859,7 +859,7 @@ class LevelCommand : Command {
         }
 
         val blockType = args[2].lowercase()
-        val blockId = args[3].toByteOrNull()
+        val blockId = args[3].toShortOrNull()
         if (blockId == null) {
             MessageRegistry.Commands.Level.Env.Blocks.sendUsage(executor)
             return
