@@ -104,7 +104,7 @@ object Players {
     internal fun finalizeHandshake(player: Player) {
         removeConnecting(player)
 
-        if (!player.channel.isOpen) return
+        if (!player.channel.isOpen || !player.channel.isActive) return
 
         ServerIdentification().send(player.channel)
 
@@ -310,14 +310,11 @@ object Players {
     }
 
     private fun validateConnection(player: Player): ConnectionResult {
+        find(player.name)?.kick(MessageRegistry.Server.Connection.getReconnected())
         return when {
             player.info.isBanned ->
                 ConnectionResult.Failure(
                     "You are banned: ${player.info.banReason}"
-                )
-            isConnected(player) ->
-                ConnectionResult.Failure(
-                    MessageRegistry.Server.Connection.getAlreadyConnected()
                 )
             isServerFull() ->
                 ConnectionResult.Failure(
@@ -442,11 +439,6 @@ object Players {
                 version.toInt(),
                 EXPECTED_PROTOCOL_VERSION.toInt(),
             )
-        ServerDisconnectPlayer(message).send(channel)
-    }
-
-    private fun disconnectWithNoCPESupport(channel: Channel) {
-        val message = MessageRegistry.Server.Connection.getNoCpeSupport()
         ServerDisconnectPlayer(message).send(channel)
     }
 

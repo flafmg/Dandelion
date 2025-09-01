@@ -2,9 +2,8 @@
 server:
   connection:
     invalid_protocol: "&cInvalid protocol version ({version}, expected {expected})"
-    no_cpe_support: "&cYour client does not support CPE (disable classic mode)"
-    authentication_failed: "&cAuthentication failed - please log in properly"
-    already_connected: "&cYou are already connected to this server"
+    authentication_failed: "&cAuthentication failed - restart your game"
+    reconnected: "Connected from another location"
     server_full: "&cThe server is full"
 
   player:

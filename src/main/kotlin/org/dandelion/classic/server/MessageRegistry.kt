@@ -65,8 +65,8 @@ internal object MessageRegistry {
             fun getAuthenticationFailed(): String =
                 getMessage("server.connection.authentication_failed")
 
-            fun getAlreadyConnected(): String =
-                getMessage("server.connection.already_connected")
+            fun getReconnected(): String =
+                getMessage("server.connection.reconnected")
 
             fun getServerFull(): String =
                 getMessage("server.connection.server_full")
