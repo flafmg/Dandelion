@@ -387,7 +387,7 @@ class Player(
     // region Level Management
     @OptIn(DelicateCoroutinesApi::class)
     override fun joinLevel(level: Level, notifyJoin: Boolean) {
-        if (!level.tryAddEntity(this)) {
+        if (level.getAvailableIds() <= 0) {
             sendMessage(MessageRegistry.Server.Level.getFull())
             return
         }
@@ -398,16 +398,16 @@ class Player(
             if (event.isCancelled) return
         }
 
-        this.level = level
-        if (notifyJoin) Players.notifyJoinedLevel(this, level)
+        this.level?.removeEntity(this)
+        this.level = null
 
         GlobalScope.launch {
-            transmitLevelData(level)
+            transmitLevelData(level, notifyJoin)
             updateTabList()
         }
     }
 
-    private suspend fun transmitLevelData(level: Level) {
+    private suspend fun transmitLevelData(level: Level,  notifyJoin: Boolean) {
         when {
             supports("ExtendedBlocks") && supports("FastMap") -> {
                 sendLevelDataFastMapExtendedBlocks(level)
@@ -427,7 +427,7 @@ class Player(
             }
         }
 
-        finalizeLevelTransfer(level)
+        finalizeLevelTransfer(level, notifyJoin)
     }
 
     private suspend fun sendLevelDataVanilla(blockData: ByteArray) {
@@ -720,7 +720,14 @@ class Player(
         return processedData
     }
 
-    private fun finalizeLevelTransfer(level: Level) {
+    private fun finalizeLevelTransfer(level: Level, notifyJoin: Boolean) {
+        if(!level.tryAddEntity(this)) {
+            kick(MessageRegistry.Server.Level.getFull())
+            return
+        }
+        this.level = level
+        if (notifyJoin) Players.notifyJoinedLevel(this, level)
+
         BlockRegistry.sendBlockDefinitions(this)
         level.spawnPlayerInLevel(this)
         updateTabList()
