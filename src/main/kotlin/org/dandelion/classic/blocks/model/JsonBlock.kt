@@ -4,10 +4,6 @@ import org.dandelion.classic.blocks.model.enums.BlockDraw
 import org.dandelion.classic.blocks.model.enums.BlockSolidity
 import org.dandelion.classic.blocks.model.enums.WalkSound
 
-/**
- * Dynamic block implementation loaded from JSON configuration files. This class
- * allows creating custom blocks without hardcoding them.
- */
 class JsonBlock(
     override val id: UShort,
     override val name: String,
@@ -41,12 +37,6 @@ class JsonBlock(
 ) : Block() {
 
     companion object {
-        /**
-         * Creates a JsonBlock from JSON configuration data.
-         *
-         * @param blockData Map containing block configuration from JSON
-         * @return JsonBlock instance created from the configuration
-         */
         fun fromJson(blockData: Map<String, Any?>): JsonBlock? {
             val blockId =
                 (blockData["BlockID"] as? Number)?.toInt()?.toUShort()?.takeIf {

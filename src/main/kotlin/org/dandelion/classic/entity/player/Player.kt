@@ -11,6 +11,7 @@ import org.dandelion.classic.blocks.manager.BlockRegistry
 import org.dandelion.classic.blocks.model.Block
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.entity.Entity
+import org.dandelion.classic.entity.player.data.PlayerInfo
 import org.dandelion.classic.events.BlockFace
 import org.dandelion.classic.events.ClickAction
 import org.dandelion.classic.events.MouseButton
@@ -63,10 +64,6 @@ import org.dandelion.classic.types.extensions.Color
 import org.dandelion.classic.types.extensions.SelectionCuboid
 import org.dandelion.classic.util.toFShort
 
-/**
- * Represents a connected player in the game world. Extends Entity with
- * player-specific functionality
- */
 class Player(
     val channel: Channel,
     var client: String,
@@ -115,23 +112,10 @@ class Player(
     // endregion
 
     // region message system
-
-    /**
-     * Sends a message to the player
-     *
-     * @param message The message string to send.
-     */
     override fun sendMessage(message: String) {
         sendMessage(message, 0x00)
     }
 
-    /**
-     * Sends a message to the player with specified message type
-     *
-     * @param message The message string to send.
-     * @param messageType the [MessageType] of the message. Defaults to
-     *   [MessageType.Chat].
-     */
     fun sendMessage(
         message: String,
         messageType: MessageType = MessageType.Chat,
@@ -139,13 +123,6 @@ class Player(
         sendMessage(message, messageType.code.toByte())
     }
 
-    /**
-     * Sends a message to the player with specified message type ID
-     *
-     * @param message The message string to send.
-     * @param messageTypeId An optional byte identifier for the type of message.
-     *   Defaults to `0x00`.
-     */
     fun sendMessage(message: String, messageTypeId: Byte = 0x00) {
         when (messageTypeId) {
             0x00.toByte() -> {
@@ -157,15 +134,6 @@ class Player(
         }
     }
 
-    /**
-     * Splits long messages into chunks while preserving color codes and word
-     * boundaries
-     *
-     * @param message The message string to split.
-     * @param maxLength The maximum length for each chunk. Defaults to
-     *   [MAX_MESSAGE_LENGTH].
-     * @return A list of message chunk strings.
-     */
     private fun splitMessageIntoChunks(
         message: String,
         maxLength: Int = MAX_MESSAGE_LENGTH,
@@ -197,38 +165,16 @@ class Player(
         return chunks
     }
 
-    /**
-     * Finds the optimal index to split text, preferring word boundaries
-     *
-     * @param text The text string to find a split index for.
-     * @param maxLength The maximum allowed length for the split.
-     * @return The optimal split index.
-     */
     private fun findOptimalSplitIndex(text: String, maxLength: Int): Int {
         val lastSpaceIndex = text.substring(0, maxLength).lastIndexOf(' ')
         return if (lastSpaceIndex > 0) lastSpaceIndex else maxLength
     }
 
-    /**
-     * Extracts the last color code from a text chunk
-     *
-     * @param text The text string to extract the color code from.
-     * @return The last color code string found, or an empty string if none.
-     */
     private fun extractLastColorCode(text: String): String {
         return COLOR_CODE_REGEX.toRegex().findAll(text).lastOrNull()?.value
             ?: ""
     }
 
-    /**
-     * Prepares the continuation text for the next chunk with proper color code
-     * handling
-     *
-     * @param text The original text string.
-     * @param splitIndex The index where the text was split.
-     * @param lastColorCode The last color code found in the previous chunk.
-     * @return The prepared continuation text string.
-     */
     private fun prepareContinuationText(
         text: String,
         splitIndex: Int,
@@ -256,23 +202,11 @@ class Player(
     // endregion
 
     // region Player Management
-    /**
-     * Kicks the player from the server with a specified reason
-     *
-     * @param reason The reason for kicking the player. Defaults to "You have
-     *   been kicked".
-     */
     fun kick(reason: String = "You have been kicked") {
         ServerDisconnectPlayer(reason).send(channel)
         Players.handleDisconnection(channel)
     }
 
-    /**
-     * Bans the player and kicks them from the server
-     *
-     * @param reason The reason for banning the player. Defaults to "No reason
-     *   provided".
-     */
     fun ban(reason: String = "No reason provided") {
         info.setBanned(reason)
         kick("You are banned: $reason")
@@ -280,18 +214,6 @@ class Player(
 
     // endregion
     // region Position Management
-
-    /**
-     * Updates player position and sends the update to the player's client
-     *
-     * @param x The new X coordinate (Float).
-     * @param y The new Y coordinate (Float).
-     * @param z The new Z coordinate (Float).
-     * @param yaw The new yaw rotation (Float).
-     * @param pitch The new pitch rotation (Float).
-     * @param moveMode the [MoveMode] to the teleport.
-     * @param interpolateOrientation if orientation should be interpolated.
-     */
     override fun teleportTo(
         x: Float,
         y: Float,
@@ -301,7 +223,6 @@ class Player(
         moveMode: MoveMode,
         interpolateOrientation: Boolean,
     ) {
-        super.teleportTo(x, y, z, yaw, pitch, moveMode, interpolateOrientation)
 
         val actualUsePosition =
             x != this.position.x || y != this.position.y || z != this.position.z
@@ -322,6 +243,23 @@ class Player(
                     pitch = pitch,
                 )
                 .send(channel)
+            Players.getAllPlayers()
+                .filter { it != this }
+                .forEach {
+                    ServerExtEntityTeleport(
+                            entityId = entityId,
+                            usePosition = actualUsePosition,
+                            moveMode = moveMode,
+                            useOrientation = actualUseOrientation,
+                            interpolateOrientation = interpolateOrientation,
+                            x = x,
+                            y = y,
+                            z = z,
+                            yaw = yaw,
+                            pitch = pitch,
+                        )
+                        .send(it)
+                }
         } else {
             if (
                 moveMode == MoveMode.RELATIVE_SMOOTH ||
@@ -343,6 +281,28 @@ class Player(
                         else this.position.pitch.toInt().toByte(),
                     )
                     .send(channel)
+                Players.getAllPlayers()
+                    .filter { it != this }
+                    .forEach {
+                        ServerSetPositionAndOrientation(
+                                entityId,
+                                if (actualUsePosition) this.position.x + x
+                                else this.position.x,
+                                if (actualUsePosition) this.position.y + y
+                                else this.position.y,
+                                if (actualUsePosition) this.position.z + z
+                                else this.position.z,
+                                if (actualUseOrientation)
+                                    (this.position.yaw + yaw).toInt().toByte()
+                                else this.position.yaw.toInt().toByte(),
+                                if (actualUseOrientation)
+                                    (this.position.pitch + pitch)
+                                        .toInt()
+                                        .toByte()
+                                else this.position.pitch.toInt().toByte(),
+                            )
+                            .send(it)
+                    }
             } else {
                 ServerSetPositionAndOrientation(
                         -1,
@@ -355,22 +315,25 @@ class Player(
                         else this.position.pitch.toInt().toByte(),
                     )
                     .send(channel)
+                Players.getAllPlayers()
+                    .filter { it != this }
+                    .forEach {
+                        ServerSetPositionAndOrientation(
+                                entityId,
+                                if (actualUsePosition) x else this.position.x,
+                                if (actualUsePosition) y else this.position.y,
+                                if (actualUsePosition) z else this.position.z,
+                                if (actualUseOrientation) yaw.toInt().toByte()
+                                else this.position.yaw.toInt().toByte(),
+                                if (actualUseOrientation) pitch.toInt().toByte()
+                                else this.position.pitch.toInt().toByte(),
+                            )
+                            .send(it)
+                    }
             }
         }
     }
 
-    /**
-     * Handles player movement with event system integration and cancellation
-     * support
-     *
-     * @param newX The new X coordinate (Float).
-     * @param newY The new Y coordinate (Float).
-     * @param newZ The new Z coordinate (Float).
-     * @param newYaw The new yaw rotation (Float).
-     * @param newPitch The new pitch rotation (Float).
-     * @param forceAbsolute Whether to force an absolute position update.
-     *   Defaults to `false`.
-     */
     override fun updatePositionAndOrientation(
         newX: Float,
         newY: Float,
@@ -400,11 +363,6 @@ class Player(
         }
     }
 
-    /**
-     * Rejects player movement by sending them back to the original position
-     *
-     * @param originalPosition The [Position] to send the player back to.
-     */
     private fun rejectMovement(originalPosition: Position) {
         ServerSetPositionAndOrientation(
                 -1,
@@ -427,14 +385,6 @@ class Player(
     // endregion
 
     // region Level Management
-
-    /**
-     * Transfers the player to a new level with full level data transmission
-     *
-     * @param level The [Level] to transfer the player to.
-     * @param notifyJoin Whether to notify other players about the level join.
-     *   Defaults to `false`.
-     */
     @OptIn(DelicateCoroutinesApi::class)
     override fun joinLevel(level: Level, notifyJoin: Boolean) {
         if (!level.tryAddEntity(this)) {
@@ -773,7 +723,7 @@ class Player(
     private fun finalizeLevelTransfer(level: Level) {
         BlockRegistry.sendBlockDefinitions(this)
         level.spawnPlayerInLevel(this)
-
+        updateTabList()
         teleportTo(level.spawn)
         setSpawnPoint(level.spawn)
         ServerLevelFinalize(level.size.x, level.size.y, level.size.z)
@@ -794,21 +744,11 @@ class Player(
     // endregion
 
     // region Entity Spawning Overrides
-    /**
-     * Spawns this player for another entity and vice versa
-     *
-     * @param other The other [Entity] to spawn mutually with this player.
-     */
     override fun mutualSpawn(other: Entity) {
         this.spawnFor(other)
         other.spawnFor(this)
     }
 
-    /**
-     * Despawns this player for another entity and vice versa
-     *
-     * @param other The other [Entity] to despawn mutually with this player.
-     */
     override fun mutualDespawn(other: Entity) {
         this.despawnFor(other)
         other.despawnFor(this)
@@ -816,8 +756,6 @@ class Player(
 
     // endregion
     // region Communication
-
-    /** longer message packet */
     internal fun handleSendMessageAs(packet: ClientMessage) {
         if (supports("LongerMessages")) {
             val waitNext = packet.messageType != 0.toByte()
@@ -832,11 +770,6 @@ class Player(
         }
     }
 
-    /**
-     * Handles player chat messages and commands
-     *
-     * @param message The message string sent by the player.
-     */
     override fun sendMessageAs(message: String) {
         val processedMessage = message.replace("%", "&")
         val event = PlayerSendMessageEvent(this, processedMessage)
@@ -860,14 +793,6 @@ class Player(
     // endregion
 
     // region Block Updates
-    /**
-     * Sends block update to this specific player
-     *
-     * @param x The X coordinate (Short) of the block to update.
-     * @param y The Y coordinate (Short) of the block to update.
-     * @param z The Z coordinate (Short) of the block to update.
-     * @param block The new [Byte] block type ID.
-     */
     override fun interactWithBlock(
         x: Short,
         y: Short,
@@ -926,13 +851,6 @@ class Player(
             .send(this)
     }
 
-    /**
-     * Sets the held block for this player and optionally prevents changes
-     *
-     * @param block The block type ID (Byte) to set as the held block.
-     * @param preventChange Whether to prevent changes to the held block.
-     *   Defaults to `false`
-     */
     fun setHeldBlock(block: UShort, preventChange: Boolean = false) {
         if (supports("HeldBlock")) {
             this.heldBlock = block
@@ -942,12 +860,6 @@ class Player(
         }
     }
 
-    /**
-     * Sets a block in the player's hotbar at the specified index
-     *
-     * @param block The block type ID (Byte) to set in the hotbar.
-     * @param index The index in the hotbar (0-8) where the block should be set.
-     */
     fun setHotbarBlock(block: UShort, index: Byte) {
         if (supports("SetHotbar")) {
             ServerSetHotbar(block, index).send(channel)
@@ -961,86 +873,43 @@ class Player(
     // endregion
 
     // region hack control
-
-    /** Indicates whether the player can fly */
     var canFly: Boolean = true
-        /**
-         * Sets whether the player can fly
-         *
-         * @param value true to allow flying, false to disable
-         */
         set(value) {
             field = value
             updateHackControl()
         }
 
-    /** Indicates whether the player can use noclip */
     var canNoClip: Boolean = true
-        /**
-         * Sets whether the player can use noclip
-         *
-         * @param value true to allow noclip, false to disable
-         */
         set(value) {
             field = value
             updateHackControl()
         }
 
-    /** Indicates whether the player can use speed */
     var canSpeed: Boolean = true
-        /**
-         * Sets whether the player can use speed
-         *
-         * @param value true to allow speed, false to disable
-         */
         set(value) {
             field = value
             updateHackControl()
         }
 
-    /** Indicates whether the player can use spawn control */
     var canSpawnControl: Boolean = true
-        /**
-         * Sets whether the player can use spawn control
-         *
-         * @param value true to allow spawn control, false to disable
-         */
         set(value) {
             field = value
             updateHackControl()
         }
 
-    /** Indicates whether the player can use third person view */
     var canThirdPerson: Boolean = true
-        /**
-         * Sets whether the player can use third person view
-         *
-         * @param value true to allow third person view, false to disable
-         */
         set(value) {
             field = value
             updateHackControl()
         }
 
-    /** The jump height value for the player */
     var jumpHeight: Short = -1
-        /**
-         * Sets the jump height value for the player
-         *
-         * @param value The jump height value
-         */
         set(value) {
             field = value
             updateHackControl()
         }
 
-    /** The maximum click distance for the player */
     var clickDistance: Short = 160
-        /**
-         * Sets the maximum click distance for the player
-         *
-         * @param value The maximum click distance
-         */
         set(value) {
             field = value
             if (supports("ClickDistance")) {
@@ -1065,49 +934,21 @@ class Player(
     // endregion
 
     var spawnPosition: Position = Position(0, 0, 0)
-        /**
-         * Sets the spawn point for this player at the specified position.
-         *
-         * @param position The [Position] to set as the spawn point.
-         */
         set(value) {
             setSpawnPoint(value.x, value.y, value.z, value.yaw, value.pitch)
             field = value
         }
 
-    /**
-     * Sets the spawn point for this player at the specified position.
-     *
-     * @param position The [Position] to set as the spawn point.
-     */
     fun setSpawnPoint(position: Position) {
         spawnPosition = position
     }
 
-    /**
-     * Sets the spawn point for this player at the specified position.
-     *
-     * @param x The X coordinate (Short) of the spawn point.
-     * @param y The Y coordinate (Short) of the spawn point.
-     * @param z The Z coordinate (Short) of the spawn point.
-     * @param yaw The yaw rotation (Byte) for the spawn point.
-     * @param pitch The pitch rotation (Byte) for the spawn point.
-     */
     fun setSpawnPoint(x: Float, y: Float, z: Float, yaw: Float, pitch: Float) {
         if (!supports("SetSpawnpoint")) return
         ServerSetSpawnpoint(x, y, z, yaw, pitch).send(channel)
     }
 
-    /**
-     * The message of the day (MOTD) for this player. It is showed when the
-     * player joins a level
-     */
     var motd: String = ServerConfig.motd
-        /**
-         * Sets the message of the day (MOTD) for this player
-         *
-         * @param value The MOTD string to set
-         */
         set(value) {
             field = value
             when {
@@ -1129,6 +970,7 @@ class Player(
 
     fun updateTabList() {
         TabList.updatePlayer(this)
+        TabList.sendFullTabListTo(this)
     }
 
     // endregion
@@ -1144,68 +986,25 @@ class Player(
             .send(channel)
     }
 
-    /**
-     * Sets a permission for this player.
-     *
-     * @param permission the permission string
-     * @param value true to grant, false to deny
-     * @return true if the permission was set
-     */
     fun setPermission(permission: String, value: Boolean): Boolean =
         Players.setPermission(this.name, permission, value)
 
-    /**
-     * Checks if this player has a specific permission.
-     *
-     * @param permission the permission string
-     * @return true if the player has the permission
-     */
     override fun hasPermission(permission: String): Boolean {
         return super.hasPermission(permission)
     }
-    /**
-     * Checks if this player has a specific permission.
-     *
-     * @param permission the permission string
-     * @param default the default permission if its not explicitly set
-     * @return true if the player has the permission
-     */
+
     fun hasPermission(permission: String, default: Boolean = false): Boolean {
         return Players.hasPermission(name, permission, default)
     }
 
-
-    /**
-     * Adds a group to this player.
-     *
-     * @param group the group name to add
-     * @return true if the group was added
-     */
     fun addGroup(group: String): Boolean = Players.addGroup(this.name, group)
 
-    /**
-     * Removes a group from this player.
-     *
-     * @param group the group name to remove
-     * @return true if the group was removed
-     */
     fun removeGroup(group: String): Boolean =
         Players.removeGroup(this.name, group)
 
     // endregion
 
     // region Velocity Management
-
-    /**
-     * Sets the velocity of this player using individual components
-     *
-     * @param velocityX The X velocity component. Scaled such that 10000 = 1.0
-     *   velocity.
-     * @param velocityY The Y velocity component. Scaled such that 10000 = 1.0
-     *   velocity.
-     * @param velocityZ The Z velocity component. Scaled such that 10000 = 1.0
-     *   velocity.
-     */
     fun setVelocity(velocityX: Int, velocityY: Int, velocityZ: Int) {
         if (supports("VelocityControl")) {
             ServerVelocityControl(velocityX, velocityY, velocityZ, 1, 1, 1)
@@ -1213,16 +1012,6 @@ class Player(
         }
     }
 
-    /**
-     * Sets the velocity of this player using Float values
-     *
-     * @param velocityX The X velocity component as Float (1.0 = normal
-     *   velocity).
-     * @param velocityY The Y velocity component as Float (1.0 = normal
-     *   velocity).
-     * @param velocityZ The Z velocity component as Float (1.0 = normal
-     *   velocity).
-     */
     fun setVelocity(velocityX: Float, velocityY: Float, velocityZ: Float) {
         setVelocity(
             (velocityX * 10000).toInt(),
@@ -1231,16 +1020,6 @@ class Player(
         )
     }
 
-    /**
-     * Adds to the velocity of this player using individual components
-     *
-     * @param velocityX The X velocity component to add. Scaled such that 10000
-     *   = 1.0 velocity.
-     * @param velocityY The Y velocity component to add. Scaled such that 10000
-     *   = 1.0 velocity.
-     * @param velocityZ The Z velocity component to add. Scaled such that 10000
-     *   = 1.0 velocity.
-     */
     fun addVelocity(velocityX: Int, velocityY: Int, velocityZ: Int) {
         if (supports("VelocityControl")) {
             ServerVelocityControl(velocityX, velocityY, velocityZ, 0, 0, 0)
@@ -1248,16 +1027,6 @@ class Player(
         }
     }
 
-    /**
-     * Adds to the velocity of this player using Float values
-     *
-     * @param velocityX The X velocity component to add as Float (1.0 = normal
-     *   velocity).
-     * @param velocityY The Y velocity component to add as Float (1.0 = normal
-     *   velocity).
-     * @param velocityZ The Z velocity component to add as Float (1.0 = normal
-     *   velocity).
-     */
     fun addVelocity(velocityX: Float, velocityY: Float, velocityZ: Float) {
         addVelocity(
             (velocityX * 10000).toInt(),
@@ -1266,12 +1035,6 @@ class Player(
         )
     }
 
-    /**
-     * Makes this player jump by setting Y velocity while preserving horizontal
-     * velocity
-     *
-     * @param jumpHeight The jump height as Float (1.0 = normal jump height).
-     */
     fun jump(jumpHeight: Float = 1.0f) {
         if (supports("VelocityControl")) {
             ServerVelocityControl(0, (jumpHeight * 10000).toInt(), 0, 0, 1, 0)
@@ -1279,14 +1042,6 @@ class Player(
         }
     }
 
-    /**
-     * Applies knockback to this player in a specific direction
-     *
-     * @param velocityX The X velocity component for knockback.
-     * @param velocityZ The Z velocity component for knockback.
-     * @param upwardVelocity The Y velocity component for upward knockback.
-     *   Defaults to 0.5f.
-     */
     fun knockback(
         velocityX: Float,
         velocityZ: Float,
@@ -1301,13 +1056,6 @@ class Player(
     private val activeSelections = mutableMapOf<Byte, SelectionCuboid>()
     private var nextSelectionId: Byte = 0
 
-    /**
-     * Adds a selection to this player
-     *
-     * @param selection The [SelectionCuboid] to add
-     * @return The assigned selection ID, or null if no ID is available
-     *   (overflow)
-     */
     fun addSelection(selection: SelectionCuboid): Byte? {
         if (!supports("SelectionCuboid")) return null
 
@@ -1342,20 +1090,10 @@ class Player(
         return selection.id
     }
 
-    /**
-     * Removes a selection from this player
-     *
-     * @param selection The [SelectionCuboid] to remove
-     */
     fun removeSelection(selection: SelectionCuboid) {
         removeSelection(selection.id)
     }
 
-    /**
-     * Removes a selection by ID from this player
-     *
-     * @param selectionId The ID of the selection to remove
-     */
     fun removeSelection(selectionId: Byte) {
         if (
             supports("SelectionCuboid") &&
@@ -1366,7 +1104,6 @@ class Player(
         }
     }
 
-    /** Clears all selections for this player */
     fun clearSelections() {
         if (supports("SelectionCuboid")) {
             activeSelections.keys.forEach { selectionId ->
@@ -1377,11 +1114,6 @@ class Player(
         }
     }
 
-    /**
-     * Gets all active selections for this player
-     *
-     * @return A map of selection IDs to [SelectionCuboid] objects
-     */
     fun getActiveSelections(): Map<Byte, SelectionCuboid> =
         activeSelections.toMap()
 
@@ -1390,30 +1122,16 @@ class Player(
 
     private val pressedButtons = mutableSetOf<MouseButton>()
 
-    /**
-     * Checks if a specific mouse button is currently pressed
-     *
-     * @param button The mouse button to check
-     * @return true if the button is currently pressed
-     */
     fun isPressingMouse(button: MouseButton): Boolean {
         return pressedButtons.contains(button)
     }
 
-    /** Checks if the left mouse button is currently pressed */
     fun isPressingLeftMouse(): Boolean = isPressingMouse(MouseButton.LEFT)
 
-    /** Checks if the right mouse button is currently pressed */
     fun isPressingRightMouse(): Boolean = isPressingMouse(MouseButton.RIGHT)
 
-    /** Checks if the middle mouse button is currently pressed */
     fun isPressingMiddleMouse(): Boolean = isPressingMouse(MouseButton.MIDDLE)
 
-    /**
-     * Handles player click events received from the client
-     *
-     * @param packet The [ClientPlayerClick] packet containing click information
-     */
     internal fun handleClickEvent(packet: ClientPlayerClick) {
         val highPrecisionYaw = packet.yaw / 32.0f
         val highPrecisionPitch = packet.pitch / 32.0f
@@ -1522,13 +1240,6 @@ class Player(
     }
 
     // endregion
-
-    /**
-     * Handles notify action events received from the client
-     *
-     * @param packet The [ClientNotifyAction] packet containing action
-     *   information
-     */
     internal fun handleNotifyAction(packet: ClientNotifyAction) {
         val currentLevel = level ?: return
 
@@ -1592,12 +1303,6 @@ class Player(
         }
     }
 
-    /**
-     * Handles notify position action events received from the client
-     *
-     * @param packet The [ClientNotifyPositionAction] packet containing position
-     *   action information
-     */
     internal fun handleNotifyPositionAction(
         packet: ClientNotifyPositionAction
     ) {
@@ -1650,19 +1355,6 @@ class Player(
 
     // endregion
     // region Cinematic GUI Management
-
-    /**
-     * Sets the cinematic GUI properties for this player
-     *
-     * @param hideCrosshair Whether to hide the crosshair
-     * @param hideHotbar Whether to hide the hotbar
-     * @param hideHand Whether to hide the player's hand
-     * @param red Red component of the cinematic bars (0-255)
-     * @param green Green component of the cinematic bars (0-255)
-     * @param blue Blue component of the cinematic bars (0-255)
-     * @param opacity Alpha component of the cinematic bars (0-255)
-     * @param apertureSize Aperture size for cinematic bars (0-65535)
-     */
     fun setCinematicGui(
         hideCrosshair: Boolean = false,
         hideHotbar: Boolean = false,
@@ -1688,16 +1380,6 @@ class Player(
         }
     }
 
-    /**
-     * Sets the cinematic GUI properties for this player
-     *
-     * @param hideCrosshair Whether to hide the crosshair
-     * @param hideHotbar Whether to hide the hotbar
-     * @param hideHand Whether to hide the player's hand
-     * @param color The color for the cinematic bars
-     * @param opacity Alpha component of the cinematic bars (0-255)
-     * @param apertureSize Aperture size for cinematic bars (0-65535)
-     */
     fun setCinematicGui(
         hideCrosshair: Boolean = false,
         hideHotbar: Boolean = false,
@@ -1718,11 +1400,6 @@ class Player(
         )
     }
 
-    /**
-     * Resets the cinematic GUI to default values for this player Default
-     * values: all UI elements visible, black bars with no opacity and no
-     * aperture size
-     */
     fun resetCinematicGui() {
         setCinematicGui(
             hideCrosshair = false,
@@ -1739,8 +1416,6 @@ class Player(
     // endregion
 
     // region misc
-
-    /** sets a hotkey for a player */
     fun setHotKey(
         label: String,
         action: String,
@@ -1765,89 +1440,33 @@ class Player(
     // endRegion
 
     companion object {
-        /**
-         * Finds a player by name (case-insensitive).
-         *
-         * @param name The name of the player to find.
-         * @return The [Player] instance if found, or null if not found.
-         */
         fun find(name: String): Player? = Players.find(name)
 
-        /**
-         * Gets all connected players.
-         *
-         * @return A list of all [Player] instances currently connected.
-         */
         fun getAllPlayers(): List<Player> = Players.getAllPlayers()
 
-        /**
-         * Gets the number of connected players.
-         *
-         * @return The count of currently connected players.
-         */
         fun getPlayerCount(): Int = Players.count()
 
-        /**
-         * Gets the permissions of a player
-         *
-         * @param name the requested player name
-         * @return a list containing all player permissions
-         */
         fun getPermissions(name: String): List<String> =
             Players.getPermissions(name)
 
-        /**
-         * Sets a permission for a player by name.
-         *
-         * @param name the player name
-         * @param permission the permission string
-         * @param value true to grant, false to deny
-         * @return true if the permission was set
-         */
         fun setPermission(
             name: String,
             permission: String,
             value: Boolean,
         ): Boolean = Players.setPermission(name, permission, value)
 
-        /**
-         * Checks if a player has a specific permission by name.
-         *
-         * @param name the player name
-         * @param permission the permission string
-         * @return true if the player has the permission
-         */
         fun hasPermission(name: String, permission: String): Boolean =
             Players.hasPermission(name, permission)
 
-        /**
-         * Checks if a player has a specific permission by name.
-         *
-         * @param name the player name
-         * @param permission the permission string
-         * @param default the default to send if not explicitly set
-         * @return true if the player has the permission
-         */
-        fun hasPermission(name: String, permission: String, default: Boolean = false): Boolean =
-            Players.hasPermission(name, permission, default)
+        fun hasPermission(
+            name: String,
+            permission: String,
+            default: Boolean = false,
+        ): Boolean = Players.hasPermission(name, permission, default)
 
-        /**
-         * Adds a group to a player by name.
-         *
-         * @param name the player name
-         * @param group the group name to add
-         * @return true if the group was added
-         */
         fun addGroup(name: String, group: String): Boolean =
             Players.addGroup(name, group)
 
-        /**
-         * Removes a group from a player by name.
-         *
-         * @param name the player name
-         * @param group the group name to remove
-         * @return true if the group was removed
-         */
         fun removeGroup(name: String, group: String): Boolean =
             Players.removeGroup(name, group)
     }

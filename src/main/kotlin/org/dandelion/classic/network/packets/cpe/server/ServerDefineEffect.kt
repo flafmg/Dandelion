@@ -23,7 +23,7 @@ class ServerDefineEffect(
     val baseLifetime: Int,
     val lifetimeVariation: Int,
     val collideFlags: Byte,
-    val fullBright: Byte
+    val fullBright: Byte,
 ) : Packet() {
     override val id: Byte = 0x30
     override val isCpe: Boolean = true
@@ -53,4 +53,3 @@ class ServerDefineEffect(
         return writer.toByteArray()
     }
 }
-

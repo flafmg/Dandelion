@@ -4,7 +4,6 @@ import io.netty.channel.Channel
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 
-/** Packet to remove a selection cuboid from the client */
 class ServerRemoveSelection(private val selectionId: Byte) : Packet() {
 
     override val id: Byte = 0x1B

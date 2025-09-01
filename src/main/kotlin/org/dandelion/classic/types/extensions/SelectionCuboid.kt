@@ -3,20 +3,6 @@ package org.dandelion.classic.types.extensions
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.vec.IVec
 
-/**
- * Represents a cuboid selection with start/end coordinates, color, and opacity
- *
- * @property id The selection ID (0-255) - automatically assigned by Player
- * @property label Text label for the selection
- * @property startX Starting X coordinate
- * @property startY Starting Y coordinate
- * @property startZ Starting Z coordinate
- * @property endX Ending X coordinate
- * @property endY Ending Y coordinate
- * @property endZ Ending Z coordinate
- * @property color The color of the selection
- * @property opacity Opacity value (0-255)
- */
 data class SelectionCuboid(
     var id: Byte = 0,
     val label: String,

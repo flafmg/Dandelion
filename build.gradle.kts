@@ -8,7 +8,7 @@ kotlin {
 }
 
 group = "org.dandelion.classic"
-version = "0.1.2-dev"
+version = "0.1.3-dev"
 
 repositories {
     mavenCentral()
@@ -25,6 +25,7 @@ dependencies {
     implementation("io.netty:netty-all:4.2.2.Final")
     implementation("org.jline:jline:3.30.0")
     implementation("com.viaversion:nbt:5.0.0")
+    implementation("org.xerial:sqlite-jdbc:3.50.3.0")
 }
 
 application {

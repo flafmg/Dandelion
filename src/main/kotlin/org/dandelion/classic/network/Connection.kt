@@ -70,7 +70,9 @@ internal object Connection {
                     .bind(ServerConfig.port)
                     .sync() // starts connection on the port
             channel = channelFuture.channel()
-            Console.log("connection manager active on port ${ServerConfig.port}")
+            Console.log(
+                "connection manager active on port ${ServerConfig.port}"
+            )
         } catch (ex: Exception) {
             Console.errLog(
                 "Exception occured while trying to enable connection manager: ${ex.message}"

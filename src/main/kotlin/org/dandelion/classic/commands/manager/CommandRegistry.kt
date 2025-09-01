@@ -1,5 +1,6 @@
 package org.dandelion.classic.commands.manager
 
+import TeleportCommand
 import org.dandelion.classic.commands.BanCommand
 import org.dandelion.classic.commands.BlockCommand
 import org.dandelion.classic.commands.ClientsCommand
@@ -10,6 +11,7 @@ import org.dandelion.classic.commands.OnlineCommand
 import org.dandelion.classic.commands.PermissionCommand
 import org.dandelion.classic.commands.PlayerInfoCommand
 import org.dandelion.classic.commands.PluginCommand
+import org.dandelion.classic.commands.ReloadCommand
 import org.dandelion.classic.commands.SayCommand
 import org.dandelion.classic.commands.SayRawCommand
 import org.dandelion.classic.commands.ServerInfoCommand
@@ -18,12 +20,7 @@ import org.dandelion.classic.commands.UnbanCommand
 import org.dandelion.classic.commands.model.Command
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.server.Console
-import org.dandelion.classic.server.MessageRegistry
 
-/**
- * CommandRegistry manages the registration, lookup, and unregistration of
- * commands.
- */
 object CommandRegistry {
     private val commands = mutableMapOf<String, CommandInfo>()
 
@@ -43,14 +40,10 @@ object CommandRegistry {
         register(ClientsCommand())
         register(PluginCommand())
         register(BlockCommand())
+        register(TeleportCommand())
+        register(ReloadCommand())
     }
 
-    /**
-     * Registers a command and its aliases in the registry.
-     *
-     * @param command The command to register.
-     * @return True if the command was registered successfully, false otherwise.
-     */
     @JvmStatic
     fun register(command: Command): Boolean {
         val commandInfo =
@@ -61,13 +54,6 @@ object CommandRegistry {
         return true
     }
 
-    /**
-     * Unregisters a command and its aliases from the registry.
-     *
-     * @param commandName The name or alias of the command to unregister.
-     * @return True if the command was unregistered successfully, false
-     *   otherwise.
-     */
     @JvmStatic
     fun unregister(commandName: String): Boolean {
         val commandInfo = commands[commandName]
@@ -83,19 +69,10 @@ object CommandRegistry {
         return true
     }
 
-    /** Unregisters all commands from the registry. */
     private fun unregisterAll() {
         commands.clear()
     }
 
-    /**
-     * Executes a command line by parsing the command name and arguments, then
-     * dispatching to the appropriate command handler.
-     *
-     * @param commandLine The full command line string entered by the user.
-     * @param executor The executor that will run the command (e.g., player or
-     *   console).
-     */
     @JvmStatic
     fun execute(commandLine: String, executor: CommandExecutor) {
         var cleanCommand = commandLine.trim()
@@ -111,13 +88,6 @@ object CommandRegistry {
         execute(commandName, executor, args)
     }
 
-    /**
-     * Executes a command by name with the provided arguments and executor.
-     *
-     * @param name The name or alias of the command to execute.
-     * @param executor The executor that will run the command.
-     * @param args Arguments to pass to the command.
-     */
     @JvmStatic
     fun execute(name: String, executor: CommandExecutor, args: Array<String>) {
         val command =
@@ -133,10 +103,5 @@ object CommandRegistry {
         CommandProcessor.executeCommand(command, executor, args)
     }
 
-    /**
-     * Returns a list of all registered commands.
-     *
-     * @return List of CommandInfo for all registered commands.
-     */
     fun getCommands(): List<CommandInfo> = commands.values.distinct()
 }

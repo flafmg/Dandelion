@@ -119,7 +119,8 @@ class DandelionLevelSerializer : LevelSerializer {
         writer.writeFloat(level.spawn.pitch)
         writer.writeString(level.extraData)
 
-        val (mainCompressed, secondaryCompressed) = getCompressedBlockData(level)
+        val (mainCompressed, secondaryCompressed) =
+            getCompressedBlockData(level)
         val hash = generateMd5(mainCompressed, secondaryCompressed)
 
         writer.writeByteArray(mainCompressed)
@@ -170,7 +171,9 @@ class DandelionLevelSerializer : LevelSerializer {
         }
     }
 
-    private fun getCompressedBlockData(level: Level): Pair<ByteArray, ByteArray?> {
+    private fun getCompressedBlockData(
+        level: Level
+    ): Pair<ByteArray, ByteArray?> {
         val mainCompressed = compressData(level.blockData)
         val secondaryCompressed = level.blockData2?.let { compressData(it) }
         return Pair(mainCompressed, secondaryCompressed)
@@ -178,13 +181,14 @@ class DandelionLevelSerializer : LevelSerializer {
 
     private fun compressData(data: ByteArray): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        GZIPOutputStream(byteArrayOutputStream).use {
-            it.write(data)
-        }
+        GZIPOutputStream(byteArrayOutputStream).use { it.write(data) }
         return byteArrayOutputStream.toByteArray()
     }
 
-    private fun generateMd5(mainData: ByteArray, secondaryData: ByteArray?): ByteArray {
+    private fun generateMd5(
+        mainData: ByteArray,
+        secondaryData: ByteArray?,
+    ): ByteArray {
         val md = MessageDigest.getInstance("MD5")
         md.update(mainData)
         secondaryData?.let { md.update(it) }
@@ -238,7 +242,11 @@ class DandelionLevelDeserializer : LevelDeserializer {
         return Info(id, author, description, timeCreated)
     }
 
-    private fun readData(reader: BinaryReader, info: Info, version: Byte): Level {
+    private fun readData(
+        reader: BinaryReader,
+        info: Info,
+        version: Byte,
+    ): Level {
         val sizeX = reader.readShort()
         val sizeY = reader.readShort()
         val sizeZ = reader.readShort()
@@ -249,47 +257,63 @@ class DandelionLevelDeserializer : LevelDeserializer {
         val spawnPitch = reader.readFloat()
         val extraData = reader.readString()
 
-        val (blockData, blockData2) = if (version >= 4) {
-            val mainCompressed = reader.readByteArray()
-            val hasSecondary = reader.readBoolean()
-            val secondaryCompressed = if (hasSecondary) reader.readByteArray() else null
-            val hash = reader.readByteArray(16)
+        val (blockData, blockData2) =
+            if (version >= 4) {
+                val mainCompressed = reader.readByteArray()
+                val hasSecondary = reader.readBoolean()
+                val secondaryCompressed =
+                    if (hasSecondary) reader.readByteArray() else null
+                val hash = reader.readByteArray(16)
 
-            val computedHash = generateMd5(mainCompressed, secondaryCompressed)
-            if (!computedHash.contentEquals(hash)) {
-                throw IllegalArgumentException("Level is corrupted! MD5 hash mismatch")
+                val computedHash =
+                    generateMd5(mainCompressed, secondaryCompressed)
+                if (!computedHash.contentEquals(hash)) {
+                    throw IllegalArgumentException(
+                        "Level is corrupted! MD5 hash mismatch"
+                    )
+                }
+
+                decompressBlockData(
+                    mainCompressed,
+                    secondaryCompressed,
+                    sizeX * sizeY * sizeZ,
+                )
+            } else {
+                val compressedBlocks = reader.readByteArray()
+                val hash = reader.readByteArray(16)
+
+                val md = MessageDigest.getInstance("MD5")
+                val computedHash = md.digest(compressedBlocks)
+                if (!computedHash.contentEquals(hash)) {
+                    throw IllegalArgumentException(
+                        "Level is corrupted! MD5 hash mismatch"
+                    )
+                }
+
+                decompressLegacyBlocks(compressedBlocks, sizeX * sizeY * sizeZ)
             }
 
-            decompressBlockData(mainCompressed, secondaryCompressed, sizeX * sizeY * sizeZ)
-        } else {
-            val compressedBlocks = reader.readByteArray()
-            val hash = reader.readByteArray(16)
-
-            val md = MessageDigest.getInstance("MD5")
-            val computedHash = md.digest(compressedBlocks)
-            if (!computedHash.contentEquals(hash)) {
-                throw IllegalArgumentException("Level is corrupted! MD5 hash mismatch")
-            }
-
-            decompressLegacyBlocks(compressedBlocks, sizeX * sizeY * sizeZ)
-        }
-
-        val level = Level(
-            id = info.id,
-            author = info.author,
-            description = info.description,
-            size = SVec(sizeX, sizeY, sizeZ),
-            blockData = blockData,
-            blockData2 = blockData2,
-            spawn = Position(spawnX, spawnY, spawnZ, spawnYaw, spawnPitch),
-            extraData = extraData,
-            timeCreated = info.timeCreated,
-        )
+        val level =
+            Level(
+                id = info.id,
+                author = info.author,
+                description = info.description,
+                size = SVec(sizeX, sizeY, sizeZ),
+                blockData = blockData,
+                blockData2 = blockData2,
+                spawn = Position(spawnX, spawnY, spawnZ, spawnYaw, spawnPitch),
+                extraData = extraData,
+                timeCreated = info.timeCreated,
+            )
 
         return level
     }
 
-    private fun readEnvironment(reader: BinaryReader, level: Level, version: Byte) {
+    private fun readEnvironment(
+        reader: BinaryReader,
+        level: Level,
+        version: Byte,
+    ) {
         level.texturePackUrl = reader.readString()
 
         if (version >= 4) {
@@ -321,7 +345,8 @@ class DandelionLevelDeserializer : LevelDeserializer {
 
     private fun readLighting(reader: BinaryReader, level: Level) {
         val lightingModeId = reader.readByte()
-        level.lightingMode = LightingMode.fromId(lightingModeId) ?: LightingMode.CLIENT_LOCAL
+        level.lightingMode =
+            LightingMode.fromId(lightingModeId) ?: LightingMode.CLIENT_LOCAL
         level.lightingModeLocked = reader.readBoolean()
     }
 
@@ -343,16 +368,23 @@ class DandelionLevelDeserializer : LevelDeserializer {
         expectedSize: Int,
     ): Pair<ByteArray, ByteArray?> {
         val mainBlocks = decompressData(mainCompressed, expectedSize)
-        val secondaryBlocks = secondaryCompressed?.let { decompressData(it, expectedSize) }
+        val secondaryBlocks =
+            secondaryCompressed?.let { decompressData(it, expectedSize) }
         return Pair(mainBlocks, secondaryBlocks)
     }
 
-    private fun decompressLegacyBlocks(compressed: ByteArray, expectedSize: Int): Pair<ByteArray, ByteArray?> {
+    private fun decompressLegacyBlocks(
+        compressed: ByteArray,
+        expectedSize: Int,
+    ): Pair<ByteArray, ByteArray?> {
         val blocks = decompressData(compressed, expectedSize)
         return Pair(blocks, null)
     }
 
-    private fun decompressData(compressed: ByteArray, expectedSize: Int): ByteArray {
+    private fun decompressData(
+        compressed: ByteArray,
+        expectedSize: Int,
+    ): ByteArray {
         GZIPInputStream(compressed.inputStream()).use { gzip ->
             val out = ByteArray(expectedSize)
             var read = 0
@@ -362,12 +394,17 @@ class DandelionLevelDeserializer : LevelDeserializer {
                 read += r
             }
             if (read != expectedSize)
-                throw IllegalArgumentException("Level is corrupted! block array size mismatch")
+                throw IllegalArgumentException(
+                    "Level is corrupted! block array size mismatch"
+                )
             return out
         }
     }
 
-    private fun generateMd5(mainData: ByteArray, secondaryData: ByteArray?): ByteArray {
+    private fun generateMd5(
+        mainData: ByteArray,
+        secondaryData: ByteArray?,
+    ): ByteArray {
         val md = MessageDigest.getInstance("MD5")
         md.update(mainData)
         secondaryData?.let { md.update(it) }

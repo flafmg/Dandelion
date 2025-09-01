@@ -1,10 +1,10 @@
 package org.dandelion.classic.server
 
-import org.dandelion.classic.util.Utils
+import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import org.dandelion.classic.util.Utils
 import org.dandelion.classic.util.YamlConfig
-import java.io.File
 
 object ServerConfig {
     private lateinit var config: YamlConfig
@@ -18,6 +18,7 @@ object ServerConfig {
         }
         config = YamlConfig.load(configFile)
     }
+
     fun save() {
         config.save()
     }
@@ -27,7 +28,6 @@ object ServerConfig {
 
     val salt: String
         get() = Salt.get()
-
 
     var isPublic: Boolean
         get() = config.getBoolean("server.public", true)
@@ -76,11 +76,13 @@ object ServerConfig {
         set(value) {
             config.set("level.default-level", value)
         }
+
     var levelFormat: String
         get() = config.getString("level.format", "dlvl")
-        set(value){
+        set(value) {
             config.set("level.format", value)
         }
+
     var autoSaveInterval: Duration
         get() = config.getInt("level.auto-save-interval", 120).seconds
         set(value) {
@@ -94,7 +96,11 @@ object ServerConfig {
         }
 
     var heartbeatUrl: String
-        get() = config.getString("heartbeat.url", "http://www.classicube.net/server/heartbeat/")
+        get() =
+            config.getString(
+                "heartbeat.url",
+                "http://www.classicube.net/server/heartbeat/",
+            )
         set(value) {
             config.set("heartbeat.url", value)
         }
@@ -103,7 +109,7 @@ object ServerConfig {
         get() =
             config.getString(
                 "heartbeat.data",
-                "name={server-name}&port={server-port}&users={players-online}&max={players-max}&public={server-public}&salt={server-salt}&software={server-software}"
+                "name={server-name}&port={server-port}&users={players-online}&max={players-max}&public={server-public}&salt={server-salt}&software={server-software}",
             )
         set(value) {
             config.set("heartbeat.data", value)

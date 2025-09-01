@@ -9,17 +9,11 @@ import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.server.MessageRegistry
 
 object TabList {
-    private const val MAX_NAME_IDS = 256
-
+    private const val MAX_NAME_IDS = 255
     private val availableNameIds = ArrayDeque<Short>(MAX_NAME_IDS)
-    private val nameIdEntries = HashMap<Short, TabListEntry>()
     private val playerNameIds = HashMap<String, Short>()
 
     init {
-        initializeNameIdPool()
-    }
-
-    private fun initializeNameIdPool() {
         for (id in 0 until MAX_NAME_IDS) {
             availableNameIds.addFirst(id.toShort())
         }
@@ -56,46 +50,52 @@ object TabList {
 
         val groupRank =
             if (levelName == Levels.getDefaultLevel()?.id) {
-                256
+                255
             } else {
-                group?.priority ?: 0
+                0
             }
 
-        val entry =
-            TabListEntry(
-                nameId = nameId,
-                playerName = player.name,
-                listName = listName,
-                groupName = groupName,
-                groupRank = groupRank,
-            )
-
-        nameIdEntries[nameId] = entry
         playerNameIds[player.name] = nameId
 
-        broadcastAddEntry(entry)
+        Players.getAllPlayers().forEach { recipient ->
+            if (recipient.supportsCpe && recipient.supports("ExtPlayerList")) {
+                val sendNameId =
+                    if (recipient.name == player.name) 255 else nameId
+                val packet =
+                    ServerExtAddPlayerName(
+                        sendNameId,
+                        player.name,
+                        listName,
+                        groupName,
+                        groupRank.toByte(),
+                    )
+                packet.send(recipient.channel)
+            }
+        }
     }
 
     @JvmStatic
     fun removePlayer(player: Player) {
-        removeEntry(player.name)
-    }
+        val nameId = playerNameIds[player.name] ?: return
 
-    @JvmStatic
-    fun removeEntry(playerName: String) {
-        val nameId = playerNameIds[playerName] ?: return
-
-        nameIdEntries.remove(nameId)
-        playerNameIds.remove(playerName)
+        playerNameIds.remove(player.name)
         freeNameId(nameId)
 
-        broadcastRemoveEntry(nameId)
+        Players.getAllPlayers()
+            .filter { it != player }
+            .forEach { recipient ->
+                if (
+                    recipient.supportsCpe && recipient.supports("ExtPlayerList")
+                ) {
+                    val packet = ServerExtRemovePlayerName(nameId)
+                    packet.send(recipient.channel)
+                }
+            }
     }
 
     @JvmStatic
     fun updatePlayer(player: Player) {
         val nameId = playerNameIds[player.name] ?: return
-        val oldEntry = nameIdEntries[nameId] ?: return
 
         val highestGroup = PermissionRepository.getHighestGroup(player.name)
         val group = PermissionRepository.getGroup(highestGroup)
@@ -109,87 +109,75 @@ object TabList {
                 player.name,
             )
 
-        val groupRank = group?.priority ?: 0
+        val groupRank =
+            if (levelName == Levels.getDefaultLevel()?.id) {
+                255
+            } else {
+                0
+            }
 
-        val newEntry =
-            oldEntry.copy(
-                listName = listName,
-                groupName = groupName,
-                groupRank = groupRank,
-            )
-
-        nameIdEntries[nameId] = newEntry
-        broadcastAddEntry(newEntry)
+        Players.getAllPlayers().forEach { recipient ->
+            if (recipient.supportsCpe && recipient.supports("ExtPlayerList")) {
+                val sendNameId =
+                    if (recipient.name == player.name) 255 else nameId
+                val packet =
+                    ServerExtAddPlayerName(
+                        sendNameId,
+                        player.name,
+                        listName,
+                        groupName,
+                        groupRank.toByte(),
+                    )
+                packet.send(recipient.channel)
+            }
+        }
     }
 
     @JvmStatic
     fun sendFullTabListTo(player: Player) {
         if (!player.supportsCpe || !player.supports("ExtPlayerList")) return
 
-        nameIdEntries.values.forEach { entry ->
+        Players.getAllPlayers().forEach { otherPlayer ->
+            val nameId = playerNameIds[otherPlayer.name] ?: return@forEach
+
+            val highestGroup =
+                PermissionRepository.getHighestGroup(otherPlayer.name)
+            val group = PermissionRepository.getGroup(highestGroup)
+            val levelName = otherPlayer.level?.id ?: ""
+
+            val groupName =
+                MessageRegistry.Server.TabList.getGroupName(levelName)
+            val listName =
+                MessageRegistry.Server.TabList.getListName(
+                    group?.displayName ?: highestGroup,
+                    otherPlayer.displayName,
+                    otherPlayer.name,
+                )
+
+            val groupRank =
+                if (levelName == Levels.getDefaultLevel()?.id) {
+                    255
+                } else {
+                    0
+                }
+
+            val sendNameId =
+                if (player.name == otherPlayer.name) 255 else nameId
             val packet =
                 ServerExtAddPlayerName(
-                    entry.nameId,
-                    entry.playerName,
-                    entry.listName,
-                    entry.groupName,
-                    0,
+                    sendNameId,
+                    otherPlayer.name,
+                    listName,
+                    groupName,
+                    groupRank.toByte(),
                 )
             packet.send(player.channel)
         }
     }
 
-    private fun broadcastAddEntry(entry: TabListEntry) {
-        val packet =
-            ServerExtAddPlayerName(
-                entry.nameId,
-                entry.playerName,
-                entry.listName,
-                entry.groupName,
-                0,
-            )
-
-        Players.getAllPlayers().forEach { player ->
-            if (player.supportsCpe && player.supports("ExtPlayerList")) {
-                packet.send(player.channel)
-            }
-        }
+    fun updateTabListToAll() {
+        Players.getAllPlayers()
+            .filter { it.supports("ExtPlayerList") }
+            .forEach { player -> sendFullTabListTo(player) }
     }
-
-    private fun broadcastRemoveEntry(nameId: Short) {
-        val packet = ServerExtRemovePlayerName(nameId)
-
-        Players.getAllPlayers().forEach { player ->
-            if (player.supportsCpe && player.supports("ExtPlayerList")) {
-                packet.send(player.channel)
-            }
-        }
-    }
-
-    @JvmStatic
-    fun getAllEntries(): List<TabListEntry> = nameIdEntries.values.toList()
-
-    @JvmStatic
-    fun getEntry(playerName: String): TabListEntry? {
-        val nameId = playerNameIds[playerName] ?: return null
-        return nameIdEntries[nameId]
-    }
-
-    @JvmStatic
-    fun hasEntry(playerName: String): Boolean =
-        playerNameIds.containsKey(playerName)
-
-    @JvmStatic
-    fun clear() {
-        val entriesToRemove = nameIdEntries.keys.toList()
-        entriesToRemove.forEach { nameId -> broadcastRemoveEntry(nameId) }
-
-        nameIdEntries.clear()
-        playerNameIds.clear()
-        initializeNameIdPool()
-    }
-
-    @JvmStatic fun getEntryCount(): Int = nameIdEntries.size
-
-    @JvmStatic fun getAvailableSlots(): Int = availableNameIds.size
 }

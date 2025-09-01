@@ -4,11 +4,6 @@ import java.io.File
 import org.dandelion.classic.commands.model.CommandExecutor
 import org.dandelion.classic.permission.PermissionRepository
 import org.dandelion.classic.util.YamlConfig
-
-/**
- * a completely shit system i know, but i think its more organized like this
- * than using sendMessage and potencially getting names wrong
- */
 internal object MessageRegistry {
     private lateinit var config: YamlConfig
 
@@ -90,6 +85,19 @@ internal object MessageRegistry {
                     "player" to player,
                     "level" to level,
                 )
+            fun getDisplayName(player: org.dandelion.classic.entity.player.Player): String {
+                val group = PermissionRepository.getGroup(
+                    PermissionRepository.getHighestGroup(
+                        player.name
+                    )
+                )!!.displayName
+
+                return getMessage(
+                    "server.player.display_name",
+                    "name" to player.name,
+                    "group" to  group
+                )
+            }
         }
 
         object Level {
@@ -3313,6 +3321,88 @@ internal object MessageRegistry {
                         "commands.block.subcommands.available",
                     )
                 }
+            }
+        }
+
+        object Teleport {
+            fun sendInvalidPosition(executor: CommandExecutor) {
+                sendMessage(executor, "commands.teleport.invalid_position")
+            }
+
+            fun sendSuccessSelfToPlayer(executor: CommandExecutor, player: String) {
+                sendMessage(
+                    executor,
+                    "commands.teleport.success.self_player",
+                    "player" to player,
+                )
+            }
+
+            fun sendSuccessPlayerToPlayer(
+                executor: CommandExecutor,
+                player: String,
+                target: String,
+            ) {
+                sendMessage(
+                    executor,
+                    "commands.teleport.success.player_to_player",
+                    "player" to player,
+                    "target" to target,
+                )
+            }
+
+            fun sendSuccessSelfToLocation(
+                executor: CommandExecutor,
+                x: Float,
+                y: Float,
+                z: Float,
+            ) {
+                sendMessage(
+                    executor,
+                    "commands.teleport.success.self_location",
+                    "x" to x,
+                    "y" to y,
+                    "z" to z,
+                )
+            }
+
+            fun sendSuccessPlayerToLocation(
+                executor: CommandExecutor,
+                player: String,
+                x: Float,
+                y: Float,
+                z: Float,
+            ) {
+                sendMessage(
+                    executor,
+                    "commands.teleport.success.player_to_location",
+                    "player" to player,
+                    "x" to x,
+                    "y" to y,
+                    "z" to z,
+                )
+            }
+
+            fun sendTargetReceived(executor: CommandExecutor, where: String) {
+                sendMessage(
+                    executor,
+                    "commands.teleport.target.received_player",
+                    "where" to where,
+                )
+            }
+
+            fun sendTargetReceivedLocation(
+                executor: CommandExecutor,
+                x: Float,
+                y: Float,
+                z: Float,
+            ) {
+                sendMessage(
+                    executor,
+                    "commands.teleport.target.received_location",
+                    "x" to x,
+                    "y" to y,
+                    "z" to z,
+                )
             }
         }
     }

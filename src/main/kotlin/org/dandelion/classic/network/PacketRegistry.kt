@@ -82,6 +82,7 @@ object PacketRegistry {
         addCPE("FullCPE437")
         addCPE("ExtEntityPositions")
         addCPE("ExtEntityTeleport")
+        addCPE("CustomParticles")
     }
 
     fun registerPacket(id: Byte, factory: () -> Packet) {
@@ -201,34 +202,16 @@ object PacketRegistry {
         }
     }
 
-    /**
-     * Adds a supported CPE extension by name and version.
-     *
-     * @param name The name of the CPE extension.
-     * @param version The version of the CPE extension.
-     */
     fun addCPE(name: String, version: Int) {
         if (!supportedCPE.any { it.first == name && it.second == version }) {
             supportedCPE.add(name to version)
         }
     }
 
-    /**
-     * Adds a supported CPE extension by name only (defaults to version 0).
-     *
-     * @param name The name of the CPE extension.
-     */
     fun addCPE(name: String) {
         addCPE(name, 1)
     }
 
-    /**
-     * Checks if a CPE extension is supported (optionally checks version).
-     *
-     * @param name The name of the CPE extension.
-     * @param version The version to check (optional).
-     * @return true if supported, false otherwise.
-     */
     fun supports(name: String, version: Int? = null): Boolean {
         return if (version == null) {
             supportedCPE.any { it.first == name }
@@ -237,8 +220,5 @@ object PacketRegistry {
         }
     }
 
-    /**
-     * Returns the list of supported CPE extensions as <name, version> pairs.
-     */
     fun getSupportedCPE(): List<Pair<String, Int>> = supportedCPE.toList()
 }

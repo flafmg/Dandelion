@@ -109,70 +109,22 @@ abstract class Block {
     }
 
     companion object {
-        /**
-         * Retrieves a block by its id.
-         *
-         * @param id The id of the block to retrieve.
-         * @return The block instance, or null if not found.
-         */
         fun get(id: UShort): Block? = BlockRegistry.get(id)
 
-        /**
-         * Retrieves a block by its name.
-         *
-         * @param name The name of the block to retrieve.
-         * @return The block instance, or null if not found.
-         */
         fun get(name: String): Block? = BlockRegistry.get(name)
 
-        /**
-         * Checks if a block with the given id is registered.
-         *
-         * @param id The id to check.
-         * @return true if the block exists, false otherwise.
-         */
         fun has(id: UShort): Boolean = BlockRegistry.has(id)
 
-        /**
-         * Checks if a block with the given name is registered.
-         *
-         * @param name The name to check.
-         * @return true if the block exists, false otherwise.
-         */
         fun has(name: String): Boolean = BlockRegistry.has(name)
 
-        /**
-         * Gets all registered blocks.
-         *
-         * @return Collection of all registered blocks.
-         */
         fun getAll(): Collection<Block> = BlockRegistry.getAll()
 
-        /**
-         * Gets all registered block IDs.
-         *
-         * @return Set of all registered block IDs.
-         */
         fun getAllIds(): Set<UShort> = BlockRegistry.getAllIds()
 
-        /**
-         * Gets all registered block names.
-         *
-         * @return Set of all registered block names.
-         */
         fun getAllNames(): Set<String> = BlockRegistry.getAllNames()
 
-        /**
-         * Gets the total number of registered blocks.
-         *
-         * @return Number of registered blocks.
-         */
         fun size(): Int = BlockRegistry.size()
 
-        /**
-         * Clears all registered blocks. Warning: This will remove all blocks
-         * including vanilla ones (except AIR).
-         */
         fun clear() = BlockRegistry.clear()
     }
 }

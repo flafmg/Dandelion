@@ -5,7 +5,6 @@ import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
 import org.dandelion.classic.types.extensions.SelectionCuboid
 
-/** Packet to create a selection cuboid on the client */
 class ServerMakeSelection(
     private val selectionId: Byte,
     private val label: String,

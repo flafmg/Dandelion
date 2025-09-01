@@ -70,7 +70,6 @@ abstract class Plugin {
         }
     }
 
-    /** copies resource only if it doesnt exist in target path */
     fun deployResource(resourcePath: String, targetPath: String) {
         val targetFile = File(targetPath)
         if (targetFile.exists()) {

@@ -2,6 +2,7 @@ package org.dandelion.classic.server
 
 import org.dandelion.classic.blocks.manager.BlockRegistry
 import org.dandelion.classic.commands.manager.CommandRegistry
+import org.dandelion.classic.entity.player.data.PlayerInfoRegistry
 import org.dandelion.classic.level.Levels
 import org.dandelion.classic.level.generator.GeneratorRegistry
 import org.dandelion.classic.network.Connection
@@ -23,6 +24,7 @@ object Server {
         reloadConfig()
         Salt.regenerate()
         PacketRegistry.init()
+        PlayerInfoRegistry.init()
         Connection.init()
         CommandRegistry.init()
         BlockRegistry.init()

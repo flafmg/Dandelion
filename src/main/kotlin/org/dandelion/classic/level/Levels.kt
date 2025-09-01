@@ -11,35 +11,39 @@ import org.dandelion.classic.server.ServerConfig
 import org.dandelion.classic.types.Position
 import org.dandelion.classic.types.vec.SVec
 
-/** Manages all loaded levels in the server */
 object Levels {
     private val levels = HashMap<String, Level>()
     var defaultLevelId: String
         get() = ServerConfig.defaultLevel
-        set(value) {ServerConfig.defaultLevel = value}
+        set(value) {
+            ServerConfig.defaultLevel = value
+        }
+
     var defaultFormat: String
         get() = ServerConfig.levelFormat
-        set(value) {ServerConfig.levelFormat = value}
+        set(value) {
+            ServerConfig.levelFormat = value
+        }
 
     var autoSaveInterval: Duration
         get() = ServerConfig.autoSaveInterval
-        set(value) {ServerConfig.autoSaveInterval = value}
+        set(value) {
+            ServerConfig.autoSaveInterval = value
+        }
+
     private var saveJob: Job? = null
 
-    /** Initializes the level manager with server configuration */
     internal fun init() {
         startAutoSaveTask()
         loadAllFromDirectory("levels")
     }
 
-    /** Shuts down the level manager, saving and unloading all levels */
     internal fun shutdown() {
         stopAutoSaveTask()
         saveAllLevels()
         unloadAllLevels()
     }
 
-    /** Starts the automatic save task for all levels */
     private fun startAutoSaveTask() {
         saveJob =
             CoroutineScope(Dispatchers.Default).launch {
@@ -50,13 +54,11 @@ object Levels {
             }
     }
 
-    /** Stops the automatic save task */
     private fun stopAutoSaveTask() {
         saveJob?.cancel()
         saveJob = null
     }
 
-    /** Saves all levels that have auto-save enabled */
     @JvmStatic
     fun saveAllLevels() {
         val autoSaveLevels = levels.values.filter { it.autoSave }
@@ -75,12 +77,6 @@ object Levels {
         }
     }
 
-    /**
-     * Loads a level from file by ID
-     *
-     * @param levelId The ID of the level to load.
-     * @return `true` if the level was successfully loaded, `false` otherwise.
-     */
     @JvmStatic
     fun loadLevel(levelId: String): Boolean {
         if (isLevelLoaded(levelId)) {
@@ -88,7 +84,17 @@ object Levels {
             return false
         }
 
-        val levelFile = File("levels/$levelId.dlvl")
+        val levelFile =
+            File("levels")
+                .listFiles { _, name ->
+                    name.startsWith("$levelId.") &&
+                        (name.endsWith(".dlvl") || name.endsWith(".cw"))
+                }
+                ?.firstOrNull()
+        if (levelFile == null) {
+            Console.warnLog("Level $levelId does not exist")
+            return false
+        }
         val level = Level.load(levelFile)
 
         return if (level != null) {
@@ -99,12 +105,6 @@ object Levels {
         }
     }
 
-    /**
-     * Loads a level instance into the manager
-     *
-     * @param level The [Level] instance to load.
-     * @return `true` if the level was successfully loaded, `false` otherwise.
-     */
     @JvmStatic
     fun loadLevel(level: Level): Boolean {
         if (isLevelLoaded(level.id)) {
@@ -117,12 +117,6 @@ object Levels {
         return true
     }
 
-    /**
-     * Unloads a level by ID, saving it first if auto-save is enabled
-     *
-     * @param levelId The ID of the level to unload.
-     * @return `true` if the level was successfully unloaded, `false` otherwise.
-     */
     @JvmStatic
     fun unloadLevel(levelId: String): Boolean {
         val level = levels[levelId]
@@ -150,33 +144,12 @@ object Levels {
         return true
     }
 
-    /** Unloads all levels */
     @JvmStatic
     private fun unloadAllLevels() {
         levels.keys.toList().forEach { levelId -> unloadLevel(levelId) }
         Console.log("Unloaded all levels")
     }
 
-    /**
-     * Creates a new level with the specified parameters
-     *
-     * @param id The unique identifier for the new level.
-     * @param author The author of the level.
-     * @param description A description of the level.
-     * @param size The dimensions of the level as an [SVec] (x, y, z).
-     * @param spawn The default spawn position for players in the level as a
-     *   [Position].
-     * @param generator The [LevelGenerator] to use for creating the level's
-     *   terrain/blocks.
-     * @param generatorParams Optional parameters for the level generator.
-     * @param extraData Optional extra data associated with the level.
-     * @param timeCreated The timestamp (milliseconds since epoch) when the
-     *   level was created. Defaults to the current time.
-     * @param autoSave Whether the level should be automatically saved
-     *   periodically. Defaults to `true`.
-     * @return The newly created [Level] instance if successful, `null`
-     *   otherwise.
-     */
     @JvmStatic
     fun createLevel(
         id: String,
@@ -220,33 +193,12 @@ object Levels {
         }
     }
 
-    /**
-     * Gets a loaded [Level] by ID
-     *
-     * @param levelId The ID of the level to retrieve.
-     * @return The [Level] instance if found, `null` otherwise.
-     */
     @JvmStatic fun getLevel(levelId: String): Level? = levels[levelId]
 
-    /**
-     * Gets all loaded levels
-     *
-     * @return A list of all currently loaded [Level] instances.
-     */
     @JvmStatic fun getAllLevels(): List<Level> = levels.values.toList()
 
-    /**
-     * Gets the default level
-     *
-     * @return The default [Level] instance if loaded, `null` otherwise.
-     */
     @JvmStatic fun getDefaultLevel(): Level? = getLevel(defaultLevelId)
 
-    /**
-     * Sets the default level ID
-     *
-     * @param levelId The ID of the level to set as the default.
-     */
     @JvmStatic
     fun setDefaultLevel(levelId: String) {
         defaultLevelId = levelId
@@ -261,96 +213,37 @@ object Levels {
         ServerConfig.save()
     }
 
-    /**
-     * Checks if a level is currently loaded
-     *
-     * @param levelId The ID of the level to check.
-     * @return `true` if the level is loaded, `false` otherwise.
-     */
     @JvmStatic
     fun isLevelLoaded(levelId: String): Boolean = levels.containsKey(levelId)
 
-    /**
-     * Gets the number of loaded levels
-     *
-     * @return The total count of currently loaded levels.
-     */
     @JvmStatic fun getLevelCount(): Int = levels.size
 
-    /**
-     * Gets all entities across all levels
-     *
-     * @return A flat list of all [Entity] instances present in any loaded
-     *   level.
-     */
     @JvmStatic
     fun getAllEntities(): List<Entity> =
         levels.values.flatMap { it.getAllEntities() }
 
-    /**
-     * Gets all players across all levels
-     *
-     * @return A flat list of all [Player] instances present in any loaded
-     *   level.
-     */
     @JvmStatic
     fun getAllPlayers(): List<Player> =
         levels.values.flatMap { it.getPlayers() }
 
-    /**
-     * Gets all non-player entities across all levels
-     *
-     * @return A flat list of all non-player [Entity] instances present in any
-     *   loaded level.
-     */
     @JvmStatic
     fun getAllNonPlayerEntities(): List<Entity> =
         levels.values.flatMap { it.getNonPlayerEntities() }
 
-    /**
-     * Gets the total player count across all levels
-     *
-     * @return The sum of player counts across all loaded levels.
-     */
     @JvmStatic
     fun getTotalPlayerCount(): Int = levels.values.sumOf { it.playerCount() }
 
-    /**
-     * Gets the total entity count across all levels
-     *
-     * @return The sum of entity counts (players and non-players) across all
-     *   loaded levels.
-     */
     @JvmStatic
     fun getTotalEntityCount(): Int = levels.values.sumOf { it.entityCount() }
 
-    /**
-     * Finds which level contains the specified player
-     *
-     * @param player The [Player] instance to search for.
-     * @return The [Level] instance containing the player, or `null` if the
-     *   player is not found in any loaded level.
-     */
     @JvmStatic
     fun findLevelContainingPlayer(player: Player): Level? =
         levels.values.find { it.isPlayerInLevel(player) }
 
-    /**
-     * Finds which level contains the specified entity
-     *
-     * @param entity The [Entity] instance to search for.
-     * @return The [Level] instance containing the entity, or `null` if the
-     *   entity is not found in any loaded level.
-     */
     @JvmStatic
     fun findLevelContainingEntity(entity: Entity): Level? =
         levels.values.find { it.isEntityInLevel(entity) }
 
-    /**
-     * Loads all level files from the specified directory
-     *
-     * @param directoryPath The path to the directory containing `.dlvl` files.
-     */
     @JvmStatic
     fun loadAllFromDirectory(directoryPath: String) {
         Console.log("Loading levels from '$directoryPath' directory")
@@ -371,7 +264,8 @@ object Levels {
 
         val levelFiles =
             directory.listFiles { _, name ->
-                name.endsWith(".dlvl", ignoreCase = true) || name.endsWith(".cw", true)
+                name.endsWith(".dlvl", ignoreCase = true) ||
+                    name.endsWith(".cw", true)
             }
 
         if (levelFiles == null) {
@@ -399,12 +293,6 @@ object Levels {
         )
     }
 
-    /**
-     * Redirects all players from one level to another
-     *
-     * @param fromLevel The source [Level] from which players will be moved.
-     * @param toLevel The target [Level] to which players will be moved.
-     */
     @JvmStatic
     fun redirectAllPlayers(fromLevel: Level, toLevel: Level) {
         val playersToRedirect = fromLevel.getPlayers().toList()
@@ -438,14 +326,6 @@ object Levels {
         )
     }
 
-    /**
-     * Redirects all players from a level by ID to another level by ID
-     *
-     * @param fromLevelId The ID of the source level.
-     * @param toLevelId The ID of the target level.
-     * @return `true` if the redirection process was initiated, `false` if
-     *   either level was not found.
-     */
     @JvmStatic
     fun redirectAllPlayers(fromLevelId: String, toLevelId: String): Boolean {
         val fromLevel = getLevel(fromLevelId)
@@ -468,13 +348,6 @@ object Levels {
         return true
     }
 
-    /**
-     * Broadcasts a message to all players across all levels
-     *
-     * @param message The message string to broadcast.
-     * @param messageTypeId An optional byte identifier for the type of message.
-     *   Defaults to `0x00`.
-     */
     @JvmStatic
     fun broadcast(message: String, messageTypeId: Byte = 0x00) {
         val totalPlayers = getTotalPlayerCount()
@@ -493,13 +366,6 @@ object Levels {
         )
     }
 
-    /**
-     * Gets level statistics for monitoring
-     *
-     * @return A map containing various statistics about loaded levels,
-     *   including total counts, default level, auto-save interval, and
-     *   per-level details.
-     */
     fun getLevelStatistics(): Map<String, Any> =
         mapOf(
             "totalLevels" to getLevelCount(),

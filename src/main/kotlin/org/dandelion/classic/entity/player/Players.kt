@@ -17,11 +17,8 @@ import org.dandelion.classic.server.Console
 import org.dandelion.classic.server.MessageRegistry
 import org.dandelion.classic.server.ServerConfig
 import org.dandelion.classic.tablist.TabList
+import java.net.InetSocketAddress
 
-/**
- * object responsible for managing all connected players. Handles player
- * connections, disconnections, authentication, and global player operations.
- */
 object Players {
     private const val EXPECTED_PROTOCOL_VERSION: Byte = 0x07
     private const val MD5_ALGORITHM = "MD5"
@@ -43,15 +40,6 @@ object Players {
     }
 
     // region Connection Management
-
-    /**
-     * Handles the pre-connection phase including protocol validation and
-     * authentication
-     *
-     * @param clientInfo The [ClientIdentification] packet containing client
-     *   information.
-     * @param channel The Netty [Channel] for the connecting client.
-     */
     internal fun handlePreConnection(
         clientInfo: ClientIdentification,
         channel: Channel,
@@ -86,11 +74,6 @@ object Players {
         attemptConnection(player)
     }
 
-    /**
-     * Attempts to connect a player after all validations
-     *
-     * @param player The [Player] attempting to connect.
-     */
     private fun attemptConnection(player: Player) {
         when (val connectionResult = validateConnection(player)) {
             is ConnectionResult.Success -> {
@@ -106,11 +89,6 @@ object Players {
         }
     }
 
-    /**
-     * Sends the CPE handshake to the player
-     *
-     * @param player The [Player] to send the handshake for.
-     */
     private fun CPEHandshake(player: Player) {
         addConnecting(player)
 
@@ -123,11 +101,6 @@ object Players {
         PacketRegistry.sendCPEEntries(player)
     }
 
-    /**
-     * Finalizes successful player connection
-     *
-     * @param player The [Player] to finalize the connection for.
-     */
     internal fun finalizeHandshake(player: Player) {
         removeConnecting(player)
 
@@ -145,7 +118,13 @@ object Players {
         }
 
         player.info.recordJoin()
+        val channel = player.channel
+        val remoteAddress = channel.remoteAddress() as InetSocketAddress
+        val ip = remoteAddress.address.hostAddress
+        player.info.addIp(ip)
+
         player.joinLevel(joinLevel)
+        player.displayName = MessageRegistry.Server.Player.getDisplayName(player)
 
         TabList.sendFullTabListTo(player)
         addPlayerToTabList(player)
@@ -153,11 +132,6 @@ object Players {
         notifyJoined(player)
     }
 
-    /**
-     * Handles player disconnection and cleanup
-     *
-     * @param channel The Netty [Channel] of the disconnecting player.
-     */
     internal fun handleDisconnection(channel: Channel) {
         try {
             val player = find(channel)
@@ -186,14 +160,13 @@ object Players {
         }
     }
 
-    /** Handles disconnection for fully connected players */
     private fun handlePlayerDisconnection(player: Player) {
         try {
             Console.debugLog(
                 "Handling disconnection for player: ${player.name}"
             )
             removeConnecting(player)
-
+            removePlayerFromTabList(player)
             player.level?.let { level ->
                 try {
                     level.removeEntity(player)
@@ -295,13 +268,12 @@ object Players {
             return
         }
 
-        getAllPlayers()
-            .find { it.channel == channel }
-            ?.let { connectedPlayer ->
-                connectedPlayer.level?.removeEntity(connectedPlayer)
-                connectedPlayer.info.recordDisconnect()
-                notifyLeft(connectedPlayer)
-            }
+        find(channel)?.let { connectedPlayer ->
+            connectedPlayer.level?.removeEntity(connectedPlayer)
+            connectedPlayer.info.recordDisconnect()
+            removePlayerFromTabList(connectedPlayer)
+            notifyLeft(connectedPlayer)
+        }
     }
 
     // endregion
@@ -397,37 +369,14 @@ object Players {
     // endregion
 
     // region Player Lookup
-
-    /**
-     * Finds a player by their network channel
-     *
-     * @param channel The Netty [Channel] to search for.
-     * @return The [Player] associated with the channel, or `null` if not found.
-     */
     fun find(channel: Channel): Player? =
         Levels.getAllPlayers().find { it.channel == channel }
 
-    /**
-     * Finds a player by their username (case-insensitive)
-     *
-     * @param name The username string to search for.
-     * @return The [Player] with the matching name, or `null` if not found.
-     */
     fun find(name: String): Player? =
         Levels.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
 
-    /**
-     * Gets all currently connected players
-     *
-     * @return A list of all connected [Player] instances.
-     */
     fun getAllPlayers(): List<Player> = Levels.getAllPlayers()
 
-    /**
-     * Gets the current number of connected players
-     *
-     * @return The total count of connected players.
-     */
     fun count(): Int = Levels.getTotalPlayerCount()
 
     // endregion
@@ -445,67 +394,25 @@ object Players {
     // endregion
 
     // region Global Player Operations
-
-    /**
-     * Broadcasts a message to all connected players
-     *
-     * @param message The message string to broadcast.
-     * @param messageTypeId An optional byte identifier for the type of message.
-     *   Defaults to `0x00`.
-     */
     fun broadcastMessage(message: String, messageTypeId: Byte = 0x00) {
         getAllPlayers().forEach { it.sendMessage(message, messageTypeId) }
     }
 
-    /**
-     * Kicks all players from the server
-     *
-     * @param reason The reason for kicking all players. Defaults to "Server
-     *   maintenance".
-     */
     fun kickAll(reason: String = "Server maintenance") {
         getAllPlayers().forEach { it.kick(reason) }
     }
 
-    /**
-     * Bans a specific player instance
-     *
-     * @param player The [Player] instance to ban.
-     * @param reason The reason for banning the player. Defaults to "You have
-     *   been banned".
-     */
     fun banPlayer(player: Player, reason: String = "You have been banned") {
         player.ban(reason)
     }
 
     // endregion
-
-    /**
-     * Gets the permissions of a player
-     *
-     * @param name the requested player name
-     * @return a list containing all player permissions
-     */
     fun getPermissions(name: String): List<String> =
         PermissionRepository.getPermissionList(name)
 
-    /**
-     * Gets the permission groups of a player
-     *
-     * @param name the requested player name
-     * @return the player's groups
-     */
     fun getGroups(name: String): List<Group> =
         PermissionRepository.getPlayerGroups(name)
 
-    /**
-     * Sets a permission for a player.
-     *
-     * @param name the player name
-     * @param permission the permission string
-     * @param value true to grant, false to deny
-     * @return true if the permission was set
-     */
     fun setPermission(
         name: String,
         permission: String,
@@ -513,54 +420,22 @@ object Players {
     ): Boolean =
         PermissionRepository.setPlayerPermission(name, permission, value)
 
-    /**
-     * Checks if a player has a specific permission.
-     *
-     * @param name the player name
-     * @param permission the permission string
-     * @return true if the player has the permission
-     */
     fun hasPermission(name: String, permission: String): Boolean =
         PermissionRepository.hasPermission(name, permission)
 
-    /**
-     * Checks if a player has a specific permission.
-     *
-     * @param name the player name
-     * @param permission the permission string
-     * @param default the default if permission is not set explicitly
-     * @return true if the player has the permission
-     */
-    fun hasPermission(name: String, permission: String, default: Boolean = false): Boolean =
-        PermissionRepository.hasPermission(name, permission, default)
+    fun hasPermission(
+        name: String,
+        permission: String,
+        default: Boolean = false,
+    ): Boolean = PermissionRepository.hasPermission(name, permission, default)
 
-    /**
-     * Adds a group to a player.
-     *
-     * @param name the player name
-     * @param group the group name to add
-     * @return true if the group was added
-     */
     fun addGroup(name: String, group: String): Boolean =
         PermissionRepository.addGroupToPlayer(name, group)
 
-    /**
-     * Removes a group from a player.
-     *
-     * @param name the player name
-     * @param group the group name to remove
-     * @return true if the group was removed
-     */
     fun removeGroup(name: String, group: String): Boolean =
         PermissionRepository.removeGroupFromPlayer(name, group)
 
     // region Utility Methods
-    /**
-     * Disconnects a player with invalid protocol version
-     *
-     * @param version The invalid protocol version byte.
-     * @param channel The Netty [Channel] to disconnect.
-     */
     private fun disconnectWithInvalidProtocol(version: Byte, channel: Channel) {
         val message =
             MessageRegistry.Server.Connection.getInvalidProtocol(
@@ -575,26 +450,17 @@ object Players {
         ServerDisconnectPlayer(message).send(channel)
     }
 
-    /**
-     * Disconnects a player with a specific reason
-     *
-     * @param channel The Netty [Channel] to disconnect.
-     * @param reason The reason for disconnection.
-     */
     private fun disconnectPlayerWithReason(channel: Channel, reason: String) {
         ServerDisconnectPlayer(reason).send(channel)
     }
 
     // endregion
-
-    /** Sealed class representing connection attempt results */
     private sealed class ConnectionResult {
         object Success : ConnectionResult()
 
         data class Failure(val reason: String) : ConnectionResult()
     }
 
-    /** Emergency shutdown method to disconnect all players safely */
     fun emergencyDisconnectAll(reason: String = "Server emergency shutdown") {
         Console.warnLog("Emergency disconnect all players initiated: $reason")
 

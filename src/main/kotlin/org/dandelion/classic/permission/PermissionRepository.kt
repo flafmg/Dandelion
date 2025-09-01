@@ -3,10 +3,6 @@ package org.dandelion.classic.permission
 import java.io.File
 import org.dandelion.classic.util.YamlConfig
 
-/**
- * Repository for managing permission groups and player permissions. Handles
- * loading, saving, and resolving permissions with in-memory caching.
- */
 object PermissionRepository {
 
     private val groupsCache: MutableMap<String, Group> = mutableMapOf()
@@ -55,7 +51,6 @@ object PermissionRepository {
         }
     }
 
-    /** Reload all data from files, discarding any unsaved changes in memory. */
     fun reload() {
         groupsCache.clear()
         playersCache.clear()
@@ -63,7 +58,6 @@ object PermissionRepository {
         ensureDefaultGroupExists()
     }
 
-    /** Save all in-memory data to files. */
     fun save() {
         saveGroupsToFile()
         savePlayersToFile()
@@ -152,13 +146,10 @@ object PermissionRepository {
         playersConfig.save(playersFile)
     }
 
-    /** Get all groups in memory. */
     fun getAllGroups(): Collection<Group> = groupsCache.values
 
-    /** Get a group by name. */
     fun getGroup(name: String): Group? = groupsCache[name]
 
-    /** Create a new group. */
     fun createGroup(
         name: String,
         displayName: String,
@@ -174,7 +165,6 @@ object PermissionRepository {
         return group
     }
 
-    /** Delete a group. */
     fun deleteGroup(name: String): Boolean {
         if (name == "default") return false
         val removed = groupsCache.remove(name) != null
@@ -182,24 +172,16 @@ object PermissionRepository {
         return removed
     }
 
-    /** Check if a group exists. */
     fun hasGroup(name: String): Boolean = groupsCache.containsKey(name)
 
-    /** Get all players in memory. */
     fun getAllPlayers(): Collection<PlayerPermission> = playersCache.values
 
-    /** Get a player's permissions by name, creating if not exists. */
     fun getPlayer(name: String): PlayerPermission {
         return playersCache.getOrPut(name) { PlayerPermission(name) }
     }
 
-    /** Check if a player exists in cache. */
     fun hasPlayer(name: String): Boolean = playersCache.containsKey(name)
 
-    /**
-     * Resolves and returns all permissions for a player, considering group
-     * priorities and individual overrides.
-     */
     fun getPlayerPermissions(playerName: String): Map<String, Boolean> {
         val player = getPlayer(playerName)
         val result = mutableMapOf<String, Boolean>()
@@ -222,22 +204,20 @@ object PermissionRepository {
         return result
     }
 
-    /**
-     * Returns a list of all permission keys granted to the player (excluding
-     * those set to false).
-     */
     fun getPermissionList(playerName: String): List<String> {
         return getPlayerPermissions(playerName)
             .filter { it.value }
             .map { it.key }
     }
 
-    /** Check if a player has a specific permission. */
-    fun hasPermission(playerName: String, permission: String, default: Boolean = false): Boolean {
+    fun hasPermission(
+        playerName: String,
+        permission: String,
+        default: Boolean = false,
+    ): Boolean {
         return getPlayerPermissions(playerName)[permission] ?: default
     }
 
-    /** Get the highest priority group for a player. */
     fun getHighestGroup(playerName: String): String {
         val player = getPlayer(playerName)
         val groups = player.getGroupsExcludingDefault()
@@ -249,7 +229,6 @@ object PermissionRepository {
         return highest?.name ?: "default"
     }
 
-    /** Add a group to a player. */
     fun addGroupToPlayer(playerName: String, groupName: String): Boolean {
         if (!hasGroup(groupName)) return false
         val player = getPlayer(playerName)
@@ -258,7 +237,6 @@ object PermissionRepository {
         return true
     }
 
-    /** Remove a group from a player. */
     fun removeGroupFromPlayer(playerName: String, groupName: String): Boolean {
         if (groupName == "default") return false
         val player = getPlayer(playerName)
@@ -267,7 +245,6 @@ object PermissionRepository {
         return true
     }
 
-    /** Set a permission for a group. */
     fun setGroupPermission(
         groupName: String,
         permission: String,
@@ -279,7 +256,6 @@ object PermissionRepository {
         return true
     }
 
-    /** Set a permission for a player. */
     fun setPlayerPermission(
         playerName: String,
         permission: String,
@@ -291,7 +267,6 @@ object PermissionRepository {
         return true
     }
 
-    /** Remove a permission from a group. */
     fun removeGroupPermission(groupName: String, permission: String): Boolean {
         val group = getGroup(groupName) ?: return false
         group.removePermission(permission)
@@ -299,7 +274,6 @@ object PermissionRepository {
         return true
     }
 
-    /** Remove a permission from a player. */
     fun removePlayerPermission(
         playerName: String,
         permission: String,
@@ -310,14 +284,6 @@ object PermissionRepository {
         return true
     }
 
-    /**
-     * Returns a list of all group instances the player belongs to, always
-     * including the default group.
-     *
-     * @param playerName The name of the player.
-     * @return List of Group instances for the player, including the default
-     *   group.
-     */
     fun getPlayerGroups(playerName: String): List<Group> {
         val player = getPlayer(playerName)
         val groupNames = player.groups.distinct().plus("default").distinct()

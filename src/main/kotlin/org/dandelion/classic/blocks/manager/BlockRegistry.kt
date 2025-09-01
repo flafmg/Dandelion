@@ -13,16 +13,10 @@ import org.dandelion.classic.network.packets.cpe.server.ServerSetInventoryOrder
 import org.dandelion.classic.server.Console
 import org.dandelion.classic.util.JsonConfig
 
-/**
- * Central registry for managing block definitions in the Minecraft Classic
- * server. Handles both vanilla blocks and custom block definitions with support
- * for global and per-level block registrations.
- */
 object BlockRegistry {
     private val globalBlocks = mutableMapOf<UShort, Block>()
     private val levelBlocks = mutableMapOf<String, MutableMap<UShort, Block>>()
 
-    /** Initializes the registry with all standard Minecraft blocks. */
     internal fun init() {
         // Classic blocks
         internalRegister(Air())
@@ -101,11 +95,6 @@ object BlockRegistry {
         globalBlocks[block.id] = block
     }
 
-    /**
-     * Registers a block globally in the registry.
-     *
-     * @param block The block instance to register globally
-     */
     fun register(block: Block) {
         if (block.id == 0.toUShort()) {
             Console.errLog("Cannot replace reserved id 0 (AIR)")
@@ -121,12 +110,6 @@ object BlockRegistry {
         globalBlocks[block.id] = block
     }
 
-    /**
-     * Registers a block for a specific level by level ID.
-     *
-     * @param levelId The ID of the level to register the block for
-     * @param block The block instance to register
-     */
     fun register(levelId: String, block: Block) {
         if (block.id == 0x00.toUShort()) {
             Console.errLog("Cannot replace reserved id 0 (AIR)")
@@ -143,21 +126,10 @@ object BlockRegistry {
         levelBlocksMap[block.id] = block
     }
 
-    /**
-     * Registers a block for a specific level by level instance.
-     *
-     * @param level The level instance to register the block for
-     * @param block The block instance to register
-     */
     fun register(level: Level, block: Block) {
         register(level.id, block)
     }
 
-    /**
-     * Removes a global block from the registry by its ID.
-     *
-     * @param id The ID of the block to remove
-     */
     fun unregister(id: UShort): Boolean {
         if (id == 0x00.toUShort()) {
             Console.errLog("Cannot remove reserved id 0 (AIR)")
@@ -170,12 +142,6 @@ object BlockRegistry {
         return globalBlocks.remove(id) != null
     }
 
-    /**
-     * Removes a global block from the registry by its name.
-     *
-     * @param name The name of the block to remove (case-insensitive)
-     * @return The removed block, or null if not found
-     */
     fun unregister(name: String): Block? {
         val block =
             globalBlocks.values.find { it.name.equals(name, ignoreCase = true) }
@@ -186,13 +152,6 @@ object BlockRegistry {
         return block?.let { globalBlocks.remove(it.id) }
     }
 
-    /**
-     * Removes a block from a specific level by level ID and block ID.
-     *
-     * @param levelId The ID of the level to remove the block from
-     * @param blockId The ID of the block to remove
-     * @return true if the block was removed, false otherwise
-     */
     fun unregister(levelId: String, blockId: UShort): Boolean {
         if (blockId == 0x00.toUShort()) {
             Console.errLog("Cannot remove reserved id 0 (AIR)")
@@ -209,209 +168,78 @@ object BlockRegistry {
         return removed
     }
 
-    /**
-     * Removes a block from a specific level by level instance and block ID.
-     *
-     * @param level The level instance to remove the block from
-     * @param blockId The ID of the block to remove
-     * @return true if the block was removed, false otherwise
-     */
     fun unregister(level: Level, blockId: UShort): Boolean {
         return unregister(level.id, blockId)
     }
 
-    /**
-     * Retrieves a global block by its ID.
-     *
-     * @param id The ID of the block to retrieve
-     * @return The block instance, or null if not found
-     */
     fun get(id: UShort): Block? = globalBlocks[id]
 
-    /**
-     * Retrieves a block by its ID for a specific level, with level blocks
-     * taking priority over global blocks.
-     *
-     * @param levelId The ID of the level to get the block for
-     * @param id The ID of the block to retrieve
-     * @return The block instance, or null if not found
-     */
     fun get(levelId: String, id: UShort): Block? {
         return levelBlocks[levelId]?.get(id) ?: globalBlocks[id]
     }
 
-    /**
-     * Retrieves a block by its ID for a specific level instance, with level
-     * blocks taking priority over global blocks.
-     *
-     * @param level The level instance to get the block for
-     * @param id The ID of the block to retrieve
-     * @return The block instance, or null if not found
-     */
     fun get(level: Level, id: UShort): Block? {
         return get(level.id, id)
     }
 
-    /**
-     * Retrieves a global block by its name.
-     *
-     * @param name The name of the block to retrieve
-     * @return The block instance, or null if not found
-     */
     fun get(name: String): Block? =
         globalBlocks.values.find { it.name.equals(name, ignoreCase = true) }
 
-    /**
-     * Checks if a global block with the given ID is registered.
-     *
-     * @param id The ID to check
-     * @return true if the block exists globally, false otherwise
-     */
     fun has(id: UShort): Boolean = globalBlocks.containsKey(id)
 
-    /**
-     * Checks if a block with the given ID is registered for a specific level.
-     *
-     * @param levelId The ID of the level to check
-     * @param id The ID of the block to check
-     * @return true if the block exists for the level (including global blocks),
-     *   false otherwise
-     */
     fun has(levelId: String, id: UShort): Boolean {
         return levelBlocks[levelId]?.containsKey(id) == true ||
             globalBlocks.containsKey(id)
     }
 
-    /**
-     * Checks if a block with the given ID is registered for a specific level
-     * instance.
-     *
-     * @param level The level instance to check
-     * @param id The ID of the block to check
-     * @return true if the block exists for the level (including global blocks),
-     *   false otherwise
-     */
     fun has(level: Level, id: UShort): Boolean {
         return has(level.id, id)
     }
 
-    /**
-     * Checks if a global block with the given name is registered.
-     *
-     * @param name The name to check
-     * @return true if the block exists globally, false otherwise
-     */
     fun has(name: String): Boolean =
         globalBlocks.values.any { it.name.equals(name, ignoreCase = true) }
 
-    /**
-     * Gets all global blocks.
-     *
-     * @return Collection of all global blocks
-     */
     fun getAll(): Collection<Block> = globalBlocks.values
 
-    /**
-     * Gets all blocks available for a specific level, with level blocks taking
-     * priority over global blocks.
-     *
-     * @param levelId The ID of the level to get blocks for
-     * @return Collection of all blocks available for the level
-     */
     fun getAll(levelId: String): Collection<Block> {
         val levelBlocksMap = levelBlocks[levelId] ?: emptyMap()
         val combinedMap = globalBlocks + levelBlocksMap
         return combinedMap.values
     }
 
-    /**
-     * Gets all blocks available for a specific level instance, with level
-     * blocks taking priority over global blocks.
-     *
-     * @param level The level instance to get blocks for
-     * @return Collection of all blocks available for the level
-     */
     fun getAll(level: Level): Collection<Block> {
         return getAll(level.id)
     }
 
-    /**
-     * Gets all global block IDs.
-     *
-     * @return Set of all global block IDs
-     */
     fun getAllIds(): Set<UShort> = globalBlocks.keys
 
-    /**
-     * Gets all global block names.
-     *
-     * @return Set of all global block names
-     */
     fun getAllNames(): Set<String> =
         globalBlocks.values.mapTo(mutableSetOf()) { it.name }
 
-    /**
-     * Gets the total number of global blocks.
-     *
-     * @return Number of global blocks
-     */
     fun size(): Int = globalBlocks.size
 
-    /**
-     * Gets the total number of blocks registered for a specific level
-     * (including global blocks).
-     *
-     * @param levelId The ID of the level to count blocks for
-     * @return Number of blocks available for the level
-     */
     fun sizeForLevel(levelId: String): Int {
         return getAll(levelId).size
     }
 
-    /**
-     * Gets the total number of blocks registered for a specific level instance
-     * (including global blocks).
-     *
-     * @param level The level instance to count blocks for
-     * @return Number of blocks available for the level
-     */
     fun sizeForLevel(level: Level): Int {
         return sizeForLevel(level.id)
     }
 
-    /**
-     * Clears all global blocks. Warning: This will remove all global blocks
-     * including vanilla ones (except AIR).
-     */
     fun clear() {
         globalBlocks.keys
             .filter { it != 0x00.toUShort() }
             .forEach { globalBlocks.remove(it) }
     }
 
-    /**
-     * Clears all blocks for a specific level.
-     *
-     * @param levelId The ID of the level to clear blocks for
-     */
     fun clearForLevel(levelId: String) {
         levelBlocks.remove(levelId)
     }
 
-    /**
-     * Clears all blocks for a specific level instance.
-     *
-     * @param level The level instance to clear blocks for
-     */
     fun clearForLevel(level: Level) {
         clearForLevel(level.id)
     }
 
-    /**
-     * Saves block definitions for a specific target (global or level).
-     *
-     * @param target The target to save blocks for ("global" or levelId)
-     */
     fun saveBlockDefinitions(target: String) {
         try {
             val blockDefsDir = File("blockDefs")
@@ -520,34 +348,18 @@ object BlockRegistry {
         }
     }
 
-    /** Saves global block definitions. */
     fun saveGlobalBlockDefinitions() {
         saveBlockDefinitions("global")
     }
 
-    /**
-     * Saves block definitions for a specific level.
-     *
-     * @param levelId The ID of the level to save blocks for
-     */
     fun saveLevelBlockDefinitions(levelId: String) {
         saveBlockDefinitions(levelId)
     }
 
-    /**
-     * Saves block definitions for a specific level instance.
-     *
-     * @param level The level instance to save blocks for
-     */
     fun saveLevelBlockDefinitions(level: Level) {
         saveBlockDefinitions(level.id)
     }
 
-    /**
-     * Sends block definitions to a player based on their current level.
-     *
-     * @param player The player to send block definitions to
-     */
     fun sendBlockDefinitions(player: Player) {
         val level = player.level ?: return
 
@@ -648,11 +460,24 @@ object BlockRegistry {
         }
     }
 
-    private fun sendBlockPermission(player: Player, block: Block, level: Level){
-        val canPlace = player.hasPermission("dandelion.blocks.${level.id}.${block.id}.place", true)
-        val canBreak = player.hasPermission("dandelion.blocks.${level.id}.${block.id}.break", true)
+    private fun sendBlockPermission(
+        player: Player,
+        block: Block,
+        level: Level,
+    ) {
+        val canPlace =
+            player.hasPermission(
+                "dandelion.blocks.${level.id}.${block.id}.place",
+                true,
+            )
+        val canBreak =
+            player.hasPermission(
+                "dandelion.blocks.${level.id}.${block.id}.break",
+                true,
+            )
         ServerSetBlockPermission(block.id, canPlace, canBreak).send(player)
     }
+
     private fun hasCustomSlot(block: Block): Boolean =
         block.slot != UShort.MAX_VALUE
 

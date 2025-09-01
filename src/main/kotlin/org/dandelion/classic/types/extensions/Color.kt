@@ -1,11 +1,4 @@
 package org.dandelion.classic.types.extensions
-/**
- * Represents a RGB color with values from 0 to 255
- *
- * @property red The red component (0-255)
- * @property green The green component (0-255)
- * @property blue The blue component (0-255)
- */
 data class Color(val red: Short, val green: Short, val blue: Short) {
     // why this stupid shit uses a short instead of a byte?
     init {

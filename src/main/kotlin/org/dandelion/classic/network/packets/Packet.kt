@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import jdk.internal.net.http.common.Log.channel
 import org.dandelion.classic.entity.player.Player
-import org.dandelion.classic.server.Console
 
 abstract class Packet {
     abstract val id: Byte
@@ -59,8 +58,6 @@ abstract class Packet {
         println("=== End of $packetName - Size: ${buffer.size} bytes ===")*/
 
         if (!channel.isActive || !channel.isOpen) {
-            Console.warnLog("Channel is not open, disconnecting client")
-            channel.disconnect()
             return
         }
 
@@ -69,15 +66,11 @@ abstract class Packet {
                 .writeAndFlush(Unpooled.wrappedBuffer(encodedData))
                 .addListener { future ->
                     if (!future.isSuccess) {
-                        Console.errLog(
-                            "Failed to send packet, disconecting client"
-                        )
-                        channel.disconnect()
+                        channel.close()
                     }
                 }
         } catch (ex: Exception) {
-            Console.errLog("Failed to send packet ${ex.message}")
-            channel.disconnect()
+            channel.close()
         }
     }
 

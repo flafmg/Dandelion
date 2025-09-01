@@ -27,7 +27,6 @@ enum class BlockFace {
     INVALID,
 }
 
-/** Base event for all player click interactions */
 abstract class PlayerClickEvent(
     val player: Player,
     val button: MouseButton,
@@ -37,7 +36,6 @@ abstract class PlayerClickEvent(
     val pitch: Float,
 ) : Event
 
-/** Event fired when a player presses or releases a mouse button */
 class PlayerPressEvent(
     player: Player,
     button: MouseButton,
@@ -47,7 +45,6 @@ class PlayerPressEvent(
     pitch: Float,
 ) : PlayerClickEvent(player, button, action, level, yaw, pitch)
 
-/** Event fired when a player releases a mouse button */
 class PlayerReleaseEvent(
     player: Player,
     button: MouseButton,
@@ -56,7 +53,6 @@ class PlayerReleaseEvent(
     pitch: Float,
 ) : PlayerClickEvent(player, button, ClickAction.RELEASE, level, yaw, pitch)
 
-/** Event fired when a player clicks on a block */
 class PlayerBlockClickEvent(
     player: Player,
     button: MouseButton,
@@ -70,7 +66,6 @@ class PlayerBlockClickEvent(
     val blockFace: BlockFace,
 ) : PlayerClickEvent(player, button, action, level, yaw, pitch)
 
-/** Event fired when a player clicks on an entity */
 class PlayerEntityClickEvent(
     player: Player,
     button: MouseButton,

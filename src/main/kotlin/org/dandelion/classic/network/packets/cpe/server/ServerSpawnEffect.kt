@@ -11,7 +11,7 @@ class ServerSpawnEffect(
     val positionZ: Int,
     val originX: Int,
     val originY: Int,
-    val originZ: Int
+    val originZ: Int,
 ) : Packet() {
     override val id: Byte = 0x31
     override val isCpe: Boolean = true
@@ -29,4 +29,3 @@ class ServerSpawnEffect(
         return writer.toByteArray()
     }
 }
-

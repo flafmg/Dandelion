@@ -3,10 +3,10 @@ package org.dandelion.classic.level.io
 import com.viaversion.nbt.io.NBTIO
 import com.viaversion.nbt.limiter.TagLimiter
 import com.viaversion.nbt.tag.*
-import java.io.File
-import java.security.MessageDigest
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.File
+import java.security.MessageDigest
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.experimental.and
@@ -44,7 +44,9 @@ class ClassicWorldLevelSerializer : LevelSerializer {
                 out.writeByte(0)
             }
         } catch (e: Exception) {
-            Console.errLog("Error serializing level ${level.id}: (${e.message}) ${e.stackTraceToString()}")
+            Console.errLog(
+                "Error serializing level ${level.id}: (${e.message}) ${e.stackTraceToString()}"
+            )
         }
     }
 
@@ -107,8 +109,14 @@ class ClassicWorldLevelSerializer : LevelSerializer {
 
     private fun writeEnvMapAppearance(cpe: CompoundTag, level: Level) {
         val appearance = CompoundTag()
-        appearance.put("SideBlock", ByteTag((level.sideBlock and 0xFF).toByte()))
-        appearance.put("EdgeBlock", ByteTag((level.edgeBlock and 0xFF).toByte()))
+        appearance.put(
+            "SideBlock",
+            ByteTag((level.sideBlock and 0xFF).toByte()),
+        )
+        appearance.put(
+            "EdgeBlock",
+            ByteTag((level.edgeBlock and 0xFF).toByte()),
+        )
         appearance.put("SideLevel", ShortTag(level.edgeHeight.toShort()))
         appearance.put("CloudsHeight", IntTag(level.cloudsHeight))
         appearance.put("MaxFog", IntTag(level.maxFogDistance))
@@ -152,7 +160,10 @@ class ClassicWorldLevelSerializer : LevelSerializer {
     private fun writeLightingMetadata(cpe: CompoundTag, level: Level) {
         val lighting = CompoundTag()
         lighting.put("LightingMode", ByteTag(level.lightingMode.id))
-        lighting.put("LightingModeLocked", ByteTag(if (level.lightingModeLocked) 1 else 0))
+        lighting.put(
+            "LightingModeLocked",
+            ByteTag(if (level.lightingModeLocked) 1 else 0),
+        )
         cpe.put("EnvMapAspect", lighting)
     }
 
@@ -167,17 +178,21 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         if (!file.exists() || !file.isFile) return null
 
         return try {
-            DataInputStream(GZIPInputStream(file.inputStream())).use { dataInput ->
-                val root = NBTIO.readTag(
-                    dataInput,
-                    TagLimiter.noop(),
-                    true,
-                    CompoundTag::class.java
-                )
+            DataInputStream(GZIPInputStream(file.inputStream())).use { dataInput
+                ->
+                val root =
+                    NBTIO.readTag(
+                        dataInput,
+                        TagLimiter.noop(),
+                        true,
+                        CompoundTag::class.java,
+                    )
                 readLevel(root, file)
             }
         } catch (ex: Exception) {
-            Console.errLog("Error deserializing level ${file.nameWithoutExtension}: ${ex.message}")
+            Console.errLog(
+                "Error deserializing level ${file.nameWithoutExtension}: ${ex.message}"
+            )
             null
         }
     }
@@ -189,18 +204,19 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         val spawn = readSpawn(root)
         val (blockData, blockData2) = readBlockData(root)
 
-        val level = Level(
-            id = info.name,
-            author = info.author,
-            description = "",
-            size = SVec(info.width, info.height, info.length),
-            blockData = blockData,
-            blockData2 = blockData2,
-            spawn = spawn,
-            extraData = "",
-            timeCreated = info.timeCreated,
-            targetFormat = "cw"
-        )
+        val level =
+            Level(
+                id = info.name,
+                author = info.author,
+                description = "",
+                size = SVec(info.width, info.height, info.length),
+                blockData = blockData,
+                blockData2 = blockData2,
+                spawn = spawn,
+                extraData = "",
+                timeCreated = info.timeCreated,
+                targetFormat = "cw",
+            )
 
         if (root.contains("Metadata")) {
             readMetadata(root.get("Metadata") as CompoundTag, level)
@@ -210,9 +226,12 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
     }
 
     private fun validateFormat(root: CompoundTag) {
-        val version = (root.get("FormatVersion") as? ByteTag)?.value ?: 1.toByte()
+        val version =
+            (root.get("FormatVersion") as? ByteTag)?.value ?: 1.toByte()
         if (version > 1) {
-            throw IllegalArgumentException("Unsupported ClassicWorld format version: $version")
+            throw IllegalArgumentException(
+                "Unsupported ClassicWorld format version: $version"
+            )
         }
     }
 
@@ -222,7 +241,7 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         val width: Short,
         val height: Short,
         val length: Short,
-        val timeCreated: Long
+        val timeCreated: Long,
     )
 
     private fun readInfo(root: CompoundTag, defaultName: String): LevelInfo {
@@ -231,14 +250,16 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         val height = (root.get("Y") as ShortTag).value
         val length = (root.get("Z") as ShortTag).value
 
-        val author = if (root.contains("CreatedBy")) {
-            val createdBy = root.get("CreatedBy") as CompoundTag
-            (createdBy.get("Username") as StringTag).value
-        } else "Unknown"
+        val author =
+            if (root.contains("CreatedBy")) {
+                val createdBy = root.get("CreatedBy") as CompoundTag
+                (createdBy.get("Username") as StringTag).value
+            } else "Unknown"
 
-        val timeCreated = if (root.contains("TimeCreated")) {
-            (root.get("TimeCreated") as LongTag).value
-        } else System.currentTimeMillis()
+        val timeCreated =
+            if (root.contains("TimeCreated")) {
+                (root.get("TimeCreated") as LongTag).value
+            } else System.currentTimeMillis()
 
         return LevelInfo(name, author, width, height, length, timeCreated)
     }
@@ -255,14 +276,21 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         val yaw = (spawn.get("H") as ByteTag).value
         val pitch = (spawn.get("P") as ByteTag).value
 
-        return Position(x.toFloat(), y.toFloat(), z.toFloat(), yaw.toFloat(), pitch.toFloat())
+        return Position(
+            x.toFloat(),
+            y.toFloat(),
+            z.toFloat(),
+            yaw.toFloat(),
+            pitch.toFloat(),
+        )
     }
 
     private fun readBlockData(root: CompoundTag): Pair<ByteArray, ByteArray?> {
         val blockArray = (root.get("BlockArray") as ByteArrayTag).value
-        val blockArray2 = if (root.contains("BlockArray2")) {
-            (root.get("BlockArray2") as ByteArrayTag).value
-        } else null
+        val blockArray2 =
+            if (root.contains("BlockArray2")) {
+                (root.get("BlockArray2") as ByteArrayTag).value
+            } else null
 
         return Pair(blockArray, blockArray2)
     }
@@ -286,18 +314,37 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         if (!cpe.contains("EnvMapAppearance")) return
         val appearance = cpe.get("EnvMapAppearance") as CompoundTag
 
-        level.sideBlock = (appearance.get("SideBlock") as ByteTag).value.toShort()
-        level.edgeBlock = (appearance.get("EdgeBlock") as ByteTag).value.toShort()
-        level.edgeHeight = (appearance.get("SideLevel") as ShortTag).value.toInt()
+        level.sideBlock =
+            (appearance.get("SideBlock") as ByteTag).value.toShort()
+        level.edgeBlock =
+            (appearance.get("EdgeBlock") as ByteTag).value.toShort()
+        level.edgeHeight =
+            (appearance.get("SideLevel") as ShortTag).value.toInt()
 
-        appearance.get("CloudsHeight")?.let { level.cloudsHeight = (it as IntTag).value }
-        appearance.get("MaxFog")?.let { level.maxFogDistance = (it as IntTag).value }
-        appearance.get("CloudsSpeed")?.let { level.cloudsSpeed = (it as IntTag).value }
-        appearance.get("WeatherSpeed")?.let { level.weatherSpeed = (it as IntTag).value }
-        appearance.get("WeatherFade")?.let { level.weatherFade = (it as IntTag).value }
-        appearance.get("ExpFog")?.let { level.exponentialFog = (it as ByteTag).value != 0.toByte() }
-        appearance.get("SidesOffset")?.let { level.sidesOffset = (it as IntTag).value }
-        appearance.get("TextureURL")?.let { level.texturePackUrl = (it as StringTag).value }
+        appearance.get("CloudsHeight")?.let {
+            level.cloudsHeight = (it as IntTag).value
+        }
+        appearance.get("MaxFog")?.let {
+            level.maxFogDistance = (it as IntTag).value
+        }
+        appearance.get("CloudsSpeed")?.let {
+            level.cloudsSpeed = (it as IntTag).value
+        }
+        appearance.get("WeatherSpeed")?.let {
+            level.weatherSpeed = (it as IntTag).value
+        }
+        appearance.get("WeatherFade")?.let {
+            level.weatherFade = (it as IntTag).value
+        }
+        appearance.get("ExpFog")?.let {
+            level.exponentialFog = (it as ByteTag).value != 0.toByte()
+        }
+        appearance.get("SidesOffset")?.let {
+            level.sidesOffset = (it as IntTag).value
+        }
+        appearance.get("TextureURL")?.let {
+            level.texturePackUrl = (it as StringTag).value
+        }
     }
 
     private fun readEnvColors(cpe: CompoundTag, level: Level) {
@@ -333,14 +380,18 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
 
         aspect.get("LightingMode")?.let {
             val lightingModeId = (it as ByteTag).value
-            level.lightingMode = LightingMode.fromId(lightingModeId) ?: LightingMode.CLIENT_LOCAL
+            level.lightingMode =
+                LightingMode.fromId(lightingModeId) ?: LightingMode.CLIENT_LOCAL
         }
         aspect.get("LightingModeLocked")?.let {
             level.lightingModeLocked = (it as ByteTag).value != 0.toByte()
         }
     }
 
-    private fun readAndRegisterBlockDefinitions(cpe: CompoundTag, level: Level) {
+    private fun readAndRegisterBlockDefinitions(
+        cpe: CompoundTag,
+        level: Level,
+    ) {
         if (!cpe.contains("BlockDefinitions")) return
         val blockDefs = cpe.get("BlockDefinitions") as CompoundTag
 
@@ -359,18 +410,22 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
     }
 
     private fun parseBlockDefinition(blockDef: CompoundTag): Block {
-        val id = if (blockDef.contains("ID2")) {
-            (blockDef.get("ID2") as ShortTag).value.toUShort()
-        } else {
-            ((blockDef.get("ID") as ByteTag).value.toInt() and 0xFF).toUShort()
-        }
+        val id =
+            if (blockDef.contains("ID2")) {
+                (blockDef.get("ID2") as ShortTag).value.toUShort()
+            } else {
+                ((blockDef.get("ID") as ByteTag).value.toInt() and 0xFF)
+                    .toUShort()
+            }
 
         val name = (blockDef.get("Name") as StringTag).value
         val collideType = (blockDef.get("CollideType") as ByteTag).value
         val speed = (blockDef.get("Speed") as ByteTag).value
-        val transmitsLight = (blockDef.get("TransmitsLight") as ByteTag).value == 0.toByte()
+        val transmitsLight =
+            (blockDef.get("TransmitsLight") as ByteTag).value == 0.toByte()
         val walkSound = (blockDef.get("WalkSound") as ByteTag).value
-        val fullBright = (blockDef.get("FullBright") as ByteTag).value != 0.toByte()
+        val fullBright =
+            (blockDef.get("FullBright") as ByteTag).value != 0.toByte()
         val shape = (blockDef.get("Shape") as ByteTag).value
         val blockDraw = (blockDef.get("BlockDraw") as ByteTag).value
 
@@ -379,16 +434,40 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         val coords = (blockDef.get("Coords") as ByteArrayTag).value
 
         return createCustomBlock(
-            id, name, collideType, speed, transmitsLight, walkSound, fullBright,
-            shape, blockDraw, fog[0], fog[1], fog[2], fog[3], textures, coords
+            id,
+            name,
+            collideType,
+            speed,
+            transmitsLight,
+            walkSound,
+            fullBright,
+            shape,
+            blockDraw,
+            fog[0],
+            fog[1],
+            fog[2],
+            fog[3],
+            textures,
+            coords,
         )
     }
 
     private fun createCustomBlock(
-        id: UShort, name: String, collideType: Byte, speed: Byte, transmitsLight: Boolean,
-        walkSound: Byte, fullBright: Boolean, shape: Byte, blockDraw: Byte,
-        fogDensity: Byte, fogR: Byte, fogG: Byte, fogB: Byte,
-        textures: ByteArray, coords: ByteArray
+        id: UShort,
+        name: String,
+        collideType: Byte,
+        speed: Byte,
+        transmitsLight: Boolean,
+        walkSound: Byte,
+        fullBright: Boolean,
+        shape: Byte,
+        blockDraw: Byte,
+        fogDensity: Byte,
+        fogR: Byte,
+        fogG: Byte,
+        fogB: Byte,
+        textures: ByteArray,
+        coords: ByteArray,
     ): Block {
         return object : Block() {
             override val id = id
@@ -406,39 +485,60 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
             override val fogB = fogB
             override val extendedBlock = textures.size > 6
 
-            override val topTextureId = if (extendedBlock) {
-                ((textures[6].toInt() and 0xFF) shl 8) or (textures[0].toInt() and 0xFF)
-            } else {
-                (textures[0].toInt() and 0xFF)
-            }.toUShort()
+            override val topTextureId =
+                if (extendedBlock) {
+                        ((textures[6].toInt() and 0xFF) shl 8) or
+                            (textures[0].toInt() and 0xFF)
+                    } else {
+                        (textures[0].toInt() and 0xFF)
+                    }
+                    .toUShort()
 
-            override val bottomTextureId = if (extendedBlock) {
-                ((textures[7].toInt() and 0xFF) shl 8) or (textures[1].toInt() and 0xFF)
-            } else {
-                (textures[1].toInt() and 0xFF)
-            }.toUShort()
+            override val bottomTextureId =
+                if (extendedBlock) {
+                        ((textures[7].toInt() and 0xFF) shl 8) or
+                            (textures[1].toInt() and 0xFF)
+                    } else {
+                        (textures[1].toInt() and 0xFF)
+                    }
+                    .toUShort()
 
-            override val sideTextureId = if (extendedBlock) {
-                ((textures[8].toInt() and 0xFF) shl 8) or (textures[2].toInt() and 0xFF)
-            } else {
-                (textures[2].toInt() and 0xFF)
-            }.toUShort()
+            override val sideTextureId =
+                if (extendedBlock) {
+                        ((textures[8].toInt() and 0xFF) shl 8) or
+                            (textures[2].toInt() and 0xFF)
+                    } else {
+                        (textures[2].toInt() and 0xFF)
+                    }
+                    .toUShort()
 
-            override val leftTextureId = if (extendedBlock) {
-                (((textures[8].toInt() and 0xFF) shl 8) or (textures[2].toInt() and 0xFF)).toUShort()
-            } else sideTextureId
+            override val leftTextureId =
+                if (extendedBlock) {
+                    (((textures[8].toInt() and 0xFF) shl 8) or
+                            (textures[2].toInt() and 0xFF))
+                        .toUShort()
+                } else sideTextureId
 
-            override val rightTextureId = if (extendedBlock) {
-                (((textures[9].toInt() and 0xFF) shl 8) or (textures[3].toInt() and 0xFF)).toUShort()
-            } else sideTextureId
+            override val rightTextureId =
+                if (extendedBlock) {
+                    (((textures[9].toInt() and 0xFF) shl 8) or
+                            (textures[3].toInt() and 0xFF))
+                        .toUShort()
+                } else sideTextureId
 
-            override val frontTextureId = if (extendedBlock) {
-                (((textures[10].toInt() and 0xFF) shl 8) or (textures[4].toInt() and 0xFF)).toUShort()
-            } else sideTextureId
+            override val frontTextureId =
+                if (extendedBlock) {
+                    (((textures[10].toInt() and 0xFF) shl 8) or
+                            (textures[4].toInt() and 0xFF))
+                        .toUShort()
+                } else sideTextureId
 
-            override val backTextureId = if (extendedBlock) {
-                (((textures[11].toInt() and 0xFF) shl 8) or (textures[5].toInt() and 0xFF)).toUShort()
-            } else sideTextureId
+            override val backTextureId =
+                if (extendedBlock) {
+                    (((textures[11].toInt() and 0xFF) shl 8) or
+                            (textures[5].toInt() and 0xFF))
+                        .toUShort()
+                } else sideTextureId
 
             override val minWidth = coords[0]
             override val minDepth = coords[1]
@@ -449,37 +549,40 @@ class ClassicWorldLevelDeserializer : LevelDeserializer {
         }
     }
 
-    private fun getSolidity(byte: Byte): BlockSolidity = when (byte) {
-        0.toByte() -> BlockSolidity.WALK_THROUGH
-        1.toByte() -> BlockSolidity.SWIM_THROUGH
-        2.toByte() -> BlockSolidity.SOLID
-        3.toByte() -> BlockSolidity.WATER
-        4.toByte() -> BlockSolidity.LAVA
-        5.toByte() -> BlockSolidity.PARTIALLY_SLIPPERY
-        6.toByte() -> BlockSolidity.FULLY_SLIPPERY
-        else -> BlockSolidity.SOLID
-    }
+    private fun getSolidity(byte: Byte): BlockSolidity =
+        when (byte) {
+            0.toByte() -> BlockSolidity.WALK_THROUGH
+            1.toByte() -> BlockSolidity.SWIM_THROUGH
+            2.toByte() -> BlockSolidity.SOLID
+            3.toByte() -> BlockSolidity.WATER
+            4.toByte() -> BlockSolidity.LAVA
+            5.toByte() -> BlockSolidity.PARTIALLY_SLIPPERY
+            6.toByte() -> BlockSolidity.FULLY_SLIPPERY
+            else -> BlockSolidity.SOLID
+        }
 
-    private fun getWalkSound(byte: Byte): WalkSound = when (byte) {
-        0.toByte() -> WalkSound.NONE
-        1.toByte() -> WalkSound.WOOD
-        2.toByte() -> WalkSound.GRAVEL
-        3.toByte() -> WalkSound.GRASS
-        4.toByte() -> WalkSound.STONE
-        5.toByte() -> WalkSound.METAL
-        6.toByte() -> WalkSound.GLASS
-        7.toByte() -> WalkSound.WOOL
-        8.toByte() -> WalkSound.SAND
-        9.toByte() -> WalkSound.SNOW
-        else -> WalkSound.STONE
-    }
+    private fun getWalkSound(byte: Byte): WalkSound =
+        when (byte) {
+            0.toByte() -> WalkSound.NONE
+            1.toByte() -> WalkSound.WOOD
+            2.toByte() -> WalkSound.GRAVEL
+            3.toByte() -> WalkSound.GRASS
+            4.toByte() -> WalkSound.STONE
+            5.toByte() -> WalkSound.METAL
+            6.toByte() -> WalkSound.GLASS
+            7.toByte() -> WalkSound.WOOL
+            8.toByte() -> WalkSound.SAND
+            9.toByte() -> WalkSound.SNOW
+            else -> WalkSound.STONE
+        }
 
-    private fun getBlockDraw(byte: Byte): BlockDraw = when (byte) {
-        0.toByte() -> BlockDraw.OPAQUE
-        1.toByte() -> BlockDraw.TRANSPARENT
-        2.toByte() -> BlockDraw.TRANSPARENT_NO_CULLING
-        3.toByte() -> BlockDraw.TRANSLUCENT
-        4.toByte() -> BlockDraw.GAS
-        else -> BlockDraw.OPAQUE
-    }
+    private fun getBlockDraw(byte: Byte): BlockDraw =
+        when (byte) {
+            0.toByte() -> BlockDraw.OPAQUE
+            1.toByte() -> BlockDraw.TRANSPARENT
+            2.toByte() -> BlockDraw.TRANSPARENT_NO_CULLING
+            3.toByte() -> BlockDraw.TRANSLUCENT
+            4.toByte() -> BlockDraw.GAS
+            else -> BlockDraw.OPAQUE
+        }
 }
