@@ -55,6 +55,12 @@ internal class PacketWriter {
         output.write(padded)
     }
 
+    fun writeStringAsBytes(value: ByteArray, length: Int = 64) {
+        val padded = ByteArray(length) { 0x20 }
+        System.arraycopy(value, 0, padded, 0, value.size.coerceAtMost(length))
+        output.write(padded)
+    }
+
     fun writeByteArray(data: ByteArray, length: Int = 1024) {
         val padded = ByteArray(length) { 0x00 }
         System.arraycopy(data, 0, padded, 0, data.size.coerceAtMost(length))

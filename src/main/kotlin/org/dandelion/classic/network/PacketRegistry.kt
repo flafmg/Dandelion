@@ -79,7 +79,7 @@ object PacketRegistry {
         addCPE("ExtendedTextures")
         addCPE("ExtendedBlocks")
         addCPE("PlayerClick")
-        addCPE("FullCPE437")
+        addCPE("FullCP437")
         addCPE("ExtEntityPositions")
         addCPE("ExtEntityTeleport")
         addCPE("CustomParticles")

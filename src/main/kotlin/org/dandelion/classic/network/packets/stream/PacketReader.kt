@@ -70,6 +70,12 @@ internal class PacketReader(private val data: ByteArray) {
         return strBytes.toString(StandardCharsets.UTF_8).trimEnd(' ')
     }
 
+    fun readStringAsBytes(length: Int = 64): ByteArray {
+        val strBytes = data.copyOfRange(index, index + length)
+        index += length
+        return strBytes
+    }
+
     fun readByteArray(length: Int = 1024): ByteArray {
         val arr = data.copyOfRange(index, index + length)
         index += length

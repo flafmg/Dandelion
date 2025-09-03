@@ -1,17 +1,21 @@
 package org.dandelion.classic.network.packets.classic.server
 
 import io.netty.channel.Channel
+import org.dandelion.classic.entity.player.Players
 import org.dandelion.classic.network.packets.Packet
 import org.dandelion.classic.network.packets.stream.PacketWriter
+import org.dandelion.classic.util.Utils
 
 class ServerDisconnectPlayer(val reason: String) : Packet() {
     override val id: Byte = 0x0E
 
     override fun encode(channel: Channel): ByteArray {
         val writer = PacketWriter()
+        val player = Players.find(channel)
+        val supportsFullCp437 = player?.supports("FullCP437") ?: false
 
         writer.writeByte(id)
-        writer.writeString(reason)
+        writer.writeStringAsBytes(Utils.convertToCp437WithFallback(reason, supportsFullCp437))
         return writer.toByteArray()
     }
 }

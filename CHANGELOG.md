@@ -10,6 +10,9 @@
 
 ## fixes
 - dlvl now supports extended blocks that
+- cp437 typo and bad implementation
+- level transfer not fully removing player from level before sending new data
+
 
 ## CPE Extensions
 
