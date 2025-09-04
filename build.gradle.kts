@@ -7,7 +7,7 @@ kotlin {
     jvmToolchain(21)
 }
 
-group = "org.dandelion.classic"
+group = "org.dandelion.server"
 version = "0.1.3-dev"
 
 repositories {
@@ -29,7 +29,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.dandelion.classic.server.ServerKt")
+    mainClass.set("org.dandelion.server.server.ServerKt")
 }
 
 tasks.test {
@@ -53,7 +53,7 @@ tasks.jar {
 configure<com.diffplug.gradle.spotless.SpotlessExtension> {
     kotlin {
         ktfmt("0.51").googleStyle().configure {
-            it.setMaxWidth(80)
+            it.setMaxWidth(160)
             it.setBlockIndent(4)
             it.setContinuationIndent(4)
             it.setRemoveUnusedImports(true)
