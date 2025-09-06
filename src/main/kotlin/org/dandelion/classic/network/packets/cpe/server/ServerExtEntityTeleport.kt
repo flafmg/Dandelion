@@ -35,8 +35,8 @@ class ServerExtEntityTeleport(
             writer.writeFShort(y)
             writer.writeFShort(z)
         }
-        writer.writeFByte(yaw)
-        writer.writeFByte(pitch)
+        writer.writeAngleByte(yaw)
+        writer.writePitchByte(pitch)
         return writer.toByteArray()
     }
 

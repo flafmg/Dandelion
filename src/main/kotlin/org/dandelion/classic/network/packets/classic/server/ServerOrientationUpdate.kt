@@ -6,8 +6,8 @@ import org.dandelion.classic.network.packets.stream.PacketWriter
 
 class ServerOrientationUpdate(
     val playerId: Byte,
-    val yaw: Byte,
-    val pitch: Byte,
+    val yaw: Float,
+    val pitch: Float,
 ) : Packet() {
     override val id: Byte = 0x0B
 
@@ -16,8 +16,8 @@ class ServerOrientationUpdate(
 
         writer.writeByte(id)
         writer.writeByte(playerId)
-        writer.writeByte(yaw)
-        writer.writeByte(pitch)
+        writer.writeAngleByte(yaw)
+        writer.writePitchByte(pitch)
         return writer.toByteArray()
     }
 }

@@ -12,8 +12,8 @@ class ServerExtAddEntity2(
     val spawnX: Float,
     val spawnY: Float,
     val spawnZ: Float,
-    val spawnYaw: Byte,
-    val spawnPitch: Byte,
+    val spawnYaw: Float,
+    val spawnPitch: Float,
 ) : Packet() {
     override val id: Byte = 0x21
     override val isCpe: Boolean = true
@@ -33,8 +33,8 @@ class ServerExtAddEntity2(
             writer.writeFShort(spawnY)
             writer.writeFShort(spawnZ)
         }
-        writer.writeByte(spawnYaw)
-        writer.writeByte(spawnPitch)
+        writer.writeAngleByte(spawnYaw)
+        writer.writePitchByte(spawnPitch)
         return writer.toByteArray()
     }
 }

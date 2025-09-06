@@ -56,6 +56,22 @@ data class Position(
         return Position(x, y, z, yaw, pitch)
     }
 
+    fun normalizeYaw(): Float {
+        var normalizedYaw = yaw % 360f
+        if (normalizedYaw < 0f) {
+            normalizedYaw += 360f
+        }
+        return normalizedYaw
+    }
+
+    fun normalizePitch(): Float {
+        return when {
+            pitch > 90f -> 90f
+            pitch < -90f -> -90f
+            else -> pitch
+        }
+    }
+
     override fun toString(): String {
         return "Position(x=$x, y=$y, z=$z, yaw=$yaw, pitch=$pitch)"
     }

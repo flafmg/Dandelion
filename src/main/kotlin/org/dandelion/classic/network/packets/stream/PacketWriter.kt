@@ -66,6 +66,20 @@ internal class PacketWriter {
         output.write(ByteBuffer.allocate(4).putInt(fixed).array())
     }
 
+    fun writeRangedByte(value: Float, min: Float, max: Float) {
+        val normalizedValue = ((value - min) / (max - min)).coerceIn(0f, 1f) // 0..1
+        val byteValue = (normalizedValue * 255f - 128f).toInt().coerceIn(-128, 127)
+        output.write(byteValue)
+    }
+
+    fun writeAngleByte(angle: Float) {
+        writeRangedByte(angle, 0f, 360f)
+    }
+
+    fun writePitchByte(pitch: Float) {
+        writeRangedByte(pitch, -90f, 90f)
+    }
+
     fun toByteArray(): ByteArray {
         return output.toByteArray()
     }

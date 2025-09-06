@@ -15,8 +15,8 @@ class ClientPositionAndOrientation : Packet() {
     var x: Float = 0f
     var y: Float = 0f
     var z: Float = 0f
-    var yaw: Byte = 0x0
-    var pitch: Byte = 0x0
+    var yaw: Float = 0f
+    var pitch: Float = 0f
 
     override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
@@ -35,8 +35,8 @@ class ClientPositionAndOrientation : Packet() {
             y = reader.readFShort()
             z = reader.readFShort()
         }
-        yaw = reader.readByte()
-        pitch = reader.readByte()
+        yaw = reader.readAngleByte()
+        pitch = reader.readPitchByte()
     }
 
     override fun resolve(channel: Channel) {
@@ -45,8 +45,8 @@ class ClientPositionAndOrientation : Packet() {
             x,
             y,
             z,
-            yaw.toFloat(),
-            pitch.toFloat(),
+            yaw,
+            pitch,
         )
         player?.updateHeldBlock(heldBlock)
     }

@@ -274,11 +274,11 @@ class Player(
                         if (actualUsePosition) this.position.z + z
                         else this.position.z,
                         if (actualUseOrientation)
-                            (this.position.yaw + yaw).toInt().toByte()
-                        else this.position.yaw.toInt().toByte(),
+                            (this.position.yaw + yaw)
+                        else this.position.yaw,
                         if (actualUseOrientation)
-                            (this.position.pitch + pitch).toInt().toByte()
-                        else this.position.pitch.toInt().toByte(),
+                            (this.position.pitch + pitch)
+                        else this.position.pitch,
                     )
                     .send(channel)
                 Players.getAllPlayers()
@@ -293,13 +293,11 @@ class Player(
                                 if (actualUsePosition) this.position.z + z
                                 else this.position.z,
                                 if (actualUseOrientation)
-                                    (this.position.yaw + yaw).toInt().toByte()
-                                else this.position.yaw.toInt().toByte(),
+                                    (this.position.yaw + yaw)
+                                else this.position.yaw,
                                 if (actualUseOrientation)
                                     (this.position.pitch + pitch)
-                                        .toInt()
-                                        .toByte()
-                                else this.position.pitch.toInt().toByte(),
+                                else this.position.pitch,
                             )
                             .send(it)
                     }
@@ -309,10 +307,10 @@ class Player(
                         if (actualUsePosition) x else this.position.x,
                         if (actualUsePosition) y else this.position.y,
                         if (actualUsePosition) z else this.position.z,
-                        if (actualUseOrientation) yaw.toInt().toByte()
-                        else this.position.yaw.toInt().toByte(),
-                        if (actualUseOrientation) pitch.toInt().toByte()
-                        else this.position.pitch.toInt().toByte(),
+                        if (actualUseOrientation) yaw
+                        else this.position.yaw,
+                        if (actualUseOrientation) pitch
+                        else this.position.pitch,
                     )
                     .send(channel)
                 Players.getAllPlayers()
@@ -323,10 +321,10 @@ class Player(
                                 if (actualUsePosition) x else this.position.x,
                                 if (actualUsePosition) y else this.position.y,
                                 if (actualUsePosition) z else this.position.z,
-                                if (actualUseOrientation) yaw.toInt().toByte()
-                                else this.position.yaw.toInt().toByte(),
-                                if (actualUseOrientation) pitch.toInt().toByte()
-                                else this.position.pitch.toInt().toByte(),
+                                if (actualUseOrientation) yaw
+                                else this.position.yaw,
+                                if (actualUseOrientation) pitch
+                                else this.position.pitch,
                             )
                             .send(it)
                     }
@@ -369,8 +367,8 @@ class Player(
                 originalPosition.x,
                 originalPosition.y - toFShort(22),
                 originalPosition.z,
-                originalPosition.yaw.toInt().toByte(),
-                originalPosition.pitch.toInt().toByte(),
+                originalPosition.yaw,
+                originalPosition.pitch,
             )
             .send(channel)
         position.set(
@@ -740,8 +738,8 @@ class Player(
                 spawnPosition.x,
                 spawnPosition.y,
                 spawnPosition.z,
-                spawnPosition.yaw.toInt().toByte(),
-                spawnPosition.pitch.toInt().toByte(),
+                spawnPosition.yaw,
+                spawnPosition.pitch,
             )
             .send(channel)
 

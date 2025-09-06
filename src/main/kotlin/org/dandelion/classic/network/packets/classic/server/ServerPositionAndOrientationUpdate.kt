@@ -9,8 +9,8 @@ class ServerPositionAndOrientationUpdate(
     val changeInX: Float,
     val changeInY: Float,
     val changeInZ: Float,
-    val yaw: Byte,
-    val pitch: Byte,
+    val yaw: Float,
+    val pitch: Float,
 ) : Packet() {
     override val id: Byte = 0x09
 
@@ -22,8 +22,8 @@ class ServerPositionAndOrientationUpdate(
         writer.writeFByte(changeInX)
         writer.writeFByte(changeInY)
         writer.writeFByte(changeInZ)
-        writer.writeByte(yaw)
-        writer.writeByte(pitch)
+        writer.writeAngleByte(yaw)
+        writer.writePitchByte(pitch)
         return writer.toByteArray()
     }
 }

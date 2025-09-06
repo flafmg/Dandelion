@@ -82,6 +82,21 @@ internal class PacketReader(private val data: ByteArray) {
         return value / 32.0f
     }
 
+    fun readRangedByte(min: Float, max: Float): Float {
+        val byteValue = data[index].toInt()
+        index++
+        val normalizedByte = (byteValue + 128) / 255.0f // 0..1
+        return min + normalizedByte * (max - min)
+    }
+
+    fun readAngleByte(): Float {
+        return readRangedByte(0f, 360f)
+    }
+
+    fun readPitchByte(): Float {
+        return readRangedByte(-90f, 90f)
+    }
+
     fun getIndex(): Int {
         return index
     }

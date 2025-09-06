@@ -164,8 +164,8 @@ open class Entity(
                     newX,
                     newY,
                     newZ,
-                    newYaw.toInt().toByte(),
-                    newPitch.toInt().toByte(),
+                    newYaw,
+                    newPitch,
                 )
             }
             hasMoved && hasRotated -> {
@@ -173,8 +173,8 @@ open class Entity(
                     deltaX,
                     deltaY,
                     deltaZ,
-                    newYaw.toInt().toByte(),
-                    newPitch.toInt().toByte(),
+                    newYaw,
+                    newPitch,
                 )
             }
             hasMoved -> {
@@ -182,8 +182,8 @@ open class Entity(
             }
             hasRotated -> {
                 broadcastOrientationUpdate(
-                    newYaw.toInt().toByte(),
-                    newPitch.toInt().toByte(),
+                    newYaw,
+                    newPitch,
                 )
             }
         }
@@ -199,8 +199,8 @@ open class Entity(
         x: Float,
         y: Float,
         z: Float,
-        yaw: Byte,
-        pitch: Byte,
+        yaw: Float,
+        pitch: Float,
     ) {
         getOtherPlayersInLevel().forEach { player ->
             ServerSetPositionAndOrientation(entityId, x, y, z, yaw, pitch)
@@ -248,11 +248,11 @@ open class Entity(
                             if (usePosition) this.position.z + z
                             else this.position.z,
                             if (useOrientation)
-                                (this.position.yaw + yaw).toInt().toByte()
-                            else this.position.yaw.toInt().toByte(),
+                                this.position.yaw + yaw
+                            else this.position.yaw,
                             if (useOrientation)
-                                (this.position.pitch + pitch).toInt().toByte()
-                            else this.position.pitch.toInt().toByte(),
+                                this.position.pitch + pitch
+                            else this.position.pitch,
                         )
                         .send(player.channel)
                 } else {
@@ -261,10 +261,10 @@ open class Entity(
                             if (usePosition) x else this.position.x,
                             if (usePosition) y else this.position.y,
                             if (usePosition) z else this.position.z,
-                            if (useOrientation) yaw.toInt().toByte()
-                            else this.position.yaw.toInt().toByte(),
-                            if (useOrientation) pitch.toInt().toByte()
-                            else this.position.pitch.toInt().toByte(),
+                            if (useOrientation) yaw
+                            else this.position.yaw,
+                            if (useOrientation) pitch
+                            else this.position.pitch,
                         )
                         .send(player.channel)
                 }
@@ -276,8 +276,8 @@ open class Entity(
         dx: Float,
         dy: Float,
         dz: Float,
-        yaw: Byte,
-        pitch: Byte,
+        yaw: Float,
+        pitch: Float,
     ) {
         getOtherPlayersInLevel().forEach { player ->
             ServerPositionAndOrientationUpdate(entityId, dx, dy, dz, yaw, pitch)
@@ -295,7 +295,7 @@ open class Entity(
         }
     }
 
-    protected open fun broadcastOrientationUpdate(yaw: Byte, pitch: Byte) {
+    protected open fun broadcastOrientationUpdate(yaw: Float, pitch: Float) {
         getOtherPlayersInLevel().forEach { player ->
             ServerOrientationUpdate(entityId, yaw, pitch).send(player.channel)
         }
@@ -354,8 +354,8 @@ open class Entity(
                         position.x,
                         position.y,
                         position.z,
-                        position.yaw.toInt().toByte(),
-                        position.pitch.toInt().toByte(),
+                        position.yaw,
+                        position.pitch,
                     )
                     .send(player.channel)
             } else {
@@ -365,8 +365,8 @@ open class Entity(
                         position.x,
                         position.y,
                         position.z,
-                        position.yaw.toInt().toByte(),
-                        position.pitch.toInt().toByte(),
+                        position.yaw,
+                        position.pitch,
                     )
                     .send(player.channel)
             }
