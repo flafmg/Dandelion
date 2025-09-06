@@ -1,0 +1,20 @@
+package org.dandelion.server.network.packets.classic.server
+
+import io.netty.channel.Channel
+import org.dandelion.server.network.packets.Packet
+import org.dandelion.server.network.packets.stream.PacketWriter
+
+class ServerLevelFinalize(val x: Short, val y: Short, val z: Short) : Packet() {
+
+    override val id: Byte = 0x04
+
+    override fun encode(channel: Channel): ByteArray {
+        val writer = PacketWriter()
+
+        writer.writeByte(id)
+        writer.writeShort(x)
+        writer.writeShort(y)
+        writer.writeShort(z)
+        return writer.toByteArray()
+    }
+}

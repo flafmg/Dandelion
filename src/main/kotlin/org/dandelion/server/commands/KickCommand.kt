@@ -1,0 +1,34 @@
+package org.dandelion.server.commands
+
+import org.dandelion.server.commands.annotations.ArgRange
+import org.dandelion.server.commands.annotations.CommandDef
+import org.dandelion.server.commands.annotations.OnExecute
+import org.dandelion.server.commands.annotations.RequirePermission
+import org.dandelion.server.commands.model.Command
+import org.dandelion.server.commands.model.CommandExecutor
+import org.dandelion.server.entity.player.Players
+import org.dandelion.server.server.data.MessageRegistry
+
+@CommandDef(
+    name = "kick",
+    description = "Kick a player from the server",
+    usage = "/kick <player> [reason]",
+)
+class KickCommand : Command {
+    @OnExecute
+    @RequirePermission("dandelion.command.kick")
+    @ArgRange(min = 1)
+    fun execute(executor: CommandExecutor, args: Array<String>) {
+        val playerName = args[0]
+        val reason =
+            if (args.size > 1) args.slice(1 until args.size).joinToString(" ")
+            else MessageRegistry.Commands.Server.Kick.getDefaultReason()
+        val player = Players.find(playerName)
+        if (player == null) {
+            MessageRegistry.Commands.sendPlayerNotFound(executor, playerName)
+            return
+        }
+        player.kick(reason)
+        MessageRegistry.Commands.Server.Kick.sendSuccess(executor, player.name)
+    }
+}

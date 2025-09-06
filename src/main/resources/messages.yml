@@ -10,13 +10,14 @@ server:
     joined: "&a+ &7{player} &ajoined the server"
     left: "&c- &7{player} &cleft the server"
     joined_level: "&e* &7{player} &ejoined level &7{level}"
-    display_name: "{group} &f{player}"
+    display_name: "{group} &f{name}"
 
   level:
     full: "&cLevel is full"
     not_available: "&cDefault level not available"
     being_reloaded: "&eLevel is being reloaded"
     being_unloaded: "&eLevel is being unloaded"
+    no_build_permission: "&cYou don't have permission to build on this level"
 
   chat_format:
     player: "&f{player}: &7{message}"
@@ -25,7 +26,7 @@ server:
 
   tab_list:
     group_name: "On {level}"
-    list_name: "&7{player_display_name} &8[{group_display_name}&8]"
+    list_name: "&7{player_name} &8[{group_display_name}&8]"
 
 commands:
   general:
@@ -55,6 +56,7 @@ commands:
       software: "&eSoftware: &f{software}"
       uptime: "&eUptime: &f{uptime}"
       public: "&ePublic: &f{status}"
+      unique_players: "&eUnique Players: &f{count}"
       public_yes: "&aYes"
       public_no: "&cNo"
 
@@ -160,6 +162,7 @@ commands:
       success_self: "&aTeleported to level '&7{id}&a'."
       success_other: "&aPlayer '&7{player}&a' teleported to level '&7{id}&a'."
       specify_player: "&cSpecify a player name."
+      no_permission: "&cYou cant go to this level."
       usage: "&cUsage: /level tp <levelId> [player]"
     kick:
       success: "&aKicked &7{count} &aplayers from level '&7{id}&a'."
@@ -374,36 +377,35 @@ commands:
     no_permission_manage_player_perms: "&cYou don't have permission to manage player permissions."
     no_permission_reload: "&cYou don't have permission to reload permissions."
     subcommands:
-      available: "&eAvailable SubCommands: {commands}"
+      available: "&eAvailable SubCommands: &7{commands}"
       none_available: "&cNo subcommands available."
     help:
       group_header: "&eGroup Management Commands:"
-      group_create: "&7- create <name> <displayName> <priority> &f- Create new group"
-      group_delete: "&7- delete <name> [confirm] &f- Delete group"
-      group_list: "&7- list [page] &f- List all groups"
-      group_info: "&7- info <name> &f- Show group information"
-      group_setpriority: "&7- setpriority <name> <priority> &f- Set group priority"
-      group_setdisplay: "&7- setdisplay <name> <displayName> &f- Set display name"
-      group_grant: "&7- grant <name> <permission> &f- Grant permission"
-      group_revoke: "&7- revoke <name> <permission> &f- Revoke permission"
-      group_remove: "&7- removepermission <name> <permission> &f- Remove permission entry"
-      group_listperms: "&7- listperms <name> &f- List group permissions"
-      group_hasperm: "&7- hasperm <name> <permission> &f- Check permission"
+      group_create: "&7- create/c/add/new <name> <displayName> <priority> &f- Create new group"
+      group_delete: "&7- delete/del/d/remove/rem <name> [confirm] &f- Delete group"
+      group_list: "&7- list/l/ls [page] &f- List all groups"
+      group_info: "&7- info/i/show <name> &f- Show group information"
+      group_setpriority: "&7- setpriority/priority/setprio/prio <name> <priority> &f- Set group priority"
+      group_setdisplay: "&7- setdisplay/display/setname/name <name> <displayName> &f- Set display name"
+      group_grant: "&7- grant/g/give/add <name> <permission> &f- Grant permission"
+      group_revoke: "&7- revoke/r/deny/take <name> <permission> &f- Revoke permission"
+      group_remove: "&7- removepermission/remove/rem/rp/delperm <name> <permission> &f- Remove permission entry"
+      group_listperms: "&7- listperms/listpermissions/perms/lp <name> &f- List group permissions"
+      group_hasperm: "&7- hasperm/has/check <name> <permission> &f- Check permission"
       player_header: "&ePlayer Management Commands:"
-      player_info: "&7- info <player> &f- Show player information"
-      player_addgroup: "&7- addgroup <player> <group> &f- Add group to player"
-      player_removegroup: "&7- removegroup <player> <group> &f- Remove group from player"
-      player_setgroups: "&7- setgroups <player> <group1,group2,...> &f- Set player groups"
-      player_listgroups: "&7- listgroups <player> &f- List player groups"
-      player_grant: "&7- grant <player> <permission> &f- Grant individual permission"
-      player_revoke: "&7- revoke <player> <permission> &f- Revoke individual permission"
-      player_remove: "&7- removepermission <player> <permission> &f- Remove individual permission entry"
-      player_listperms: "&7- listperms <player> &f- List all effective permissions"
-      player_listownperms: "&7- listownperms <player> &f- List individual permissions only"
-      player_hasperm: "&7- hasperm <player> <permission> &f- Check if has permission"
-      player_check: "&7- check <player> <permission> &f- Check permission with source"
+      player_info: "&7- info/i/show <player> &f- Show player information"
+      player_addgroup: "&7- addgroup/ag/addg/agroup <player> <group> &f- Add group to player"
+      player_removegroup: "&7- removegroup/remgroup/rg/rgroup/delgroup/remg <player> <group> &f- Remove group from player"
+      player_setgroups: "&7- setgroups/sgroups/setg <player> <group1,group2,...> &f- Set player groups"
+      player_listgroups: "&7- listgroups/lgroups/lg/groups <player> &f- List player groups"
+      player_grant: "&7- grant/g/give/add <player> <permission> &f- Grant individual permission"
+      player_revoke: "&7- revoke/r/deny/take <player> <permission> &f- Revoke individual permission"
+      player_remove: "&7- removepermission/remove/rem/rp/delperm <player> <permission> &f- Remove individual permission entry"
+      player_listperms: "&7- listperms/listpermissions/list/lp/perms <player> &f- List all effective permissions"
+      player_listownperms: "&7- listownperms/lop/ownperms/own <player> &f- List individual permissions only"
+      player_hasperm: "&7- hasperm/has/test <player> <permission> &f- Check if has permission"
+      player_check: "&7- check/checkperm <player> <permission> &f- Check permission with source"
 
-  # Plugin Management
   plugin:
     list:
       no_plugins: "&cNo plugins are currently loaded."
@@ -499,7 +501,3 @@ commands:
       player_to_player: "&aPlayer '&f{player}&a' teleported to '&f{target}&a'."
       self_location: "&aYou have been teleported to &f{x}, {y}, {z}&a."
       player_to_location: "&aPlayer '&f{player}&a' teleported to &f{x}, {y}, {z}&a."
-
-    target:
-      received_player: "&aYou have been teleported to &f{where}&a."
-      received_location: "&aYou have been teleported to &f{x}, {y}, {z}&a."
