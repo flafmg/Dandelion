@@ -305,9 +305,10 @@ open class Entity(
 
     // region Model Management
     protected open fun broadcastModelChange(modelName: String) {
-        getOtherPlayersInLevel().forEach { player ->
+        level?.getPlayers()?.forEach { player ->
             if (player.supports("ChangeModel")) {
-                ServerChangeModel(entityId, modelName).send(player.channel)
+                val sendEntityId = if (this is Player && player == this) -1 else entityId
+                ServerChangeModel(sendEntityId.toByte(), modelName).send(player.channel)
             }
         }
     }

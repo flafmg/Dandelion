@@ -10,7 +10,7 @@ import org.dandelion.server.commands.annotations.ReferSelf
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
 import org.dandelion.server.entity.player.data.PlayerInfo
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.server.data.MessageRegistry
 
 @CommandDef(
@@ -32,7 +32,7 @@ class PlayerInfoCommand : Command {
             return
         }
 
-        val onlinePlayer = Players.find(playerName)
+        val onlinePlayer = PlayerRegistry.find(playerName)
         var currentTotalPlaytime = info.totalPlaytime
         if (onlinePlayer != null) {
             currentTotalPlaytime += (Date().time - info.lastJoin.time)
@@ -69,7 +69,7 @@ class PlayerInfoCommand : Command {
         MessageRegistry.Commands.Player.Info.sendLastSeen(
             executor,
             dateFormat.format(info.lastSeen),
-            Players.find(playerName) != null,
+            PlayerRegistry.find(playerName) != null,
         )
         MessageRegistry.Commands.Player.Info.sendPlaytime(executor, playtime)
         MessageRegistry.Commands.Player.Info.sendJoinCount(

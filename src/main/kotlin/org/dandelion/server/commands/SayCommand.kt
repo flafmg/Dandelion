@@ -6,7 +6,7 @@ import org.dandelion.server.commands.annotations.OnExecute
 import org.dandelion.server.commands.annotations.RequirePermission
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.server.data.MessageRegistry
 
 @CommandDef(
@@ -24,6 +24,6 @@ class SayCommand : Command {
             MessageRegistry.Commands.Chat.getSayFormat()
                 .replace("{sender}", executor.name)
                 .replace("{message}", message)
-        Players.broadcastMessage(formatMessage)
+        PlayerRegistry.broadcastMessage(formatMessage)
     }
 }

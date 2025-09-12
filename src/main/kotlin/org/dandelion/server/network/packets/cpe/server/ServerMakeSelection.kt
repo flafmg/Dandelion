@@ -3,7 +3,7 @@ package org.dandelion.server.network.packets.cpe.server
 import io.netty.channel.Channel
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketWriter
-import org.dandelion.server.types.extensions.SelectionCuboid
+import org.dandelion.server.types.SelectionCuboid
 
 class ServerMakeSelection(
     val selectionId: Byte,

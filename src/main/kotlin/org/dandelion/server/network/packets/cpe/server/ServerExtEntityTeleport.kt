@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.cpe.server
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketWriter
 import org.dandelion.server.types.enums.MoveMode
@@ -26,7 +26,7 @@ class ServerExtEntityTeleport(
         writer.writeByte(id)
         writer.writeByte(entityId)
         writer.writeByte(encodeTeleportBehavior())
-        if (Players.supports(channel, "ExtEntityPositions")) {
+        if (PlayerRegistry.supports(channel, "ExtEntityPositions")) {
             writer.writeFloat(x)
             writer.writeFloat(y)
             writer.writeFloat(z)

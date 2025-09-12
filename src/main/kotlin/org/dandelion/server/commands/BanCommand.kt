@@ -7,7 +7,7 @@ import org.dandelion.server.commands.annotations.RequirePermission
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
 import org.dandelion.server.entity.player.data.PlayerInfo
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.server.data.MessageRegistry
 
 @CommandDef(
@@ -24,7 +24,7 @@ class BanCommand : Command {
         val reason =
             if (args.size > 1) args.slice(1 until args.size).joinToString(" ")
             else MessageRegistry.Commands.Server.Ban.getDefaultReason()
-        val player = Players.find(playerName)
+        val player = PlayerRegistry.find(playerName)
         if (player == null) {
             val info = PlayerInfo.load(playerName)
             if (info == null) {

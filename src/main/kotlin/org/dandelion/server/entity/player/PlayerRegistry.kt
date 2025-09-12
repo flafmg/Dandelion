@@ -6,7 +6,8 @@ import org.dandelion.server.events.PlayerConnectEvent
 import org.dandelion.server.events.PlayerPreConnectEvent
 import org.dandelion.server.events.manager.EventDispatcher
 import org.dandelion.server.level.Level
-import org.dandelion.server.level.Levels
+import org.dandelion.server.level.LevelRegistry
+import org.dandelion.server.models.ModelRegistry
 import org.dandelion.server.network.PacketRegistry
 import org.dandelion.server.network.packets.classic.client.ClientIdentification
 import org.dandelion.server.network.packets.classic.server.ServerDisconnectPlayer
@@ -19,7 +20,7 @@ import org.dandelion.server.server.data.ServerConfig
 import org.dandelion.server.tablist.TabList
 import java.net.InetSocketAddress
 
-object Players {
+object PlayerRegistry {
     private const val EXPECTED_PROTOCOL_VERSION: Byte = 0x07
     private const val MD5_ALGORITHM = "MD5"
     private const val HEX_FORMAT = "%02x"
@@ -67,7 +68,7 @@ object Players {
 
         val player =
             createPlayerFromClientInfo(clientInfo, channel).apply {
-                levelId = Levels.defaultLevelId
+                levelId = LevelRegistry.defaultLevelId
                 supportsCpe = clientInfo.unused == 0x42.toByte()
             }
 
@@ -108,7 +109,7 @@ object Players {
 
         ServerIdentification().send(player.channel)
 
-        val joinLevel = Levels.getDefaultLevel()
+        val joinLevel = LevelRegistry.getDefaultLevel()
         if (joinLevel == null) {
             disconnectPlayerWithReason(
                 player.channel,
@@ -367,14 +368,14 @@ object Players {
 
     // region Player Lookup
     fun find(channel: Channel): Player? =
-        Levels.getAllPlayers().find { it.channel == channel }
+        LevelRegistry.getAllPlayers().find { it.channel == channel }
 
     fun find(name: String): Player? =
-        Levels.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
+        LevelRegistry.getAllPlayers().find { it.name.equals(name, ignoreCase = true) }
 
-    fun getAll(): List<Player> = Levels.getAllPlayers()
+    fun getAll(): List<Player> = LevelRegistry.getAllPlayers()
 
-    fun count(): Int = Levels.getTotalPlayerCount()
+    fun count(): Int = LevelRegistry.getTotalPlayerCount()
 
     // endregion
 

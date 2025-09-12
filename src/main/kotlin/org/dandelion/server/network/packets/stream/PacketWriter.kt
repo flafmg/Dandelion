@@ -72,6 +72,10 @@ internal class PacketWriter {
         output.write(ByteBuffer.allocate(4).putInt(fixed).array())
     }
 
+    fun writeIEEEFloat(value: Float) {
+        output.write(ByteBuffer.allocate(4).putFloat(value).array())
+    }
+
     fun writeRangedByte(value: Float, min: Float, max: Float) {
         val normalizedValue = ((value - min) / (max - min)).coerceIn(0f, 1f) // 0..1
         val byteValue = (normalizedValue * 255f - 128f).toInt().coerceIn(-128, 127)

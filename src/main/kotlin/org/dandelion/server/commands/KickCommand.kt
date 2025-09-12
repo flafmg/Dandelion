@@ -6,7 +6,7 @@ import org.dandelion.server.commands.annotations.OnExecute
 import org.dandelion.server.commands.annotations.RequirePermission
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.server.data.MessageRegistry
 
 @CommandDef(
@@ -23,7 +23,7 @@ class KickCommand : Command {
         val reason =
             if (args.size > 1) args.slice(1 until args.size).joinToString(" ")
             else MessageRegistry.Commands.Server.Kick.getDefaultReason()
-        val player = Players.find(playerName)
+        val player = PlayerRegistry.find(playerName)
         if (player == null) {
             MessageRegistry.Commands.sendPlayerNotFound(executor, playerName)
             return

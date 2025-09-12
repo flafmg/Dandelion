@@ -3,8 +3,9 @@ package org.dandelion.server.server
 import org.dandelion.server.blocks.manager.BlockRegistry
 import org.dandelion.server.commands.manager.CommandRegistry
 import org.dandelion.server.entity.player.data.PlayerInfoRegistry
-import org.dandelion.server.level.Levels
+import org.dandelion.server.level.LevelRegistry
 import org.dandelion.server.level.generator.GeneratorRegistry
+import org.dandelion.server.models.ModelRegistry
 import org.dandelion.server.network.Connection
 import org.dandelion.server.network.PacketRegistry
 import org.dandelion.server.permission.PermissionRepository
@@ -30,10 +31,11 @@ object Server {
         CommandRegistry.init()
         BlockRegistry.init()
         GeneratorRegistry.init()
-        Levels.init()
-        Heartbeat.init()
+        LevelRegistry.init()
+        ModelRegistry.init()
         PermissionRepository.init()
         PluginRegistry.init()
+        Heartbeat.init()
         Connection.init()
         warns()
 
@@ -48,7 +50,7 @@ object Server {
         Connection.shutdown()
         PluginRegistry.shutdown()
         Heartbeat.shutdown()
-        Levels.shutdown()
+        LevelRegistry.shutdown()
         Console.log("Server stopped")
         Console.shutdown()
     }

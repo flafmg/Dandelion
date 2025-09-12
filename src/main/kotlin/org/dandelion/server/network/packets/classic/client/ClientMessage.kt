@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.classic.client
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketReader
 import org.dandelion.server.util.Utils
@@ -22,7 +22,7 @@ class ClientMessage : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.find(channel)
+        val player = PlayerRegistry.find(channel)
         player?.handleSendMessageAs(this)
     }
 }

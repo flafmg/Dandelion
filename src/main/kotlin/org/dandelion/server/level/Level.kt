@@ -24,7 +24,7 @@ import org.dandelion.server.network.packets.cpe.server.ServerSetMapEnvUrl
 import org.dandelion.server.server.Console
 import org.dandelion.server.types.Position
 import org.dandelion.server.types.enums.LightingMode
-import org.dandelion.server.types.extensions.Color
+import org.dandelion.server.types.Color
 import org.dandelion.server.types.vec.IVec
 import org.dandelion.server.types.vec.SVec
 

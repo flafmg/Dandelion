@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.classic.client
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketReader
 
@@ -24,7 +24,7 @@ class ClientSetBlock : Packet() {
         y = reader.readShort()
         z = reader.readShort()
         mode = reader.readByte()
-        if (Players.supports(channel, "ExtendedBlocks")) {
+        if (PlayerRegistry.supports(channel, "ExtendedBlocks")) {
             blockType = reader.readUShort()
         } else {
             blockType = reader.readByte().toUShort()
@@ -32,7 +32,7 @@ class ClientSetBlock : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.find(channel) ?: return
+        val player = PlayerRegistry.find(channel) ?: return
         val destroying = mode != 1.toByte()
         player.interactWithBlock(x, y, z, blockType, destroying)
     }

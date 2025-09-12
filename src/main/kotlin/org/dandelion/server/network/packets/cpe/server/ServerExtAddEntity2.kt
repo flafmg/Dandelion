@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.cpe.server
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketWriter
 
@@ -24,7 +24,7 @@ class ServerExtAddEntity2(
         writer.writeByte(entityId)
         writer.writeString(inGameName)
         writer.writeString(skinName)
-        if (Players.supports(channel, "ExtEntityPositions")) {
+        if (PlayerRegistry.supports(channel, "ExtEntityPositions")) {
             writer.writeFloat(spawnX)
             writer.writeFloat(spawnY)
             writer.writeFloat(spawnZ)

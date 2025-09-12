@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import java.util.concurrent.ConcurrentHashMap
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.PacketRegistry
 import org.dandelion.server.server.Console
 
@@ -117,7 +117,7 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
     ) {
         try {
             channelBuffers.remove(channelKey)
-            Players.forceDisconnect(ctx.channel())
+            PlayerRegistry.forceDisconnect(ctx.channel())
 
             if (ctx.channel().isActive) {
                 ctx.close()
@@ -149,7 +149,7 @@ class ConnectionHandler : SimpleChannelInboundHandler<ByteBuf>() {
 
         try {
             channelBuffers.remove(channelKey)
-            Players.handleDisconnection(ctx.channel())
+            PlayerRegistry.handleDisconnection(ctx.channel())
 
             Console.debugLog(
                 "Channel $channelKey became inactive, cleaned up resources"

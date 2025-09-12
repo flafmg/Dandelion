@@ -1,8 +1,8 @@
 package org.dandelion.server.tablist
 
 import org.dandelion.server.entity.player.Player
-import org.dandelion.server.entity.player.Players
-import org.dandelion.server.level.Levels
+import org.dandelion.server.entity.player.PlayerRegistry
+import org.dandelion.server.level.LevelRegistry
 import org.dandelion.server.network.packets.cpe.server.ServerExtAddPlayerName
 import org.dandelion.server.network.packets.cpe.server.ServerExtRemovePlayerName
 import org.dandelion.server.permission.PermissionRepository
@@ -49,7 +49,7 @@ object TabList {
             )
 
         val groupRank =
-            if (levelName == Levels.getDefaultLevel()?.id) {
+            if (levelName == LevelRegistry.getDefaultLevel()?.id) {
                 255
             } else {
                 0
@@ -57,7 +57,7 @@ object TabList {
 
         playerNameIds[player.name] = nameId
 
-        Players.getAll().forEach { recipient ->
+        PlayerRegistry.getAll().forEach { recipient ->
             if (recipient.supportsCpe && recipient.supports("ExtPlayerList")) {
                 val sendNameId =
                     if (recipient.name == player.name) 255 else nameId
@@ -81,7 +81,7 @@ object TabList {
         playerNameIds.remove(player.name)
         freeNameId(nameId)
 
-        Players.getAll()
+        PlayerRegistry.getAll()
             .filter { it != player }
             .forEach { recipient ->
                 if (
@@ -110,13 +110,13 @@ object TabList {
             )
 
         val groupRank =
-            if (levelName == Levels.getDefaultLevel()?.id) {
+            if (levelName == LevelRegistry.getDefaultLevel()?.id) {
                 255
             } else {
                 0
             }
 
-        Players.getAll().forEach { recipient ->
+        PlayerRegistry.getAll().forEach { recipient ->
             if (recipient.supportsCpe && recipient.supports("ExtPlayerList")) {
                 val sendNameId =
                     if (recipient.name == player.name) 255 else nameId
@@ -137,7 +137,7 @@ object TabList {
     fun sendFullTabListTo(player: Player) {
         if (!player.supportsCpe || !player.supports("ExtPlayerList")) return
 
-        Players.getAll().forEach { otherPlayer ->
+        PlayerRegistry.getAll().forEach { otherPlayer ->
             val nameId = playerNameIds[otherPlayer.name] ?: return@forEach
 
             val highestGroup =
@@ -155,7 +155,7 @@ object TabList {
                 )
 
             val groupRank =
-                if (levelName == Levels.getDefaultLevel()?.id) {
+                if (levelName == LevelRegistry.getDefaultLevel()?.id) {
                     255
                 } else {
                     0
@@ -176,7 +176,7 @@ object TabList {
     }
 
     fun updateTabListToAll() {
-        Players.getAll()
+        PlayerRegistry.getAll()
             .filter { it.supports("ExtPlayerList") }
             .forEach { player -> sendFullTabListTo(player) }
     }

@@ -1,4 +1,4 @@
-package org.dandelion.server.types.extensions
+package org.dandelion.server.types
 data class Color(val red: Short, val green: Short, val blue: Short) {
     // why this stupid shit uses a short instead of a byte?
     init {

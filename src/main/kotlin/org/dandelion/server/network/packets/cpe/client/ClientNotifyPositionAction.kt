@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.cpe.client
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketReader
 
@@ -25,7 +25,7 @@ class ClientNotifyPositionAction : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.find(channel) ?: return
+        val player = PlayerRegistry.find(channel) ?: return
         player.handleNotifyPositionAction(this)
     }
 }

@@ -7,6 +7,7 @@ import org.dandelion.server.commands.ClientsCommand
 import org.dandelion.server.commands.HelpCommand
 import org.dandelion.server.commands.KickCommand
 import org.dandelion.server.commands.LevelCommand
+import org.dandelion.server.commands.ModelCommand
 import org.dandelion.server.commands.OnlineCommand
 import org.dandelion.server.commands.PermissionCommand
 import org.dandelion.server.commands.PlayerInfoCommand
@@ -42,6 +43,7 @@ object CommandRegistry {
         register(BlockCommand())
         register(TeleportCommand())
         register(ReloadCommand())
+        register(ModelCommand())
     }
 
     @JvmStatic

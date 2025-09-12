@@ -1,6 +1,6 @@
 package org.dandelion.server.particles
 
-import org.dandelion.server.types.extensions.Color
+import org.dandelion.server.types.Color
 
 enum class ExpirationPolicy(val bit: Boolean) {
     EXPIRE_ON_WALL_CEILING_ONLY(false),

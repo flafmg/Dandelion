@@ -19,7 +19,7 @@ import org.dandelion.server.level.Level
 import org.dandelion.server.server.Console
 import org.dandelion.server.types.Position
 import org.dandelion.server.types.enums.LightingMode
-import org.dandelion.server.types.extensions.Color
+import org.dandelion.server.types.Color
 import org.dandelion.server.types.vec.SVec
 
 class ClassicWorldLevelSerializer : LevelSerializer {

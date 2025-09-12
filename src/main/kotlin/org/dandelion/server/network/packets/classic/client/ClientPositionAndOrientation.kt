@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.classic.client
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketReader
 
@@ -21,12 +21,12 @@ class ClientPositionAndOrientation : Packet() {
     override fun decode(data: ByteArray, channel: Channel) {
         val reader = PacketReader(data)
 
-        if (Players.supports(channel, "ExtendedBlocks")) {
+        if (PlayerRegistry.supports(channel, "ExtendedBlocks")) {
             heldBlock = reader.readUShort()
         } else {
             heldBlock = reader.readByte().toUShort()
         }
-        if (Players.supports(channel, "ExtEntityPositions")) {
+        if (PlayerRegistry.supports(channel, "ExtEntityPositions")) {
             x = reader.readFloat()
             y = reader.readFloat()
             z = reader.readFloat()
@@ -40,7 +40,7 @@ class ClientPositionAndOrientation : Packet() {
     }
 
     override fun resolve(channel: Channel) {
-        val player = Players.find(channel)
+        val player = PlayerRegistry.find(channel)
         player?.updatePositionAndOrientation(
             x,
             y,

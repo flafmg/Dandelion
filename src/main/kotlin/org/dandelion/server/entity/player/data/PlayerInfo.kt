@@ -1,6 +1,6 @@
 package org.dandelion.server.entity.player.data
 
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import java.util.Date
 
 class PlayerInfo(
@@ -65,7 +65,7 @@ class PlayerInfo(
     }
 
     private fun isOnline(): Boolean {
-        return Players.find(name) != null
+        return PlayerRegistry.find(name) != null
     }
 
     fun getSummary(): String = buildString {

@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.classic.server
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketWriter
 
@@ -21,7 +21,7 @@ class ServerSetBlock(
         writer.writeShort(x)
         writer.writeShort(y)
         writer.writeShort(z)
-        if (Players.supports(channel, "ExtendedBlocks")) {
+        if (PlayerRegistry.supports(channel, "ExtendedBlocks")) {
             writer.writeUShort(blockType)
         } else {
             writer.writeByte((blockType and 0xFFu).toByte())

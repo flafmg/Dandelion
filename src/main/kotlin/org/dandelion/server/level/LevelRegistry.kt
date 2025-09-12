@@ -11,7 +11,7 @@ import org.dandelion.server.server.data.ServerConfig
 import org.dandelion.server.types.Position
 import org.dandelion.server.types.vec.SVec
 
-object Levels {
+object LevelRegistry {
     private val levels = HashMap<String, Level>()
     var defaultLevelId: String
         get() = ServerConfig.defaultLevel

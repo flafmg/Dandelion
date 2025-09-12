@@ -9,14 +9,14 @@ import org.dandelion.server.commands.annotations.RequirePermission
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
 import org.dandelion.server.entity.player.Player
-import org.dandelion.server.entity.player.Players
-import org.dandelion.server.level.Levels
+import org.dandelion.server.entity.player.PlayerRegistry
+import org.dandelion.server.level.LevelRegistry
 import org.dandelion.server.level.generator.GeneratorRegistry
 import org.dandelion.server.server.Console
 import org.dandelion.server.server.data.MessageRegistry
 import org.dandelion.server.types.Position
 import org.dandelion.server.types.enums.LightingMode
-import org.dandelion.server.types.extensions.Color
+import org.dandelion.server.types.Color
 import org.dandelion.server.types.vec.SVec
 
 @CommandDef(
@@ -87,7 +87,7 @@ class LevelCommand : Command {
         val size = SVec(sizeX.toShort(), sizeY.toShort(), sizeZ.toShort())
 
         val level =
-            Levels.createLevel(id, author, "", size, spawn, generator, params)
+            LevelRegistry.createLevel(id, author, "", size, spawn, generator, params)
         if (level != null) {
             MessageRegistry.Commands.Level.Create.sendSuccess(executor, id)
         } else {
@@ -109,7 +109,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[0]
-        if (Levels.loadLevel(levelId)) {
+        if (LevelRegistry.loadLevel(levelId)) {
             MessageRegistry.Commands.Level.Load.sendSuccess(executor, levelId)
         } else {
             MessageRegistry.Commands.Level.Load.sendFailed(executor, levelId)
@@ -130,7 +130,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[0]
-        if (Levels.unloadLevel(levelId)) {
+        if (LevelRegistry.unloadLevel(levelId)) {
             MessageRegistry.Commands.Level.Unload.sendSuccess(executor, levelId)
         } else {
             MessageRegistry.Commands.Level.Unload.sendFailed(executor, levelId)
@@ -170,14 +170,14 @@ class LevelCommand : Command {
             return
         }
 
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
         }
 
         level.kickAllPlayers("Level is being deleted")
-        if (Levels.unloadLevel(levelId)) {
+        if (LevelRegistry.unloadLevel(levelId)) {
             val file = java.io.File("levels/$levelId.dlvl")
             if (file.exists() && file.delete()) {
                 MessageRegistry.Commands.Level.Delete.sendSuccess(
@@ -202,7 +202,7 @@ class LevelCommand : Command {
     @RequirePermission("dandelion.command.level.info")
     @ArgRange(max = 1)
     fun listLevels(executor: CommandExecutor, args: Array<String>) {
-        val levels = Levels.getAllLevels()
+        val levels = LevelRegistry.getAllLevels()
         if (levels.isEmpty()) {
             MessageRegistry.Commands.Level.List.sendNoLevels(executor)
             return
@@ -254,7 +254,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[0]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -306,7 +306,7 @@ class LevelCommand : Command {
     )
     @RequirePermission("dandelion.command.level.info")
     fun levelStats(executor: CommandExecutor, args: Array<String>) {
-        val stats = Levels.getLevelStatistics()
+        val stats = LevelRegistry.getLevelStatistics()
         MessageRegistry.Commands.Level.Stats.sendHeader(executor)
         MessageRegistry.Commands.Level.Stats.sendTotalLevels(
             executor,
@@ -345,7 +345,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[0]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -358,7 +358,7 @@ class LevelCommand : Command {
         val targetPlayer =
             if (args.size > 1) {
                 val playerName = args[1]
-                Players.find(playerName)
+                PlayerRegistry.find(playerName)
                     ?: run {
                         MessageRegistry.Commands.sendPlayerNotFound(
                             executor,
@@ -407,7 +407,7 @@ class LevelCommand : Command {
         val reason =
             if (args.size > 1) args.slice(1 until args.size).joinToString(" ")
             else MessageRegistry.Commands.Level.Kick.getDefaultReason()
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -437,7 +437,7 @@ class LevelCommand : Command {
 
         val fromLevelId = args[0]
         val toLevelId = args[1]
-        if (Levels.redirectAllPlayers(fromLevelId, toLevelId)) {
+        if (LevelRegistry.redirectAllPlayers(fromLevelId, toLevelId)) {
             MessageRegistry.Commands.Level.Redirect.sendSuccess(
                 executor,
                 fromLevelId,
@@ -527,10 +527,10 @@ class LevelCommand : Command {
 
         val target = args[0].lowercase()
         if (target == "all") {
-            Levels.saveAllLevels()
+            LevelRegistry.saveAllLevels()
             MessageRegistry.Commands.Level.Save.sendSuccessAll(executor)
         } else {
-            val level = Levels.getLevel(target)
+            val level = LevelRegistry.getLevel(target)
             if (level == null) {
                 MessageRegistry.Commands.Level.Info.sendNotFound(
                     executor,
@@ -587,7 +587,7 @@ class LevelCommand : Command {
             return
         }
 
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -596,7 +596,7 @@ class LevelCommand : Command {
         level.kickAllPlayers(
             MessageRegistry.Commands.Level.Reload.getKickMessage()
         )
-        if (Levels.unloadLevel(levelId) && Levels.loadLevel(levelId)) {
+        if (LevelRegistry.unloadLevel(levelId) && LevelRegistry.loadLevel(levelId)) {
             MessageRegistry.Commands.Level.Reload.sendSuccess(executor, levelId)
         } else {
             MessageRegistry.Commands.Level.Reload.sendFailed(executor, levelId)
@@ -644,7 +644,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -693,7 +693,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -736,13 +736,13 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
         }
 
-        Levels.setDefaultLevel(levelId)
+        LevelRegistry.setDefaultLevel(levelId)
         MessageRegistry.Commands.Level.Set.Default.sendSuccess(
             executor,
             levelId,
@@ -759,7 +759,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -784,7 +784,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -816,7 +816,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -856,7 +856,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -906,7 +906,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -956,7 +956,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -1029,7 +1029,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -1079,7 +1079,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -1109,7 +1109,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -1139,7 +1139,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return
@@ -1314,7 +1314,7 @@ class LevelCommand : Command {
         }
 
         val levelId = args[1]
-        val level = Levels.getLevel(levelId)
+        val level = LevelRegistry.getLevel(levelId)
         if (level == null) {
             MessageRegistry.Commands.Level.Info.sendNotFound(executor, levelId)
             return

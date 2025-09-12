@@ -3,7 +3,7 @@ import org.dandelion.server.commands.annotations.OnExecute
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
 import org.dandelion.server.entity.player.Player
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.server.data.MessageRegistry
 import org.dandelion.server.types.Position
 
@@ -81,7 +81,7 @@ class TeleportCommand : Command {
     ) {
         if (executor !is Player) return
 
-        val target = Players.find(targetPlayerName)
+        val target = PlayerRegistry.find(targetPlayerName)
         if (target == null) {
             MessageRegistry.Commands.sendPlayerNotFound(executor, targetPlayerName)
             return
@@ -96,8 +96,8 @@ class TeleportCommand : Command {
         playerName: String,
         targetPlayerName: String,
     ) {
-        val origin = Players.find(playerName)
-        val target = Players.find(targetPlayerName)
+        val origin = PlayerRegistry.find(playerName)
+        val target = PlayerRegistry.find(targetPlayerName)
         if (origin == null) {
             MessageRegistry.Commands.sendPlayerNotFound(executor, playerName)
             return
@@ -130,7 +130,7 @@ class TeleportCommand : Command {
         y: Float,
         z: Float,
     ) {
-        val origin = Players.find(playerName)
+        val origin = PlayerRegistry.find(playerName)
         if (origin == null) {
             MessageRegistry.Commands.sendPlayerNotFound(executor, playerName)
             return

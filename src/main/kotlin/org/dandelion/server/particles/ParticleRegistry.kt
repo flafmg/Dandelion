@@ -1,7 +1,7 @@
 package org.dandelion.server.particles
 
 import org.dandelion.server.entity.player.Player
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.cpe.server.ServerDefineEffect
 import org.dandelion.server.network.packets.cpe.server.ServerSpawnEffect
 import org.dandelion.server.types.Position
@@ -73,7 +73,7 @@ object ParticleRegistry {
             fullBright = fullBright,
         )
 
-        Players.getAll().forEach { packet.send(it) }
+        PlayerRegistry.getAll().forEach { packet.send(it) }
     }
 
     @JvmStatic

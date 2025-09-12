@@ -1,6 +1,5 @@
-package org.dandelion.server.types.extensions
+package org.dandelion.server.types
 
-import org.dandelion.server.types.Position
 import org.dandelion.server.types.vec.IVec
 
 data class SelectionCuboid(

@@ -14,7 +14,7 @@ import org.dandelion.server.commands.annotations.OnSubCommand
 import org.dandelion.server.commands.annotations.RequirePermission
 import org.dandelion.server.commands.model.Command
 import org.dandelion.server.commands.model.CommandExecutor
-import org.dandelion.server.level.Levels
+import org.dandelion.server.level.LevelRegistry
 import org.dandelion.server.server.Console
 import org.dandelion.server.server.data.MessageRegistry
 
@@ -48,7 +48,7 @@ class BlockCommand : Command {
                     )
                 }
                 else -> {
-                    if (Levels.getLevel(target) == null) {
+                    if (LevelRegistry.getLevel(target) == null) {
                         MessageRegistry.Commands.Block.sendLevelNotFound(
                             executor,
                             target,
@@ -87,7 +87,7 @@ class BlockCommand : Command {
                 "global" -> BlockRegistry.get(blockId)
                 "all" -> BlockRegistry.get(blockId)
                 else -> {
-                    val level = Levels.getLevel(target)
+                    val level = LevelRegistry.getLevel(target)
                     if (level == null) {
                         MessageRegistry.Commands.Block.sendLevelNotFound(
                             executor,
@@ -132,7 +132,7 @@ class BlockCommand : Command {
 
         val level =
             if (target != "global") {
-                val lvl = Levels.getLevel(target)
+                val lvl = LevelRegistry.getLevel(target)
                 if (lvl == null) {
                     MessageRegistry.Commands.Block.sendLevelNotFound(
                         executor,
@@ -251,7 +251,7 @@ class BlockCommand : Command {
 
         val level =
             if (target != "global") {
-                val lvl = Levels.getLevel(target)
+                val lvl = LevelRegistry.getLevel(target)
                 if (lvl == null) {
                     MessageRegistry.Commands.Block.sendLevelNotFound(
                         executor,
@@ -342,7 +342,7 @@ class BlockCommand : Command {
 
         val level =
             if (target != "global") {
-                val lvl = Levels.getLevel(target)
+                val lvl = LevelRegistry.getLevel(target)
                 if (lvl == null) {
                     MessageRegistry.Commands.Block.sendLevelNotFound(
                         executor,
@@ -406,7 +406,7 @@ class BlockCommand : Command {
                     BlockRegistry.getAll()
                 }
                 else -> {
-                    val level = Levels.getLevel(target)
+                    val level = LevelRegistry.getLevel(target)
                     if (level == null) {
                         MessageRegistry.Commands.Block.sendLevelNotFound(
                             executor,
@@ -448,7 +448,7 @@ class BlockCommand : Command {
         try {
             JsonBlockLoader.loadAllBlockDefinitions()
 
-            Levels.getAllPlayers().forEach { player ->
+            LevelRegistry.getAllPlayers().forEach { player ->
                 BlockRegistry.sendBlockDefinitions(player)
             }
 

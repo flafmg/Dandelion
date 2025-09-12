@@ -1,7 +1,7 @@
 package org.dandelion.server.network.packets.cpe.server
 
 import io.netty.channel.Channel
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.stream.PacketWriter
 
@@ -28,7 +28,7 @@ class ServerBulkBlockUpdate(val indices: IntArray, val blocks: UShortArray) :
         }
         writer.writeByteArray(indicesArray, 1024)
 
-        if (!Players.supports(channel, "ExtendedBlocks")) {
+        if (!PlayerRegistry.supports(channel, "ExtendedBlocks")) {
             val blocksArray = ByteArray(256)
             for (i in blocks.indices) {
                 blocksArray[i] = (blocks[i] and 0xFFu).toByte()

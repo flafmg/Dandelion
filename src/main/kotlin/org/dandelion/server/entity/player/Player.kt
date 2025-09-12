@@ -33,7 +33,8 @@ import org.dandelion.server.events.PlayerTexturePromptRespondedEvent
 import org.dandelion.server.events.PlayerThirdPersonChangedEvent
 import org.dandelion.server.events.manager.EventDispatcher
 import org.dandelion.server.level.Level
-import org.dandelion.server.level.Levels
+import org.dandelion.server.level.LevelRegistry
+import org.dandelion.server.models.ModelRegistry
 import org.dandelion.server.network.packets.classic.client.ClientMessage
 import org.dandelion.server.network.packets.classic.server.*
 import org.dandelion.server.network.packets.cpe.client.ClientNotifyAction
@@ -60,8 +61,8 @@ import org.dandelion.server.tablist.TabList
 import org.dandelion.server.types.Position
 import org.dandelion.server.types.enums.MessageType
 import org.dandelion.server.types.enums.MoveMode
-import org.dandelion.server.types.extensions.Color
-import org.dandelion.server.types.extensions.SelectionCuboid
+import org.dandelion.server.types.Color
+import org.dandelion.server.types.SelectionCuboid
 import org.dandelion.server.util.toFShort
 
 class Player(
@@ -204,7 +205,7 @@ class Player(
     // region Player Management
     fun kick(reason: String = "You have been kicked") {
         ServerDisconnectPlayer(reason).send(channel)
-        Players.handleDisconnection(channel)
+        PlayerRegistry.handleDisconnection(channel)
     }
 
     fun ban(reason: String = "No reason provided") {
@@ -243,7 +244,7 @@ class Player(
                     pitch = pitch,
                 )
                 .send(channel)
-            Players.getAll()
+            PlayerRegistry.getAll()
                 .filter { it != this }
                 .forEach {
                     ServerExtEntityTeleport(
@@ -281,7 +282,7 @@ class Player(
                         else this.position.pitch,
                     )
                     .send(channel)
-                Players.getAll()
+                PlayerRegistry.getAll()
                     .filter { it != this }
                     .forEach {
                         ServerSetPositionAndOrientation(
@@ -313,7 +314,7 @@ class Player(
                         else this.position.pitch,
                     )
                     .send(channel)
-                Players.getAll()
+                PlayerRegistry.getAll()
                     .filter { it != this }
                     .forEach {
                         ServerSetPositionAndOrientation(
@@ -724,7 +725,7 @@ class Player(
             return
         }
         this.level = level
-        if (notifyJoin) Players.notifyJoinedLevel(this, level)
+        if (notifyJoin) PlayerRegistry.notifyJoinedLevel(this, level)
 
         BlockRegistry.sendBlockDefinitions(this)
         level.spawnPlayerInLevel(this)
@@ -744,6 +745,7 @@ class Player(
             .send(channel)
 
         level.sendAllCustomData(this)
+        ModelRegistry.sendAllModelsToPlayer(this)
     }
 
     // endregion
@@ -791,7 +793,7 @@ class Player(
 
         when {
             processedMessage.startsWith("/") -> sendCommand(processedMessage)
-            else -> Levels.broadcast(messageFormat)
+            else -> LevelRegistry.broadcast(messageFormat)
         }
     }
 
@@ -1004,20 +1006,20 @@ class Player(
     }
 
     fun setPermission(permission: String, value: Boolean): Boolean =
-        Players.setPermission(this.name, permission, value)
+        PlayerRegistry.setPermission(this.name, permission, value)
 
     override fun hasPermission(permission: String, default: Boolean): Boolean {
-        return Players.hasPermission(name, permission, default)
+        return PlayerRegistry.hasPermission(name, permission, default)
     }
 
     fun addGroup(group: String): Boolean {
-        val result = Players.addGroup(this.name, group)
+        val result = PlayerRegistry.addGroup(this.name, group)
         TabList.updatePlayer(this)
         return result
     }
 
     fun removeGroup(group: String): Boolean {
-        val result = Players.removeGroup(this.name, group)
+        val result = PlayerRegistry.removeGroup(this.name, group)
         TabList.updatePlayer(this)
         return result;
     }
@@ -1460,34 +1462,34 @@ class Player(
     // endRegion
 
     companion object {
-        fun find(name: String): Player? = Players.find(name)
+        fun find(name: String): Player? = PlayerRegistry.find(name)
 
-        fun getAllPlayers(): List<Player> = Players.getAll()
+        fun getAllPlayers(): List<Player> = PlayerRegistry.getAll()
 
-        fun getPlayerCount(): Int = Players.count()
+        fun getPlayerCount(): Int = PlayerRegistry.count()
 
         fun getPermissions(name: String): List<String> =
-            Players.getPermissions(name)
+            PlayerRegistry.getPermissions(name)
 
         fun setPermission(
             name: String,
             permission: String,
             value: Boolean,
-        ): Boolean = Players.setPermission(name, permission, value)
+        ): Boolean = PlayerRegistry.setPermission(name, permission, value)
 
         fun hasPermission(name: String, permission: String): Boolean =
-            Players.hasPermission(name, permission)
+            PlayerRegistry.hasPermission(name, permission)
 
         fun hasPermission(
             name: String,
             permission: String,
             default: Boolean = false,
-        ): Boolean = Players.hasPermission(name, permission, default)
+        ): Boolean = PlayerRegistry.hasPermission(name, permission, default)
 
         fun addGroup(name: String, group: String): Boolean =
-            Players.addGroup(name, group)
+            PlayerRegistry.addGroup(name, group)
 
         fun removeGroup(name: String, group: String): Boolean =
-            Players.removeGroup(name, group)
+            PlayerRegistry.removeGroup(name, group)
     }
 }

@@ -4,7 +4,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import kotlinx.coroutines.*
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.events.HeartbeatSendEvent
 import org.dandelion.server.events.manager.EventDispatcher
 import org.dandelion.server.server.data.ServerConfig
@@ -32,7 +32,7 @@ object Heartbeat {
                 URLEncoder.encode(ServerConfig.name, "UTF-8"),
             )
             .replace("{server-port}", ServerConfig.port.toString())
-            .replace("{players-online}", Players.count().toString())
+            .replace("{players-online}", PlayerRegistry.count().toString())
             .replace("{players-max}", ServerConfig.maxPlayers.toString())
             .replace("{server-public}", ServerConfig.isPublic.toString())
             .replace("{server-salt}", Salt.get())

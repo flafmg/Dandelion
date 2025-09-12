@@ -1,7 +1,7 @@
 package org.dandelion.server.plugins.model
 
 import org.dandelion.server.entity.player.Player
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.cpe.server.ServerPluginMessage
 import java.io.*
 import java.util.jar.JarEntry
@@ -86,7 +86,7 @@ abstract class Plugin {
         if(target != null){
             packet.send(target)
         } else{
-            packet.send(Players.getAll())
+            packet.send(PlayerRegistry.getAll())
         }
     }
 }

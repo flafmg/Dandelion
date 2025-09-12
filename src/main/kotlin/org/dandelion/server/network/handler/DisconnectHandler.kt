@@ -3,7 +3,7 @@ package org.dandelion.server.network.handler
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.server.Console
 
 class DisconnectHandler : ChannelInboundHandlerAdapter() {
@@ -48,21 +48,21 @@ class DisconnectHandler : ChannelInboundHandlerAdapter() {
 
     private fun handleDisconnection(channel: Channel, reason: String) {
         try {
-            val player = Players.find(channel)
+            val player = PlayerRegistry.find(channel)
 
             if (player != null) {
                 Console.debugLog(
                     "Disconnecting player '${player.name}' due to: $reason"
                 )
 
-                Players.handleDisconnection(channel)
+                PlayerRegistry.handleDisconnection(channel)
             } else {
-                val connectingPlayer = Players.getConnecting(channel)
+                val connectingPlayer = PlayerRegistry.getConnecting(channel)
                 if (connectingPlayer != null) {
                     Console.debugLog(
                         "Disconnecting connecting player '${connectingPlayer.name}' due to: $reason"
                     )
-                    Players.handleDisconnection(channel)
+                    PlayerRegistry.handleDisconnection(channel)
                 } else {
                     Console.debugLog(
                         "Disconnecting unregistered client due to: $reason"
@@ -80,7 +80,7 @@ class DisconnectHandler : ChannelInboundHandlerAdapter() {
             Console.warnLog(
                 "Forcing disconnection cleanup for channel: ${channel.id().asShortText()}"
             )
-            Players.handleDisconnection(channel)
+            PlayerRegistry.handleDisconnection(channel)
         } catch (e: Exception) {
             Console.errLog("Even force disconnection failed: ${e.message}")
         }

@@ -4,7 +4,7 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import java.util.concurrent.ConcurrentHashMap
 import org.dandelion.server.entity.player.Player
-import org.dandelion.server.entity.player.Players
+import org.dandelion.server.entity.player.PlayerRegistry
 import org.dandelion.server.network.packets.Packet
 import org.dandelion.server.network.packets.classic.client.ClientIdentification
 import org.dandelion.server.network.packets.classic.client.ClientMessage
@@ -84,6 +84,7 @@ object PacketRegistry {
         addCPE("ExtEntityTeleport")
         addCPE("CustomParticles")
         addCPE("TextHotKey")
+        addCPE("CustomModels", 2)
     }
 
     fun registerPacket(id: Byte, factory: () -> Packet) {
@@ -116,7 +117,7 @@ object PacketRegistry {
         val packet = createPacket(id)
         var packetSize = -1
         if (packet != null) {
-            val player = Players.find(channel)
+            val player = PlayerRegistry.find(channel)
             packetSize = packet.size
             packet.sizeOverrides.forEach { (ext, value) ->
                 if (player?.supports(ext) == true) {
@@ -162,7 +163,7 @@ object PacketRegistry {
 
     internal fun handleCPEHandshake(info: ClientExtInfo, channel: Channel) {
         val count = supportedCPE.size.toShort()
-        val player = Players.getConnecting(channel)
+        val player = PlayerRegistry.getConnecting(channel)
         if (player == null) {
             return
         }
@@ -173,7 +174,7 @@ object PacketRegistry {
 
     // Handles received CPE from player
     internal fun handleCPEEntry(extEntry: ClientExtEntry, channel: Channel) {
-        val player = Players.getConnecting(channel)
+        val player = PlayerRegistry.getConnecting(channel)
         if (player == null) {
             return
         }
@@ -185,7 +186,7 @@ object PacketRegistry {
 
         if (player.getCPE().size.toShort() == player.supportedCpeCount) {
             handleClientPostCPE(player)
-            Players.finalizeHandshake(player)
+            PlayerRegistry.finalizeHandshake(player)
         }
     }
 
