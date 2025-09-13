@@ -1,6 +1,7 @@
 package org.dandelion.server.models
 
 import com.google.gson.JsonObject
+import org.dandelion.server.parsers.AnimationParser
 import org.dandelion.server.types.AnimData
 import org.dandelion.server.types.UVCoords
 import org.dandelion.server.types.vec.FVec
@@ -185,6 +186,23 @@ object BlockBenchParser {
             val facesObject = element.getAsJsonObject("faces")
             val uvCoords = parseFaceUVs(facesObject)
 
+            val elementName = element.get("name")?.asString ?: ""
+            val animResult = AnimationParser.parseAnimations(elementName)
+
+            val animations = animResult.animations.toMutableList()
+            while (animations.size < 4) {
+                animations.add(AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE))
+            }
+
+            var flags = 0u.toUByte()
+            if (animResult.isFullbright) flags = (flags.toInt() or ModelPart.FLAG_FULLBRIGHT.toInt()).toUByte()
+            if (animResult.isHand) flags = (flags.toInt() or ModelPart.FLAG_FIRST_PERSON_ARM.toInt()).toUByte()
+            if (animResult.isLayer) flags = (flags.toInt() or ModelPart.FLAG_LAYER.toInt()).toUByte()
+            if (animResult.isHumanLeftArm) flags = (flags.toInt() or ModelPart.FLAG_SKIN_LEFT_ARM.toInt()).toUByte()
+            if (animResult.isHumanRightArm) flags = (flags.toInt() or ModelPart.FLAG_SKIN_RIGHT_ARM.toInt()).toUByte()
+            if (animResult.isHumanLeftLeg) flags = (flags.toInt() or ModelPart.FLAG_SKIN_LEFT_LEG.toInt()).toUByte()
+            if (animResult.isHumanRightLeg) flags = (flags.toInt() or ModelPart.FLAG_SKIN_RIGHT_LEG.toInt()).toUByte()
+
             ModelPart(
                 minimumCoords = minimumCoords,
                 maximumCoords = maximumCoords,
@@ -196,11 +214,11 @@ object BlockBenchParser {
                 rightFaceUV = uvCoords["east"] ?: getDefaultUV(),
                 rotationOrigin = rotationOrigin,
                 rotationAngles = rotationAngles,
-                animation1 = AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE),
-                animation2 = AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE),
-                animation3 = AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE),
-                animation4 = AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE),
-                flags = 0u
+                animation1 = animations.getOrElse(0) { AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE) },
+                animation2 = animations.getOrElse(1) { AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE) },
+                animation3 = animations.getOrElse(2) { AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE) },
+                animation4 = animations.getOrElse(3) { AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE) },
+                flags = flags
             )
         } catch (e: Exception) {
             null

@@ -6,7 +6,7 @@ import org.dandelion.server.server.Console
 import org.dandelion.server.types.vec.FVec
 import java.io.File
 
-//this model system was based on zoey's
+//this model system was based on zoey's CustomModel system for mcg, my implementation probably isnt perfect but it should be compatible with hers
 
 object ModelRegistry {
     private val models = HashMap<UByte, Model>()

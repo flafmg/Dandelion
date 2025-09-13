@@ -24,9 +24,16 @@ data class ModelPart(
     val animation4: AnimData = AnimData.create(AnimData.AXIS_X, AnimData.TYPE_NONE),
     val flags: UByte = 0u
 ) {
+    //the anim flags
     companion object {
         const val FLAG_FULL_BRIGHT: UByte = 0x01u
         const val FLAG_FIRST_PERSON_ARM: UByte = 0x02u
+        const val FLAG_FULLBRIGHT: UByte = 0x01u
+        const val FLAG_LAYER: UByte = 0x04u
+        const val FLAG_SKIN_LEFT_ARM: UByte = 0x08u
+        const val FLAG_SKIN_RIGHT_ARM: UByte = 0x10u
+        const val FLAG_SKIN_LEFT_LEG: UByte = 0x20u
+        const val FLAG_SKIN_RIGHT_LEG: UByte = 0x40u
     }
 
     override fun toString(): String {
