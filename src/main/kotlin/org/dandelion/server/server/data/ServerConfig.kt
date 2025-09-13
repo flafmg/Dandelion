@@ -10,7 +10,7 @@ import org.dandelion.server.util.YamlConfig
 object ServerConfig {
     private lateinit var config: YamlConfig
 
-    const val dandelionVersion = "0.1.3-Dev"
+    const val dandelionVersion = "0.1.4-Dev"
 
     fun reload() {
         val configFile = File("server.yml")
